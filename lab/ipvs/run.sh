@@ -15,6 +15,7 @@ done
 pids=()
 backend_pids=()
 cleanup() {
+    if [ "${cutover_ns:-0}" = 1 ]; then ip netns del l4-alt || true; fi
     if [ -n "${unitfile:-}" ]; then
         journalctl -u "$unit" --no-pager > "$out/service-journal.txt" || true
         systemctl stop "$unit" || true
@@ -105,6 +106,10 @@ PY
 wait_weight 1
 wait_weight 1 10.0.3.2:8080
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 20000 | tee "$out/healthy.json"
+if [ "${L4LOAD_CUTOVER:-0}" = 1 ]; then
+    source lab/cutover/run.sh
+    exit
+fi
 if [ "${L4LOAD_LOAD:-0}" = 1 ]; then
     for pid in "${backend_pids[@]}"; do kill "$pid"; wait "$pid" || true; done
     bash lab/load/run.sh "$out/load"

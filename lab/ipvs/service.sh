@@ -114,6 +114,10 @@ if [ -f "$out/upgrade.deb" ]; then
         systemctl restart "$unit"
         after_pid=$(systemctl show "$unit" -p MainPID --value)
         test "$after_pid" -gt 1 && test "$after_pid" != "$before_pid"
+        for attempt in $(seq 1 100); do
+            if cmp -s /usr/sbin/keepalived "/proc/$after_pid/exe"; then break; fi
+            sleep 0.05
+        done
         cmp /usr/sbin/keepalived "/proc/$after_pid/exe"
         dpkg-query -W keepalived > "$out/$stage-version.txt"
         /usr/sbin/keepalived --version > "$out/$stage-build.txt" 2>&1

@@ -1,0 +1,33 @@
+name: VIP cutover
+on:
+  pull_request:
+    paths: ['lab/cutover/**', '.github/workflows/cutover.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cutover:
+    strategy:
+      fail-fast: false
+      matrix:
+        sync: [0, 1]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter
+      - run: sudo env L4LOAD_CUTOVER=1 L4LOAD_SYNC=${{ matrix.sync }} bash lab/ipvs/run.sh
+      - if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for p in sorted(Path('lab/results/ipvs').glob('*')):
+              if p.suffix in ('.txt', '.json', '.jsonl', '.conf'):
+                  print('EVIDENCE ' + json.dumps({'file': p.name, 'content': p.read_text()}))
+          PY
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vip-cutover-${{ matrix.sync }}
+          path: lab/results/ipvs
