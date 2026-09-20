@@ -21,6 +21,11 @@ jobs:
           mkdir -p lab/results/ipvs
           cd lab/results/ipvs
           apt-get download "keepalived=$(dpkg-query -W -f='${Version}' keepalived)"
+          curl -fL https://archive.ubuntu.com/ubuntu/pool/main/k/keepalived/keepalived_2.3.2-1_amd64.deb -o upgrade.deb
+          echo '3a989625aa4206c3c0bd4c6a5d8e16dcba1d55e4ba47d3554ce51e86051cc5e3  upgrade.deb' | sha256sum -c -
+          apt-get -s install ./upgrade.deb > upgrade-plan.txt
+          test "$(awk '/^Inst / {print $2}' upgrade-plan.txt)" = keepalived
+          ! grep -q '^Remv ' upgrade-plan.txt
         id: setup
       - run: sudo bash lab/ipvs/run.sh
       - run: sudo bash lab/ipvs/ipv6.sh

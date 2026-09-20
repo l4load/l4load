@@ -95,3 +95,35 @@ if compgen -G "$out/keepalived_*.deb" > /dev/null; then
     systemctl show "$unit" -p ActiveState -p MainPID > "$out/package-service.txt"
     echo PACKAGE_REINSTALL_PASS
 fi
+if [ -f "$out/upgrade.deb" ]; then
+    port=38000
+    for stage in upgrade rollback; do
+        package="$out/upgrade.deb"
+        if [ "$stage" = rollback ]; then
+            package=$(compgen -G "$out/keepalived_*.deb")
+        fi
+        expected=$(dpkg-deb -f "$package" Version)
+        test "$expected" != "$(dpkg-query -W -f='${Version}' keepalived)"
+        before_pid=$(systemctl show "$unit" -p MainPID --value)
+        phase "package-$stage-installing"
+        timeout --kill-after=5s 45s dpkg -i "$package" > "$out/$stage-install.txt" 2>&1
+        test "$(dpkg-query -W -f='${Version}' keepalived)" = "$expected"
+        test "$(systemctl is-enabled keepalived.service)" = masked
+        test "$(systemctl show keepalived.service -p MainPID --value)" = 0
+        test "$(systemctl show "$unit" -p MainPID --value)" = "$before_pid"
+        systemctl restart "$unit"
+        after_pid=$(systemctl show "$unit" -p MainPID --value)
+        test "$after_pid" -gt 1 && test "$after_pid" != "$before_pid"
+        cmp /usr/sbin/keepalived "/proc/$after_pid/exe"
+        dpkg-query -W keepalived > "$out/$stage-version.txt"
+        /usr/sbin/keepalived --version > "$out/$stage-build.txt" 2>&1
+        wait_weight 1
+        wait_weight 1 10.0.3.2:8080
+        phase "package-$stage-restarted"
+        ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 "$port" | tee "$out/$stage-flows.json"
+        port=$((port + 1000))
+    done
+    dpkg-query -W keepalived > "$out/rollback-after.txt"
+    cmp "$out/package-before.txt" "$out/rollback-after.txt"
+    echo PACKAGE_UPGRADE_ROLLBACK_PASS
+fi
