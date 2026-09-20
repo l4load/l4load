@@ -15,8 +15,10 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y keepalived ipvsadm
       - run: sudo systemctl stop keepalived
+        id: setup
       - run: sudo bash lab/ipvs/run.sh
       - run: sudo bash lab/ipvs/ipv6.sh
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
       - name: Preserve diagnostic evidence in the job log
         if: always()
         run: |
