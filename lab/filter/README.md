@@ -9,6 +9,11 @@ unaffected traffic from another source, rejection of an invalid transaction,
 expiry without a controller and table removal. `FILTER_LIFECYCLE_PASS` requires
 all checks; results are in `lab/results/ipvs`.
 
+[The nftables trial passed](https://github.com/l4load/l4load/actions/runs/36172967453).
+[YANET passed the same deny/allow probes](https://github.com/l4load/l4load/actions/runs/36174467560),
+including rejected reload and explicit rollback. Only nftables expiry was tested;
+these results establish neither equivalent full features nor a performance winner.
+
 This is an experiment, not a Shield release. Prefixes, IPv6, fragments, tenant
 isolation, reboot persistence, overload and comparison with YANET are unqualified.
 Do not infer DDoS capacity from a short connectivity test.

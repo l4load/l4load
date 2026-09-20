@@ -53,6 +53,11 @@ passed two reboots with automatic service startup and 64 fresh TCP/UDP flows
 after each boot. It used software emulation and an explicitly ordered synthetic
 network service. Physical network startup, automatic failover and performance
 remain unqualified.</p>
+<p>The operator recipe and both installation labs now use one fresh-install script.
+<a href="https://github.com/l4load/l4load/actions/runs/36172669218">Rejected installations</a>
+preserved the existing configuration; the shared recipe also passed
+<a href="https://github.com/l4load/l4load/actions/runs/36172669086">two VM reboots</a>
+and 64 TCP/UDP flows after each. Independent operator acceptance remains open.</p>
 <p>A separate <a href="https://github.com/l4load/l4load/actions/runs/36165653126">package upgrade and rollback trial</a>
 passed Keepalived 2.2.8 → 2.3.2 → 2.2.8 with gated restarts, fresh TCP/UDP flows
 and two retained TCP sessions carrying 913 exchanges each over 46.1 seconds.
@@ -66,6 +71,13 @@ trial. IPv6 reload, restart and sustained traffic remain unqualified.</p>
 <p>The packaged node_exporter IPVS collector correctly exposed backend weights
 through health exclusion and recovery. Retention and alerts remain unqualified.</p>
 <h2>Check applied state.</h2>
+<p>Native <a href="https://github.com/l4load/l4load/actions/runs/36172967453">nftables</a>
+and <a href="https://github.com/l4load/l4load/actions/runs/36174467560">YANET</a>
+passed short IPv4 source/VIP filtering trials: deny one source, keep another
+working, reject an invalid update and restore forwarding. The nftables rule
+also expired without a controller; YANET removal was explicit.
+Overload protection, filtering throughput and feature parity are not established.
+<a href="https://github.com/l4load/l4load/tree/main/lab/filter">Reproduce the filter trial ↗</a></p>
 <p>In an isolated Katran test, freezing a kernel map caused a backend update to return success
 while the kernel ring stayed unchanged. This artificial permanent-write failure does not establish
 production incidence; it shows why an API acknowledgement alone is insufficient.</p>

@@ -53,7 +53,8 @@ recorded. Jumbo frames, capacity and hardware performance remain unqualified.
 `L4LOAD_FILTER=1` with `af-packet` selects the firewall trial. It uses the same
 TCP/UDP source/VIP probes as `lab/filter`: baseline, deny one source, reject an
 invalid reload while retaining the prior policy, and restore forwarding.
-`YANET_FILTER_PASS` requires every check. Execution is not yet qualified.
+`YANET_FILTER_PASS` requires every check.
+[The trial passed](https://github.com/l4load/l4load/actions/runs/36174467560).
 This compares short forwarding outcomes, not throughput or update atomicity
 under concurrent traffic. Autonomous rule expiry is tested only for nftables;
 the YANET trial removes its rule explicitly and makes no expiry claim.
