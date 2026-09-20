@@ -59,10 +59,17 @@ production incidence; it shows why an API acknowledgement alone is insufficient.
 <p>The YANET baseline passed 32 TCP and 32 UDP exchanges through two IPIP backends,
 four upstream suites and five extra reload repetitions. It uses the existing
 <a href="https://github.com/yanet-platform/yanet/pull/335">upstream neighbor fix by ezhk</a>.
-The socket/TAP path checks correctness, not competitive throughput.
+The <a href="https://github.com/l4load/l4load/actions/runs/36148196614">native AF_PACKET trial</a>
+also passed, using MTU 1500 and software-completed virtual-port checksums.
+These are correctness checks, not competitive throughput measurements.
 <a href="https://github.com/l4load/l4load/actions/runs/36146170902">Verified execution ↗</a></p>
 <p>Our target is strong performance with fewer deployment dependencies. No competitive
 comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>
+<p><a href="https://github.com/l4load/l4load/actions/runs/36150467534">IPVS and Katran load-tool qualification</a>
+completed 24 short TCP/UDP trials on one runner without reported message loss.
+The shared sockperf scenario records full RTT and actual message rates.
+Fixed engine order, unpinned CPUs and single-flow traffic prevent a capacity or
+performance ranking. <a href="https://github.com/l4load/l4load/tree/main/lab/load">Run the load scenario ↗</a></p>
 <a href="https://github.com/l4load/l4load/blob/main/docs/benchmarks.md">Comparison criteria ↗</a>
 <h2>Know the limits.</h2>
 <p>The Katran scenario does not yet qualify backend changes, failover, IPv6 or physical NICs.
