@@ -125,6 +125,9 @@ if [ "$mode" = af-packet ] && [ "${L4LOAD_LOAD:-0}" != 1 ]; then
     sleep 0.2
 fi
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 20000 | tee "$out/healthy.json"
+if [ "${L4LOAD_FILTER:-0}" = 1 ]; then
+    source lab/yanet/filter.sh
+fi
 if [ "${L4LOAD_LOAD:-0}" = 1 ]; then
     test "$mode" = af-packet
     for pid in "${backend_pids[@]}"; do kill "$pid"; wait "$pid" || true; done

@@ -49,3 +49,16 @@ TCP checksums survive encapsulation and the first connection times out.
 32 TCP and 32 UDP exchanges with source/payload preserved, all four upstream
 suites and five reload repetitions. Feature settings and the build diff are
 recorded. Jumbo frames, capacity and hardware performance remain unqualified.
+
+`L4LOAD_FILTER=1` with `af-packet` selects the firewall trial. It uses the same
+TCP/UDP source/VIP probes as `lab/filter`: baseline, deny one source, reject an
+invalid reload while retaining the prior policy, and restore forwarding.
+`YANET_FILTER_PASS` requires every check. Execution is not yet qualified.
+This compares short forwarding outcomes, not throughput or update atomicity
+under concurrent traffic. Autonomous rule expiry is tested only for nftables;
+the YANET trial removes its rule explicitly and makes no expiry claim.
+
+Normal CI runs forwarding, firewall and upstream reload checks. Repeat the
+three-engine CPU-placement experiment through the workflow's
+`workload_placement` input when its code, environment or hypothesis changes;
+routine edits do not rerun that completed experiment.

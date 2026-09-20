@@ -1,8 +1,13 @@
 name: YANET baseline
 on:
   push:
-    paths: ['lab/yanet/**', '!lab/yanet/**/*.md', 'lab/ipvs/run.sh', 'lab/katran/run.sh', 'lab/katran/scenario.py', 'lab/load/**', '!lab/load/**/*.md', '.github/workflows/yanet.yml']
+    paths: ['lab/yanet/**', '!lab/yanet/**/*.md', 'lab/filter/**', '!lab/filter/**/*.md', 'lab/ipvs/run.sh', 'lab/katran/run.sh', 'lab/katran/scenario.py', 'lab/load/**', '!lab/load/**/*.md', '.github/workflows/yanet.yml']
   workflow_dispatch:
+    inputs:
+      workload_placement:
+        description: Repeat the three-engine CPU-placement experiment
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -66,8 +71,11 @@ jobs:
       - name: Check live DSR forwarding
         timeout-minutes: 5
         run: unshare --ipc bash lab/yanet/run.sh upstream/yanet
+      - name: Check native firewall lifecycle
+        timeout-minutes: 5
+        run: L4LOAD_FILTER=1 L4LOAD_TRIAL=filter unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet
       - name: Compare workload placement
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.workload_placement }}
         timeout-minutes: 25
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
