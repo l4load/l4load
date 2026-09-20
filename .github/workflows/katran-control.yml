@@ -18,7 +18,7 @@ jobs:
           repository: facebookincubator/katran
           ref: 4546144594d11d7bf342d008e7b94922fc9bbaa3
           path: upstream/katran
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
         with:
           path: /home/runner/katran-getdeps
           key: katran-control-ubuntu24-45461445-v1-${{ github.sha }}
@@ -60,3 +60,8 @@ jobs:
           name: katran-control
           path: lab/results/katran-control
           if-no-files-found: warn
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: /home/runner/katran-getdeps
+          key: katran-control-ubuntu24-45461445-v1-${{ github.sha }}
