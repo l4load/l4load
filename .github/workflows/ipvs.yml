@@ -14,8 +14,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y keepalived ipvsadm
-      - run: sudo systemctl stop keepalived
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter
+      - run: sudo systemctl stop keepalived prometheus-node-exporter
         id: setup
       - run: sudo bash lab/ipvs/run.sh
       - run: sudo bash lab/ipvs/ipv6.sh
