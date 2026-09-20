@@ -65,7 +65,7 @@ yanet-dataplane -c "$out/dataplane.conf" > "$out/dataplane.log" 2>&1 &
 pids+=("$!")
 wait_app() {
     for attempt in $(seq 1 30); do
-        if timeout --kill-after=1s 2s yanet-cli version 2>/dev/null | grep -q "$1"; then return; fi
+        if timeout --kill-after=1s 2s yanet-cli version 2>/dev/null | grep -Eq "^[[:space:]]*$1[[:space:]]+[0-9]+"; then return; fi
         sleep 1
     done
     cat "$out/dataplane.log" "$out/controlplane.log" 2>/dev/null || true
