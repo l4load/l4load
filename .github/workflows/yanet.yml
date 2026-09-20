@@ -11,6 +11,8 @@ jobs:
     timeout-minutes: 60
     container:
       image: yanetplatform/builder-lite@sha256:e37933067f57fc5025df09cd329bf494d97d5d866be31acfb022e9721a6758c8
+    env:
+      CCACHE_DIR: /tmp/l4load-ccache
     defaults:
       run:
         shell: bash
@@ -22,7 +24,13 @@ jobs:
           ref: 6b30c2f376c5148a661eadb57fd316d3b453e085
           submodules: recursive
           path: upstream/yanet
-      - run: apt-get update && apt-get install -y cmake
+      - uses: actions/cache/restore@v4
+        with:
+          path: /tmp/l4load-ccache
+          key: yanet-6b30c2f-builder-e379330-v1-${{ github.sha }}
+          restore-keys: yanet-6b30c2f-builder-e379330-v1-
+      - run: apt-get update && apt-get install -y cmake ccache
+      - run: ccache --max-size=2G
       - name: Record environment
         run: |
           mkdir -p lab/results/yanet
@@ -36,7 +44,7 @@ jobs:
       - name: Build upstream autotest
         run: |
           cd upstream/yanet
-          meson setup --prefix=/target -Dtarget=autotest -Dstrip=true -Db_lto=false build_autotest 2>&1 | tee ../../lab/results/yanet/configure.log
+          CC="ccache gcc" CXX="ccache g++" meson setup --prefix=/target -Dtarget=autotest -Dstrip=true -Db_lto=false build_autotest 2>&1 | tee ../../lab/results/yanet/configure.log
           meson compile -C build_autotest -j 2 2>&1 | tee ../../lab/results/yanet/build.log
       - name: Exercise public balancer cases
         run: |
@@ -56,3 +64,8 @@ jobs:
             lab/results/yanet
             upstream/yanet/build_autotest/meson-logs
           if-no-files-found: warn
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: /tmp/l4load-ccache
+          key: yanet-6b30c2f-builder-e379330-v1-${{ github.sha }}

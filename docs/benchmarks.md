@@ -1,7 +1,7 @@
 # Comparisons
 
-No competitive measurements have run. Balance lab is a TCP correctness reference;
-comparing its throughput directly with a DSR forwarder would be misleading.
+No competitive measurements have run. Existing trials qualify functional
+behaviour; they do not establish throughput or latency advantages.
 
 Targets: public [YANET](https://github.com/yanet-platform/yanet) for Balance and
 Shield, [Katran](https://github.com/facebookincubator/katran) for XDP/DSR Balance.

@@ -21,6 +21,7 @@ modprobe ip_vs_rr
 modprobe ipip
 uname -a > "$out/kernel.txt"
 dpkg-query -W keepalived ipvsadm > "$out/packages.txt"
+cat "$out/packages.txt" "$out/kernel.txt"
 date -u +%FT%TZ > "$out/started.txt"
 git rev-parse HEAD > "$out/source.txt"
 for ns in l4-client l4-router l4-lb l4-b1 l4-b2; do
@@ -55,7 +56,9 @@ done
 ip -n l4-lb addr add 198.18.0.1/32 dev lo
 ip netns exec l4-lb sysctl -qw net.ipv4.ip_forward=1
 start_health() {
-    ip netns exec "l4-b$1" python3 -m http.server 9090 --bind "10.0.$(($1+1)).2" > "$out/health$1.log" 2>&1 &
+    mkdir -p "$out/health$1"
+    echo healthy > "$out/health$1/health"
+    ip netns exec "l4-b$1" python3 -m http.server 9090 --directory "$out/health$1" --bind "10.0.$(($1+1)).2" > "$out/health$1.log" 2>&1 &
     health_pid=$!
     pids+=("$health_pid")
 }
@@ -76,7 +79,11 @@ CONF
     real_server 10.0.$((n+1)).2 8080 {
         weight 1
         inhibit_on_failure
-        TCP_CHECK {
+        HTTP_GET {
+            url {
+                path /health
+                status_code 200
+            }
             connect_port 9090
             connect_timeout 1
             retry 1
@@ -87,16 +94,19 @@ CONF
     done
     echo '}'
 done > "$out/keepalived.conf"
-ip netns exec l4-lb keepalived -n -l -C -f "$out/keepalived.conf" > "$out/keepalived.log" 2>&1 &
-controller=$!
-pids+=("$controller")
+start_controller() {
+    ip netns exec l4-lb keepalived -n -l -C -I -f "$out/keepalived.conf" >> "$out/keepalived.log" 2>&1 &
+    controller=$!
+    pids+=("$controller")
+}
+start_controller
 wait_weight() {
     for attempt in $(seq 1 15); do
         ip netns exec l4-lb ipvsadm -Sn > "$out/state.txt"
-        if python3 - "$out/state.txt" "$1" <<'PY'
+        if python3 - "$out/state.txt" "$1" "${2:-10.0.2.2:8080}" <<'PY'
 import sys
 rows=[x.split() for x in open(sys.argv[1]) if x.startswith('-a ')]
-matched=[x for x in rows if x[x.index('-r')+1]=='10.0.2.2:8080' and x[x.index('-w')+1]==sys.argv[2]]
+matched=[x for x in rows if x[x.index('-r')+1]==sys.argv[3] and x[x.index('-w')+1]==sys.argv[2]]
 sys.exit(0 if len(matched)==2 else 1)
 PY
         then return; fi
@@ -133,10 +143,19 @@ phase health-down
 cp "$out/state.txt" "$out/down-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 21000 | tee "$out/down.json"
 start_health 1
+first_health=$health_pid
 wait_weight 1
 cp "$out/state.txt" "$out/recovered-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 22000 | tee "$out/recovered.json"
 phase recovered
+rm "$out/health1/health"
+wait_weight 0
+phase http-unhealthy
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 27000 | tee "$out/http-unhealthy.json"
+echo healthy > "$out/health1/health"
+wait_weight 1
+phase http-recovered
+ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 28000 | tee "$out/http-recovered.json"
 cp "$out/keepalived.conf" "$out/original.conf"
 python3 - "$out/keepalived.conf" <<'PYCONFIG'
 import sys
@@ -154,6 +173,28 @@ kill -HUP "$controller"
 wait_weight 1
 phase restored
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 24000 | tee "$out/restored.json"
+kill -TERM "$controller"
+wait "$controller"
+phase controller-stopped
+kill "$first_health"
+wait "$first_health" 2>/dev/null || true
+sleep 3
+wait_weight 1
+cp "$out/state.txt" "$out/controller-stopped-state.txt"
+ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 25000 | tee "$out/controller-stopped.json"
+for proto in t u; do
+    for backend in 10.0.2.2 10.0.3.2; do
+        ip netns exec l4-lb ipvsadm -e "-$proto" 198.18.0.1:8080 -r "$backend:8080" -i -w 0
+    done
+done
+phase restart-gated
+start_controller
+wait_weight 0
+wait_weight 1 10.0.3.2:8080
+phase controller-restarted
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 26000 | tee "$out/controller-restarted.json"
+start_health 1
+wait_weight 1
 phase done
 wait "$session_pid"
 cat "$out/sessions.jsonl"
