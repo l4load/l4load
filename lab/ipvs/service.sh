@@ -65,3 +65,33 @@ done
 cmp "$out/original.conf" /etc/l4load/ipvs.conf
 systemctl cat "$unit" > "$out/installed-service.txt"
 echo INSTALLED_SERVICE_PASS
+if compgen -G "$out/keepalived_*.deb" > /dev/null; then
+    test "$(systemctl is-enabled keepalived.service)" = masked
+    before_pid=$(systemctl show "$unit" -p MainPID --value)
+    dpkg-query -W keepalived > "$out/package-before.txt"
+    sha256sum "$out"/keepalived_*.deb > "$out/package-sha256.txt"
+    phase package-reinstalling
+    timeout --kill-after=5s 45s dpkg -i "$out"/keepalived_*.deb > "$out/package-install.txt" 2>&1
+    dpkg-query -W keepalived > "$out/package-after.txt"
+    cmp "$out/package-before.txt" "$out/package-after.txt"
+    test "$(systemctl is-enabled keepalived.service)" = masked
+    if systemctl start keepalived.service; then
+        echo 'packaged controller started'
+        exit 1
+    fi
+    test "$(systemctl show keepalived.service -p MainPID --value)" = 0
+    test "$(systemctl show "$unit" -p MainPID --value)" = "$before_pid"
+    wait_weight 1
+    wait_weight 1 10.0.3.2:8080
+    phase package-reinstalled
+    ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 36000 | tee "$out/package-reinstalled.json"
+    systemctl restart "$unit"
+    after_pid=$(systemctl show "$unit" -p MainPID --value)
+    test "$after_pid" -gt 1 && test "$after_pid" != "$before_pid"
+    wait_weight 1
+    wait_weight 1 10.0.3.2:8080
+    phase package-restarted
+    ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 37000 | tee "$out/package-restarted.json"
+    systemctl show "$unit" -p ActiveState -p MainPID > "$out/package-service.txt"
+    echo PACKAGE_REINSTALL_PASS
+fi

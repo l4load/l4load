@@ -15,7 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter
-      - run: sudo systemctl stop keepalived prometheus-node-exporter
+      - run: |
+          sudo systemctl mask --now keepalived
+          sudo systemctl stop prometheus-node-exporter
+          mkdir -p lab/results/ipvs
+          cd lab/results/ipvs
+          apt-get download "keepalived=$(dpkg-query -W -f='${Version}' keepalived)"
         id: setup
       - run: sudo bash lab/ipvs/run.sh
       - run: sudo bash lab/ipvs/ipv6.sh
