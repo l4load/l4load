@@ -14,7 +14,7 @@ to backend 2, then restore both backends after health recovery.
 
 Kernel table snapshots, package versions, daemon logs and results are retained.
 This is functional lifecycle coverage, not a throughput comparison or production
-qualification. Controller failure, invalid configuration, IPv6 and HA remain untested. All namespaces/processes created by the test are cleaned up.
+qualification. Abrupt controller failure, invalid configuration, IPv6 and HA remain untested. All namespaces/processes created by the test are cleaned up.
 
 [First verified run](https://github.com/l4load/l4load/actions/runs/36128690604/job/108050671742),
 2026-09-25: all 192 exchanges passed. Healthy and recovered phases each split
@@ -26,3 +26,15 @@ Every response preserved client IP and payload. Counts demonstrate coverage only
 connections retained their backend and exchanged payloads after each transition,
 including weight-zero reload and rollback. This checks two connections over a
 short interval, not sustained traffic or arbitrary configuration changes.
+
+[Restart trial](https://github.com/l4load/l4load/actions/runs/36130540624/job/108056535442):
+448 fresh exchanges and two persistent TCP sessions passed. `-I` preserves the
+IPVS table during a graceful controller stop, but health decisions become stale.
+A direct restart with retained destinations failed to exclude a backend whose
+health endpoint stopped during the outage ([failed run](https://github.com/l4load/l4load/actions/runs/36130108789)).
+
+The tested recovery sets all four retained destination weights to zero before
+starting Keepalived and waits for healthy backend weights to return. Existing
+sessions survive; new flows have no eligible backend during that gate. This is
+a bounded synthetic recipe, not seamless restart or a general reconciliation
+service. Health checks cannot protect traffic while the controller is stopped.
