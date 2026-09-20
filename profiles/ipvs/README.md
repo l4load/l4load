@@ -38,7 +38,7 @@ ipvsadm `1:1.31-1ubuntu0.1`; every run records its actual kernel and versions.
 A systemd unit with `Restart=on-failure` and the zero-weight startup gate passed
 automatic recovery after main-process SIGKILL, with retained sessions and
 healthy-only new flows. Startup from an empty IPVS table also passed, with the
-network and packages already configured. Reboot, package upgrades, HA, capacity
+network and packages already configured. Reboot, supported distribution upgrades, HA, capacity
 and a real operator's acceptance remain open. This is not a production release.
 
 ## Installed service
@@ -75,8 +75,8 @@ validate the chosen file, install it as `/etc/l4load/next.conf`, rename it to
 `/etc/l4load/ipvs.conf`, then `systemctl reload l4load-ipvs`. The unit validates
 again before signalling; rejection leaves the running configuration unchanged,
 but the invalid file must be replaced before a later restart. Verify applied
-kernel state and traffic after either operation. Package upgrades and host
-reboots remain separate unqualified steps.
+kernel state and traffic after either operation. Host reboots remain unqualified;
+the separate package trial below covers only its exact versions and environment.
 
 The packaged service must stay masked while this profile owns IPVS: package
 maintainer scripts target `keepalived.service`. A one-time stop is insufficient.
@@ -89,3 +89,13 @@ start, and two retained TCP sessions carried 777 exchanges each over 39.2 second
 New flows passed after reinstall and explicit restart. This is not a cross-version
 upgrade test. Preserve the prior package and config
 before a separately qualified version change.
+
+A [cross-version trial](https://github.com/l4load/l4load/actions/runs/36165653126)
+passed `1:2.2.8-1build2` → `1:2.3.2-1` → `1:2.2.8-1build2` on the prepared
+Ubuntu 24.04 runner. Dependency simulation changed only Keepalived. After each
+install, the packaged service stayed masked; an explicit gated restart loaded
+the installed executable and fresh TCP/UDP flows passed. Two retained TCP
+sessions carried 913 exchanges each over 46.1 seconds through the lifecycle.
+The newer package came from another Ubuntu release: this demonstrates the tested
+upgrade/rollback mechanics, not a supported Noble update or arbitrary version
+compatibility. Keep the default package; do not use this trial as an upgrade recommendation.

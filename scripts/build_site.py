@@ -47,7 +47,12 @@ returned to both backends after recovery, preserving client IP and payload.</p>
 passed supervisor recovery, rejected reload and configuration drain/rollback.
 The lab installed the profile files with only a network-namespace override.
 Two retained TCP sessions carried 706 exchanges each over 35.6 seconds.
-Packages and networking were prepared; host boot and package upgrades remain unqualified.</p>
+Packages and networking were prepared; host boot remains unqualified.</p>
+<p>A separate <a href="https://github.com/l4load/l4load/actions/runs/36165653126">package upgrade and rollback trial</a>
+passed Keepalived 2.2.8 → 2.3.2 → 2.2.8 with gated restarts, fresh TCP/UDP flows
+and two retained TCP sessions carrying 913 exchanges each over 46.1 seconds.
+The cross-release package tests these mechanics on a prepared runner; it is not
+a supported distribution update recommendation.</p>
 <p>Two established TCP sessions carried continuous low-rate requests through health exclusion, reload and gated controller recovery, including automatic systemd restart. Empty-table service startup also passed. Direct restart with retained state failed; the tested workaround pauses new flows until health is confirmed. Sustained load, host failure and HA remain unqualified.</p>
 <p>A separate IPv6-over-IPv6 IPVS trial passed 192 TCP/UDP exchanges across
 health-port failure and recovery with client addresses preserved. Two existing
