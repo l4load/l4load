@@ -35,5 +35,9 @@ direct-restart evidence](../../lab/ipvs/README.md).
 Reproduce on disposable Ubuntu 24.04 with `sudo bash lab/ipvs/run.sh` after the
 lab prerequisites. Tested packages: Keepalived `1:2.2.8-1build2`,
 ipvsadm `1:1.31-1ubuntu0.1`; every run records its actual kernel and versions.
-Distribution service integration, reboot, HA, capacity and a real operator's
+A disposable systemd unit with `Restart=on-failure` and the zero-weight
+`ExecStartPre` gate passed automatic recovery after main-process SIGKILL, with
+retained sessions and healthy-only new flows. The lab unit requires existing
+services/destinations; it is not a cold-start installation recipe.
+Fresh service installation, reboot, HA, capacity and a real operator's
 acceptance remain open. This is not an automated installer or production release.

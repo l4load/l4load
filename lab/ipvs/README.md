@@ -53,3 +53,10 @@ It records every attempt and route-cache change. Only `EMSGSIZE` with the
 expected learned MTU permits one fresh-socket retry; timeout, corruption or
 failed retry fails the trial. The first failures remain part of the evidence.
 This checks PMTU feedback/recovery, not lossless delivery or all ICMP cases.
+
+[Automatic service recovery](https://github.com/l4load/l4load/actions/runs/36137752964)
+passed with `NRestarts=1`, a new controller PID, 832 fresh IPv4 exchanges and
+678 continuous exchanges per retained TCP session. The disposable unit binds
+to the owned network namespace and gates retained destinations before startup.
+Cold installation, host reboot and HA remain unqualified. The earlier manual
+termination trial does not by itself establish this service-manager result.
