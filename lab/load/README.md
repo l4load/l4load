@@ -18,4 +18,7 @@ See [sockperf under-load semantics](https://github.com/Mellanox/sockperf/wiki/Un
 The integration workflow also runs pinned Katran generic XDP after IPVS on the
 same host. Packet capture is disabled during load. This checks reuse of the
 same traffic tool; fixed engine order, unpinned CPU placement and single-flow
-trials still prevent a controlled ranking. YANET integration remains pending.
+trials still prevent a controlled ranking. YANET uses the same generator in its pinned builder container via
+`L4LOAD_LOAD=1 unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet`.
+That is a separate environment/run, not a paired ranking. Capture stays disabled
+during load; native checksum and MTU settings still apply.
