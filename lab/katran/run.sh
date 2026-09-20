@@ -3,6 +3,11 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 src=$(realpath "${1:?Katran checkout required}")
 out=$(pwd)/lab/results/katran
+if [ -n "${L4LOAD_TRIAL:-}" ]; then
+    [[ "$L4LOAD_TRIAL" =~ ^[a-zA-Z0-9_-]+$ ]]
+    out="$out-$L4LOAD_TRIAL"
+    test ! -e "$out"
+fi
 mkdir -p "$out"
 exec > >(tee "$out/run.log") 2>&1
 test "$(git -C "$src" rev-parse HEAD)" = 4546144594d11d7bf342d008e7b94922fc9bbaa3

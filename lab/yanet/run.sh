@@ -11,6 +11,11 @@ case "$mode" in
     af-packet) out="$out-native"; ! ip link show l4-yanet >/dev/null 2>&1 ;;
     *) exit 2 ;;
 esac
+if [ -n "${L4LOAD_TRIAL:-}" ]; then
+    [[ "$L4LOAD_TRIAL" =~ ^[a-zA-Z0-9_-]+$ ]]
+    out="$out-$L4LOAD_TRIAL"
+    test ! -e "$out"
+fi
 mkdir -p "$out"
 exec > >(tee "$out/run.log") 2>&1
 for ns in l4-client l4-router l4-b1 l4-b2; do
