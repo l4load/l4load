@@ -35,15 +35,20 @@ direct-restart evidence](../../lab/ipvs/README.md).
 Reproduce on disposable Ubuntu 24.04 with `sudo bash lab/ipvs/run.sh` after the
 lab prerequisites. Tested packages: Keepalived `1:2.2.8-1build2`,
 ipvsadm `1:1.31-1ubuntu0.1`; every run records its actual kernel and versions.
-A disposable systemd unit with `Restart=on-failure` and the zero-weight
-`ExecStartPre` gate passed automatic recovery after main-process SIGKILL, with
-retained sessions and healthy-only new flows. Startup from an empty IPVS table
-also passed, with the network and packages already configured. The lab gate
-uses this profile's fixed addresses; it is not a general installation recipe.
-Fresh service installation, reboot, HA, capacity and a real operator's
-acceptance remain open. This is not an automated installer or production release.
+A systemd unit with `Restart=on-failure` and the zero-weight startup gate passed
+automatic recovery after main-process SIGKILL, with retained sessions and
+healthy-only new flows. Startup from an empty IPVS table also passed, with the
+network and packages already configured. Reboot, package upgrades, HA, capacity
+and a real operator's acceptance remain open. This is not a production release.
 
-## Installed service — qualification pending
+## Installed service
+
+[Qualification passed](https://github.com/l4load/l4load/actions/runs/36161652255):
+the lab installed these exact files with only a network-namespace drop-in.
+Automatic recovery, rejected reload, drain/rollback and empty-table startup
+passed. Two retained TCP sessions carried 706 exchanges each over 35.6 seconds,
+including service drain and rollback. This does not qualify host boot or a
+package upgrade; packages and networking were prepared before installation.
 
 The [unit](l4load-ipvs.service) and [restart gate](gate.py) are for a dedicated
 IPVS director: the gate sets **every existing destination** to weight zero before
