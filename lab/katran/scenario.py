@@ -8,7 +8,9 @@ import struct
 import sys
 import threading
 
-VIP = '198.18.0.1'
+VIP = os.environ.get('L4LOAD_VIP', '198.18.0.1')
+CLIENT = os.environ.get('L4LOAD_CLIENT', '10.0.0.2')
+FAMILY = socket.AF_INET6 if ':' in VIP else socket.AF_INET
 PORT = 8080
 
 
@@ -37,7 +39,7 @@ def configure(directory, mac):
 
 def serve(backend):
     def udp():
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        with socket.socket(FAMILY, socket.SOCK_DGRAM) as sock:
             sock.bind((VIP, PORT))
             while True:
                 data, peer = sock.recvfrom(4096)
@@ -50,7 +52,7 @@ def serve(backend):
                 conn.sendall(f'{backend} {peer[0]} '.encode() + data)
 
     threading.Thread(target=udp, daemon=True).start()
-    with socket.socket() as sock:
+    with socket.socket(FAMILY, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((VIP, PORT))
         sock.listen()
@@ -66,10 +68,10 @@ def check(expected="b1,b2", base_port="0"):
         counts = collections.Counter()
         for n in range(32):
             payload = f'{protocol}-{n}'.encode()
-            with socket.socket(socket.AF_INET, kind) as sock:
+            with socket.socket(FAMILY, kind) as sock:
                 sock.settimeout(3)
                 if int(base_port):
-                    sock.bind(("10.0.0.2", int(base_port) + n))
+                    sock.bind((CLIENT, int(base_port) + n))
                 sock.connect((VIP, PORT))
                 sock.sendall(payload)
                 if kind == socket.SOCK_STREAM:
@@ -81,7 +83,7 @@ def check(expected="b1,b2", base_port="0"):
                 else:
                     reply = sock.recv(4096)
                 backend, source, echoed = reply.decode().split(' ', 2)
-                assert source == '10.0.0.2', reply
+                assert source == CLIENT, reply
                 assert echoed.encode() == payload, reply
                 counts[backend] += 1
         assert set(counts) == set(expected.split(',')), counts
