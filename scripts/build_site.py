@@ -44,17 +44,12 @@ returned to both backends after recovery, preserving client IP and payload.</p>
 <p><a href="https://github.com/l4load/l4load/tree/main/lab/ipvs">Run the lifecycle trial ↗</a> ·
 <a href="https://github.com/l4load/l4load/actions/runs/36129548239/job/108053397947">Verified execution ↗</a></p>
 <p>Two established TCP sessions also survived health exclusion, weight-zero reload and rollback. Sustained load, controller failure and HA remain unqualified.</p>
-<h2>A reproducible virtual lab.</h2>
-<p>A QEMU Linux guest runs the TCP checks with recorded image hashes and execution logs.
-This is a functional test over guest loopback, not a NIC or throughput benchmark.</p>
-<a href="https://github.com/l4load/l4load/tree/main/lab">Run the lab ↗</a>
 <h2>Evidence before performance claims.</h2>
 <p>Our target is strong performance with fewer deployment dependencies. No competitive
 comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>
 <a href="https://github.com/l4load/l4load/blob/main/docs/benchmarks.md">Comparison criteria ↗</a>
 <h2>Know the limits.</h2>
 <p>The Katran scenario does not yet qualify backend changes, failover, IPv6 or physical NICs.
-The earlier Go loopback TCP proxy remains a reference utility; its feature development is paused.
 No production readiness, high availability or DDoS protection is claimed.</p>
 </main><footer>L4Load glue: Apache-2.0 · Katran: GPL-2.0 · Generated from
 <a href="https://github.com/l4load/l4load/tree/SOURCE_SHA">SOURCE_SHORT</a></footer>
