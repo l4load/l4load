@@ -26,7 +26,7 @@ modprobe ip_vs
 modprobe ip_vs_rr
 modprobe ipip
 uname -a > "$out/kernel.txt"
-dpkg-query -W keepalived ipvsadm > "$out/packages.txt"
+dpkg-query -W keepalived ipvsadm prometheus-node-exporter > "$out/packages.txt"
 cat "$out/packages.txt" "$out/kernel.txt"
 date -u +%FT%TZ > "$out/started.txt"
 git rev-parse HEAD > "$out/source.txt"
@@ -96,6 +96,10 @@ PY
 wait_weight 1
 wait_weight 1 10.0.3.2:8080
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 20000 | tee "$out/healthy.json"
+ip netns exec l4-lb prometheus-node-exporter --collector.disable-defaults --collector.ipvs --web.listen-address=127.0.0.1:19100 > "$out/exporter.log" 2>&1 &
+exporter_pid=$!
+pids+=("$exporter_pid")
+ip netns exec l4-lb python3 lab/ipvs/metrics.py "$out/metrics-healthy.txt" 1
 rm -f "$out"/session-*
 : > "$out/session-phase"
 ip netns exec l4-client python3 -u lab/ipvs/sessions.py "$out" > "$out/sessions.jsonl" 2>&1 &
@@ -121,11 +125,15 @@ wait_weight 0
 phase health-down
 cp "$out/state.txt" "$out/down-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 21000 | tee "$out/down.json"
+ip netns exec l4-lb python3 lab/ipvs/metrics.py "$out/metrics-down.txt" 0
 start_health 1
 first_health=$health_pid
 wait_weight 1
 cp "$out/state.txt" "$out/recovered-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 22000 | tee "$out/recovered.json"
+ip netns exec l4-lb python3 lab/ipvs/metrics.py "$out/metrics-recovered.txt" 1
+kill "$exporter_pid"
+wait "$exporter_pid" 2>/dev/null || true
 phase recovered
 rm "$out/health1/health"
 wait_weight 0

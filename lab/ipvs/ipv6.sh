@@ -101,14 +101,37 @@ PY
 }
 wait_state 1
 ip netns exec l6-client python3 lab/katran/scenario.py check b1,b2 20000 | tee "$out/healthy.json"
+rm -f "$out"/session-*
+: > "$out/session-phase"
+ip netns exec l6-client python3 -u lab/ipvs/sessions.py "$out" > "$out/sessions.jsonl" 2>&1 &
+session_pid=$!
+wait_session() {
+    for attempt in $(seq 1 100); do
+        if [ -f "$out/session-$1" ]; then return; fi
+        kill -0 "$session_pid" || { cat "$out/sessions.jsonl"; return 1; }
+        sleep 0.1
+    done
+    cat "$out/sessions.jsonl"
+    return 1
+}
+phase() {
+    echo "$1" > "$out/session-phase"
+    wait_session "$1"
+}
+wait_session ready
 kill "$first_health"
 wait "$first_health" 2>/dev/null || true
 wait_state 0
+phase health-down
 cp "$out/state.txt" "$out/down-state.txt"
 ip netns exec l6-client python3 lab/katran/scenario.py check b2 21000 | tee "$out/down.json"
 start_health 1
 wait_state 1
+phase recovered
 ip netns exec l6-client python3 lab/katran/scenario.py check b1,b2 22000 | tee "$out/recovered.json"
+phase done
+wait "$session_pid"
+cat "$out/sessions.jsonl"
 ip netns exec l6-client ip -j link show > "$out/links.json"
 ip netns exec l6-client python3 -u lab/ipvs/datagrams.py | tee "$out/datagrams.jsonl"
 echo IPVS_IPV6_PASS

@@ -1,7 +1,8 @@
 # IPVS lifecycle trial
 
-Disposable Ubuntu 24.04 only: install keepalived and ipvsadm, stop the packaged
-keepalived service, then run `sudo bash lab/ipvs/run.sh`. Requires kernel modules
+Disposable Ubuntu 24.04 only: install keepalived, ipvsadm and
+prometheus-node-exporter, stop their packaged services, then run
+`sudo bash lab/ipvs/run.sh`. Requires kernel modules
 ip_vs, ip_vs_rr and ipip. The test creates and cleans up five network namespaces.
 Package versions, kernel, configuration, table snapshots and logs are recorded.
 
@@ -38,8 +39,10 @@ restart limitation is scoped to the recorded package/configuration.
 `sudo bash lab/ipvs/ipv6.sh` runs a separate IPv6-over-IPv6 DSR trial.
 [Verified run](https://github.com/l4load/l4load/actions/runs/36134413105/job/108068928725):
 192 TCP/UDP exchanges preserved source IP through healthy, failed TCP-health-port
-and recovered phases. IPv6 persistent sessions, HTTP health, reload and restart
-are not qualified by this test; the richer lifecycle above remains IPv4-only.
+and recovered phases. A subsequent [continuity trial](https://github.com/l4load/l4load/actions/runs/36141957631)
+preserved two TCP sessions across health exclusion/recovery: 71 exchanges each
+over 3.5 seconds. This is short functional coverage; IPv6 HTTP health, reload,
+restart and sustained traffic remain unqualified.
 
 [Process-tree crash trial](https://github.com/l4load/l4load/actions/runs/36135359918/job/108072010672)
 passed 768 IPv4 exchanges and two persistent sessions. The test stopped the
@@ -66,3 +69,8 @@ passed after retained-session tests finished: the service rebuilt two VIP
 services and four destinations, then forwarded 64 new exchanges. The full
 IPv4 lifecycle now checks 896 fresh exchanges. Networking and packages were
 already configured; this does not establish reboot or installation readiness.
+
+[IPVS metrics](https://github.com/l4load/l4load/actions/runs/36140910330)
+passed using the packaged node_exporter collector on namespace loopback.
+Raw scrapes matched all four destination weights through health failure and
+recovery. This qualifies collection, not retention, alerts or monitoring HA.

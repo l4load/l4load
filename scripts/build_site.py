@@ -45,8 +45,11 @@ returned to both backends after recovery, preserving client IP and payload.</p>
 <a href="https://github.com/l4load/l4load/actions/runs/36138065416/job/108080863480">Verified execution ↗</a></p>
 <p>Two established TCP sessions carried continuous low-rate requests through health exclusion, reload and gated controller recovery, including automatic systemd restart. Empty-table service startup also passed. Direct restart with retained state failed; the tested workaround pauses new flows until health is confirmed. Sustained load, host failure and HA remain unqualified.</p>
 <p>A separate IPv6-over-IPv6 IPVS trial passed 192 TCP/UDP exchanges across
-health-port failure and recovery with client addresses preserved. IPv6 reload,
-persistent-session and restart behaviour remain unqualified.</p>
+health-port failure and recovery with client addresses preserved. Two existing
+IPv6 TCP sessions also survived those transitions in a short continuous-request
+trial. IPv6 reload, restart and sustained traffic remain unqualified.</p>
+<p>The packaged node_exporter IPVS collector correctly exposed backend weights
+through health exclusion and recovery. Retention and alerts remain unqualified.</p>
 <h2>Check applied state.</h2>
 <p>In an isolated Katran test, freezing a kernel map caused a backend update to return success
 while the kernel ring stayed unchanged. This artificial permanent-write failure does not establish
