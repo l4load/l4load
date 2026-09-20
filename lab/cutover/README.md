@@ -21,5 +21,12 @@ without sync, four sessions reset on cutover and four created on the second
 director reset on rollback. With sync, four original sessions survived cutover,
 all eight existing sessions survived rollback, and twelve passed the final
 exchange. These are short, planned transitions after a readback barrier.
-Sync loss, abrupt failure, automatic failover, sustained load, cross-engine
-migration and production HA remain unqualified.
+Add `L4LOAD_SYNC_LOSS=1` with sync enabled to break replication before opening
+connections. [The recovery trial passed](https://github.com/l4load/l4load/actions/runs/36171124968):
+the barrier rejected handoff without changing the route or sync roles; four
+original sessions remained usable. After restoring the link and sending traffic,
+twelve sessions survived cutover, sixteen survived rollback, and twenty passed
+the final exchange. Fresh TCP/UDP checks passed throughout.
+
+Idle-session recovery, abrupt failure, automatic failover, sustained load,
+cross-engine migration and production HA remain unqualified.
