@@ -32,3 +32,10 @@ nftlb -j list table netdev l4load > "$out/filter-expired.json"
 nftlb delete table netdev l4load
 probe 10.0.0.3 pass
 echo FILTER_LIFECYCLE_PASS
+if [ "${L4LOAD_FILTER_LOAD:-0}" = 1 ]; then
+    nftlb -f lab/filter/rules.nft
+    nftlb 'add element netdev l4load blocked { 10.0.0.3 . 198.18.0.1 }'
+    for pid in "${backend_pids[@]}"; do kill "$pid"; wait "$pid" || true; done
+    bash lab/filter/load.sh "$out/filter-load"
+    nftlb -j list table netdev l4load > "$out/filter-load-counters.json"
+fi

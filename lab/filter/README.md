@@ -18,6 +18,16 @@ This is an experiment, not a Shield release. Prefixes, IPv6, fragments, tenant
 isolation, reboot persistence, overload and comparison with YANET are unqualified.
 Do not infer DDoS capacity from a short connectivity test.
 
+`L4LOAD_FILTER_LOAD=1` additionally measures 64-byte UDP at 1,000 allowed
+messages/s, alternating no background traffic and 100,000 requested denied
+messages/s for three repetitions. The YANET workflow runs both engines in the
+same builder environment. Each allowed interval lasts five seconds inside a
+longer denied-generator run; its reported average is not an exact ingress rate
+for that interval. Results include achieved rates, drops, p99 and raw CSVs.
+`FILTER_LOAD_OBSERVATION_COMPLETE` means data collection completed, not an SLO
+pass. Shared CPU/generator contention, fixed engine order and short duration
+limit interpretation. This experiment has not yet passed.
+
 Upstream references: [timeouts](https://wiki.nftables.org/wiki-nftables/index.php/Element_timeouts),
 [ingress families](https://wiki.nftables.org/wiki-nftables/index.php/Nftables_families),
 [transactions](https://wiki.nftables.org/wiki-nftables/index.php/Atomic_rule_replacement).

@@ -40,7 +40,7 @@ jobs:
           path: /tmp/l4load-ccache
           key: yanet-6b30c2f-builder-e379330-v1-${{ github.sha }}
           restore-keys: yanet-6b30c2f-builder-e379330-v1-
-      - run: apt-get update && apt-get install -y cmake ccache iproute2 kmod tcpdump ethtool sockperf keepalived ipvsadm prometheus-node-exporter clang llvm libbpf-dev linux-tools-common linux-tools-generic
+      - run: apt-get update && apt-get install -y cmake ccache iproute2 kmod tcpdump ethtool sockperf keepalived ipvsadm prometheus-node-exporter nftables clang llvm libbpf-dev linux-tools-common linux-tools-generic
       - run: ccache --max-size=2G
       - name: Record environment
         run: |
@@ -74,6 +74,11 @@ jobs:
       - name: Check native firewall lifecycle
         timeout-minutes: 5
         run: L4LOAD_FILTER=1 L4LOAD_TRIAL=filter unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet
+      - name: Compare permitted traffic under denied load
+        timeout-minutes: 8
+        run: |
+          L4LOAD_FILTER=1 L4LOAD_FILTER_LOAD=1 L4LOAD_TRIAL=filter-load bash lab/ipvs/run.sh
+          L4LOAD_FILTER=1 L4LOAD_FILTER_LOAD=1 L4LOAD_TRIAL=filter-load unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet
       - name: Compare workload placement
         if: ${{ !cancelled() && steps.build.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.workload_placement }}
         timeout-minutes: 25

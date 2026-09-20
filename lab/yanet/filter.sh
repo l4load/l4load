@@ -31,3 +31,9 @@ yanet-cli reload
 probe 10.0.0.3 pass
 probe 10.0.0.2 pass
 echo YANET_FILTER_PASS
+if [ "${L4LOAD_FILTER_LOAD:-0}" = 1 ]; then
+    cp "$out/filter-deny.conf" "$out/controlplane.conf"
+    yanet-cli reload
+    for pid in "${backend_pids[@]}"; do kill "$pid"; wait "$pid" || true; done
+    bash lab/filter/load.sh "$out/filter-load"
+fi
