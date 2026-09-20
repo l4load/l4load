@@ -9,6 +9,11 @@ for ns in l4-client l4-router l4-lb l4-b1 l4-b2; do
 done
 pids=()
 cleanup() {
+    if [ -n "${unitfile:-}" ]; then
+        systemctl stop l4load-ipvs-lab.service || true
+        rm -f "$unitfile"
+        systemctl daemon-reload
+    fi
     for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done
     for ns in l4-client l4-router l4-lb l4-b1 l4-b2; do
         ip netns pids "$ns" 2>/dev/null | xargs -r kill 2>/dev/null || true
@@ -170,11 +175,7 @@ wait_weight 1
 cp "$out/state.txt" "$out/controller-stopped-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 25000 | tee "$out/controller-stopped.json"
 gate_reals() {
-    for proto in t u; do
-        for backend in 10.0.2.2 10.0.3.2; do
-            ip netns exec l4-lb ipvsadm -e "-$proto" 198.18.0.1:8080 -r "$backend:8080" -i -w 0
-        done
-    done
+    ip netns exec l4-lb bash lab/ipvs/gate.sh
 }
 gate_reals
 phase restart-gated
@@ -211,7 +212,9 @@ wait_weight 1 10.0.3.2:8080
 phase crash-recovered
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 31000 | tee "$out/crash-recovered.json"
 start_health 1
+first_health=$health_pid
 wait_weight 1
+source lab/ipvs/service.sh
 phase done
 wait "$session_pid"
 cat "$out/sessions.jsonl"
