@@ -1,7 +1,7 @@
 name: Katran control build
 on:
   push:
-    paths: ['.github/workflows/katran-control.yml']
+    paths: ['.github/workflows/katran-control.yml', 'lab/katran-control/**']
   workflow_dispatch:
 permissions:
   contents: read
@@ -9,6 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    env:
+      GETDEPS_SCRATCH: /home/runner/katran-getdeps
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -16,10 +18,17 @@ jobs:
           repository: facebookincubator/katran
           ref: 4546144594d11d7bf342d008e7b94922fc9bbaa3
           path: upstream/katran
+      - uses: actions/cache@v4
+        with:
+          path: /home/runner/katran-getdeps
+          key: katran-control-ubuntu24-45461445-v1-${{ github.sha }}
+          restore-keys: katran-control-ubuntu24-45461445-v1-
+      - run: python3 lab/katran-control/prepare.py upstream/katran
       - name: Install upstream build dependencies
         working-directory: upstream/katran
         run: |
           sudo apt-get update
+          sudo apt-get install -y clang llvm
           sudo python3 build/fbcode_builder/getdeps.py --allow-system-packages install-system-deps --recursive katran
       - name: Build upstream control library
         working-directory: upstream/katran
@@ -28,12 +37,23 @@ jobs:
           mkdir -p ../../lab/results/katran-control
           date -u +%FT%TZ > ../../lab/results/katran-control/started.txt
           git rev-parse HEAD > ../../lab/results/katran-control/upstream.txt
-          python3 build/fbcode_builder/getdeps.py --allow-system-packages build --build-type RelWithDebInfo --src-dir=. katran --project-install-prefix katran:/usr/local 2>&1 | tee ../../lab/results/katran-control/build.log
+          python3 build/fbcode_builder/getdeps.py --scratch-path "$GETDEPS_SCRATCH" --allow-system-packages build --build-type RelWithDebInfo --src-dir=. katran --project-install-prefix katran:/usr/local 2>&1 | tee ../../lab/results/katran-control/build.log
       - name: Run upstream tests
         working-directory: upstream/katran
         run: |
           set -o pipefail
-          python3 build/fbcode_builder/getdeps.py --allow-system-packages test --build-type RelWithDebInfo --src-dir=. katran --project-install-prefix katran:/usr/local 2>&1 | tee ../../lab/results/katran-control/tests.log
+          python3 build/fbcode_builder/getdeps.py --scratch-path "$GETDEPS_SCRATCH" --allow-system-packages test --build-type RelWithDebInfo --src-dir=. katran --project-install-prefix katran:/usr/local 2>&1 | tee ../../lab/results/katran-control/tests.log
+      - name: Reproduce rejected ring write
+        working-directory: upstream/katran
+        run: |
+          set -euo pipefail
+          out="$GITHUB_WORKSPACE/lab/results/katran-control"
+          clang -D__KERNEL__ -O2 -g -Wno-compare-distinct-pointer-types -I . -I katran/lib/linux_includes -I /usr/include/x86_64-linux-gnu -emit-llvm -c katran/lib/bpf/balancer.bpf.c -o - | llc -march=bpf -filetype=obj -o "$out/balancer.o"
+          build_dir=$(python3 build/fbcode_builder/getdeps.py --scratch-path "$GETDEPS_SCRATCH" --allow-system-packages show-build-dir --build-type RelWithDebInfo --src-dir=. katran --project-install-prefix katran:/usr/local)
+          cp LICENSE "$out/Katran-LICENSE"
+          git archive HEAD | gzip > "$out/katran-source.tar.gz"
+          cp l4load_freeze_probe.cpp CMakeLists.txt "$out/"
+          sudo "$build_dir/l4load-freeze-probe" "$out/balancer.o" 2>&1 | tee "$out/probe.log"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
