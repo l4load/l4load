@@ -1,0 +1,67 @@
+name: YANET neighbor regression
+on:
+  push:
+    paths: ['lab/yanet-neighbor/**', '.github/workflows/yanet-neighbor.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: yanetplatform/builder-lite@sha256:e37933067f57fc5025df09cd329bf494d97d5d866be31acfb022e9721a6758c8
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: yanet-platform/yanet
+          ref: 6b30c2f376c5148a661eadb57fd316d3b453e085
+          submodules: recursive
+          path: upstream/yanet
+      - run: apt-get update && apt-get install -y cmake ccache
+      - uses: actions/cache/restore@v4
+        with:
+          path: /tmp/l4load-ccache
+          key: yanet-neighbor-v1-${{ github.sha }}
+          restore-keys: |
+            yanet-neighbor-v1-
+            yanet-6b30c2f-builder-e379330-v1-
+      - name: Reproduce and check candidate
+        env:
+          CCACHE_DIR: /tmp/l4load-ccache
+        run: |
+          mkdir -p lab/results/yanet-neighbor
+          cd upstream/yanet
+          out="$GITHUB_WORKSPACE/lab/results/yanet-neighbor"
+          date -u +%FT%TZ > "$out/started.txt"
+          git rev-parse HEAD > "$out/upstream.txt"
+          uname -a > "$out/kernel.txt"
+          CC="ccache gcc" CXX="ccache g++" meson setup -Dtarget=unittest -Db_lto=false build_neighbor
+          meson compile -C build_neighbor -j 2 yanet-dataplane-unittest-neighbor
+          binary=build_neighbor/dataplane/unittest/yanet-dataplane-unittest-neighbor
+          "$binary" | tee "$out/original.log"
+          git apply ../../lab/yanet-neighbor/neighbor-test.patch
+          meson compile -C build_neighbor -j 2 yanet-dataplane-unittest-neighbor
+          status=0
+          "$binary" > "$out/regression.log" 2>&1 || status=$?
+          cat "$out/regression.log"
+          test "$status" -eq 1
+          grep -q '\[  FAILED  \] NeighborTest.Basic' "$out/regression.log"
+          git apply ../../lab/yanet-neighbor/neighbor-fix.patch
+          meson compile -C build_neighbor -j 2 yanet-dataplane-unittest-neighbor
+          "$binary" | tee "$out/candidate.log"
+          git diff > "$out/candidate.patch"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yanet-neighbor
+          path: lab/results/yanet-neighbor
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: /tmp/l4load-ccache
+          key: yanet-neighbor-v1-${{ github.sha }}

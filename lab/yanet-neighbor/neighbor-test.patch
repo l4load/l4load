@@ -1,0 +1,22 @@
+--- a/dataplane/unittest/neighbor.cpp
++++ b/dataplane/unittest/neighbor.cpp
+@@ -212,6 +212,19 @@
+ 	EXPECT_TRUE(equal(dut.neighbor_show(), {}));
+ 	dut.neighbor_clear();
+ 	EXPECT_TRUE(equal(dut.neighbor_show(), {}));
++	dut.neighbor_insert({"route0", "kni1", Common4FromString("192.168.1.9"), {"DE:AD:BE:EF:09:09"}});
++	dut.neighbor_flush();
++	auto saved = dut.neighbor_show();
++	ASSERT_EQ(saved.size(), 1);
++	dut.neighbor_update_interfaces({{1, "route0", "kni1"}});
++	EXPECT_EQ(dut.neighbor_show(), saved);
++	dut.neighbor_update_interfaces({{2, "route0", "kni1"}});
++	EXPECT_EQ(dut.neighbor_show(), saved);
++	dut.neighbor_clear();
++	EXPECT_EQ(dut.neighbor_show(), saved);
++	dut.neighbor_update_interfaces({});
++	EXPECT_TRUE(dut.neighbor_show().empty());
++
+ }
+ 
+ TEST(NeighborTest, Provider)
