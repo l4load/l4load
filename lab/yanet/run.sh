@@ -27,7 +27,11 @@ uname -a > "$out/kernel.txt"
 dpkg-query -W > "$out/packages.txt"
 cat "$out/kernel.txt"
 date -u +%FT%TZ > "$out/started.txt"
-git -c safe.directory="$(pwd)" rev-parse HEAD > "$out/source.txt"
+if [ -n "${GITHUB_SHA:-}" ]; then
+    printf '%s\n' "$GITHUB_SHA" > "$out/source.txt"
+else
+    git rev-parse HEAD > "$out/source.txt"
+fi
 for ns in l4-client l4-router l4-b1 l4-b2; do
     ip netns add "$ns"
     ip -n "$ns" link set lo up
