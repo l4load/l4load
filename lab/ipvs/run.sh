@@ -219,6 +219,15 @@ source lab/ipvs/service.sh
 phase done
 wait "$session_pid"
 cat "$out/sessions.jsonl"
+systemctl stop l4load-ipvs-lab.service
+ip netns exec l4-lb ipvsadm -C
+ip netns exec l4-lb ipvsadm -Sn > "$out/cold-empty.txt"
+test ! -s "$out/cold-empty.txt"
+systemctl start l4load-ipvs-lab.service
+wait_weight 1
+wait_weight 1 10.0.3.2:8080
+cp "$out/state.txt" "$out/cold-ready.txt"
+ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 33000 | tee "$out/cold-start.json"
 ip netns exec l4-client ip -j link show > "$out/links.json"
 ip netns exec l4-client python3 -u lab/ipvs/datagrams.py | tee "$out/datagrams.jsonl"
 echo IPVS_LIFECYCLE_PASS
