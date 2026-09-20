@@ -1,6 +1,6 @@
 # YANET baseline
 
-The workflow builds public YANET at `6b30c2f376c5148a661eadb57fd316d3b453e085`
+The workflow evaluates public YANET PR #335 at `dacf4015f794e978c74200bb49f35472114d66aa`
 in its pinned builder image, then runs upstream TCP/UDP, IPv4-real, reload and
 backend-operation packet tests through the upstream socket driver. No NIC,
 hugepages or corporate resources are used. DPDK remains part of this baseline.
@@ -28,3 +28,11 @@ Earlier runs intermittently failed the upstream reload packet expectation;
 the cause is unresolved. Passing this run does not erase those failures.
 The Python/TAP bridge and socket driver make this a functional baseline only.
 Use a qualified native virtual-device path before measuring engine performance.
+
+The base above was `6b30c2f376c5148a661eadb57fd316d3b453e085`. Its intermittent
+reload failure matches the existing [upstream PR #335](https://github.com/yanet-platform/yanet/pull/335)
+by ezhk. [Our before/after unit run](https://github.com/l4load/l4load/actions/runs/36144972495)
+reproduced that PR's regression on the base and passed all three neighbor tests
+with the upstream implementation. The workflow now pins that candidate and adds
+five reload repetitions; their packet-level results are pending. This is not a
+new L4Load patch or a claim of production qualification.
