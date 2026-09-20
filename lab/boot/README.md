@@ -12,5 +12,8 @@ connection continuity through a director reboot.
 [The first trial passed](https://github.com/l4load/l4load/actions/runs/36166755057):
 two distinct boot IDs, 64 new TCP/UDP flows after each boot, source IP preserved,
 all four IPVS destinations healthy and no service restarts. It used kernel
-6.8.0-139-generic and Keepalived 2.2.8. The stricter readiness timeout and added
-diagnostic capture require a fresh run before merging.
+6.8.0-139-generic and Keepalived 2.2.8. The
+[stricter readiness check and diagnostic capture also passed](https://github.com/l4load/l4load/actions/runs/36167949921),
+using QEMU TCG emulation. Both boot IDs changed; each boot passed 64 fresh flows
+with all four destinations healthy and `NRestarts=0`. This is correctness
+evidence, not a boot-time or throughput benchmark.
