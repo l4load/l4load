@@ -56,6 +56,11 @@ while the kernel ring stayed unchanged. This artificial permanent-write failure 
 production incidence; it shows why an API acknowledgement alone is insufficient.</p>
 <a href="https://github.com/l4load/l4load/tree/main/lab/katran-control">Reproduce the experiment ↗</a>
 <h2>Evidence before performance claims.</h2>
+<p>The YANET baseline passed 32 TCP and 32 UDP exchanges through two IPIP backends,
+four upstream suites and five extra reload repetitions. It uses the existing
+<a href="https://github.com/yanet-platform/yanet/pull/335">upstream neighbor fix by ezhk</a>.
+The socket/TAP path checks correctness, not competitive throughput.
+<a href="https://github.com/l4load/l4load/actions/runs/36146170902">Verified execution ↗</a></p>
 <p>Our target is strong performance with fewer deployment dependencies. No competitive
 comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>
 <a href="https://github.com/l4load/l4load/blob/main/docs/benchmarks.md">Comparison criteria ↗</a>
