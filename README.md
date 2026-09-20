@@ -18,6 +18,10 @@ fault experiment, not a production-incidence or novelty claim.
 The [IPv4 IPVS profile](profiles/ipvs/README.md) exposes the exact configuration
 used by the lifecycle tests, with deployment prerequisites and operational limits.
 
+The [YANET baseline](lab/yanet/README.md) passes the shared DSR echo scenario and
+repeated reload tests using an existing upstream neighbor fix. The socket/TAP
+path qualifies correctness only; it is not a throughput comparison.
+
 ## Run the trials
 
 Use disposable Linux hosts and the instructions in the [lab](lab/README.md).

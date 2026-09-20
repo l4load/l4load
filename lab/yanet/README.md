@@ -34,8 +34,9 @@ reload failure matches the existing [upstream PR #335](https://github.com/yanet-
 by ezhk. [Our before/after unit run](https://github.com/l4load/l4load/actions/runs/36144972495)
 reproduced that PR's regression on the base and passed all three neighbor tests
 with the upstream implementation. The workflow now pins that candidate and adds
-five reload repetitions; their packet-level results are pending. This is not a
-new L4Load patch or a claim of production qualification.
+five reload repetitions. [Run36146170902](https://github.com/l4load/l4load/actions/runs/36146170902)
+passed the live DSR case, all four suites and all five repetitions. This is not
+a new L4Load patch or a claim of production qualification.
 
 The native experiment uses DPDK AF_PACKET on a veth, with two symmetric queues
 and hardware RSS disabled. The first run failed before forwarding: YANET's
