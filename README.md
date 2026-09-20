@@ -35,7 +35,8 @@ restart. There is no active health checking, UDP, DSR, reload, HA or DDoS protec
 JSON rejects unknown fields; repeated object keys follow Go's last-value semantics.
 
 Next: safe configuration changes and a reproducible packet-level comparison lab.
-See [benchmark criteria](docs/benchmarks.md). Tests do not establish performance.
+See [benchmark criteria](docs/benchmarks.md) and the [QEMU lab](lab/README.md).
+Tests do not establish performance.
 
 ## Site
 

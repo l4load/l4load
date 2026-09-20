@@ -38,6 +38,10 @@ for a local two-backend demo.</p>
 <article><h3>Pulse</h3><small>Planned</small><p>Traffic and failure analysis.</p></article>
 <article><h3>Fabric</h3><small>Planned</small><p>Configuration and multi-site operation.</p></article>
 </div>
+<h2>A reproducible virtual lab.</h2>
+<p>A QEMU Linux guest runs the TCP checks with recorded image hashes and execution logs.
+This is a functional test over guest loopback, not a NIC or throughput benchmark.</p>
+<a href="https://github.com/l4load/l4load/tree/main/lab">Run the lab ↗</a>
 <h2>Evidence before performance claims.</h2>
 <p>Our target is strong performance with fewer deployment dependencies. No YANET or
 Katran comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>
