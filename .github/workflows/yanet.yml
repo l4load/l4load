@@ -1,0 +1,58 @@
+name: YANET baseline
+on:
+  push:
+    paths: ['lab/yanet/**', '.github/workflows/yanet.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  upstream:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    container:
+      image: yanetplatform/builder-lite@sha256:e37933067f57fc5025df09cd329bf494d97d5d866be31acfb022e9721a6758c8
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: yanet-platform/yanet
+          ref: 6b30c2f376c5148a661eadb57fd316d3b453e085
+          submodules: recursive
+          path: upstream/yanet
+      - run: apt-get update && apt-get install -y cmake
+      - name: Record environment
+        run: |
+          mkdir -p lab/results/yanet
+          date -u +%FT%TZ > lab/results/yanet/started.txt
+          uname -a > lab/results/yanet/kernel.txt
+          lscpu > lab/results/yanet/cpu.txt
+          free -m > lab/results/yanet/memory.txt
+          git -C upstream/yanet rev-parse HEAD > lab/results/yanet/upstream.txt
+          git -C upstream/yanet submodule status --recursive > lab/results/yanet/submodules.txt
+          dpkg-query -W > lab/results/yanet/packages.txt
+      - name: Build upstream autotest
+        run: |
+          cd upstream/yanet
+          meson setup --prefix=/target -Dtarget=autotest -Dstrip=true -Db_lto=false build_autotest 2>&1 | tee ../../lab/results/yanet/configure.log
+          meson compile -C build_autotest -j 2 2>&1 | tee ../../lab/results/yanet/build.log
+      - name: Exercise public balancer cases
+        run: |
+          cd upstream/yanet
+          python3 autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
+            autotest/units/001_one_port \
+            autotest/units/001_one_port/049_balancer_tcp_udp \
+            autotest/units/001_one_port/049_balancer_real_ipv4 \
+            autotest/units/001_one_port/049_balancer_reload \
+            autotest/units/001_one_port/056_balancer_ops \
+            2>&1 | tee ../../lab/results/yanet/autotest.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yanet-baseline
+          path: |
+            lab/results/yanet
+            upstream/yanet/build_autotest/meson-logs
+          if-no-files-found: warn
