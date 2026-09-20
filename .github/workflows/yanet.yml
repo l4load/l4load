@@ -44,11 +44,16 @@ jobs:
           dpkg-query -W > lab/results/yanet/packages.txt
       - run: python3 lab/yanet/test_tap.py
       - name: Build upstream autotest
+        id: build
         run: |
           cd upstream/yanet
           CC="ccache gcc" CXX="ccache g++" meson setup --prefix=/target -Dtarget=autotest -Dstrip=true -Db_lto=false build_autotest 2>&1 | tee ../../lab/results/yanet/configure.log
           meson compile -C build_autotest -j 2 2>&1 | tee ../../lab/results/yanet/build.log
+      - name: Check live DSR forwarding
+        timeout-minutes: 5
+        run: unshare --ipc bash lab/yanet/run.sh upstream/yanet
       - name: Exercise public balancer cases
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         timeout-minutes: 5
         run: |
           cd upstream/yanet
@@ -66,9 +71,6 @@ jobs:
             autotest/units/001_one_port/049_balancer_reload \
             autotest/units/001_one_port/056_balancer_ops \
             2>&1 | tee ../../lab/results/yanet/autotest.log
-      - name: Check live DSR forwarding
-        timeout-minutes: 5
-        run: bash lab/yanet/run.sh upstream/yanet
       - name: Collect runtime diagnostics
         if: always()
         run: |

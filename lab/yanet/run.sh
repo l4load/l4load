@@ -12,7 +12,10 @@ for ns in l4-client l4-router l4-b1 l4-b2; do
 done
 pids=()
 cleanup() {
-    for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done
+    for pid in "${pids[@]}"; do
+        kill -KILL "$pid" 2>/dev/null || true
+        wait "$pid" 2>/dev/null || true
+    done
     for ns in l4-client l4-router l4-b1 l4-b2; do
         ip netns pids "$ns" 2>/dev/null | xargs -r kill 2>/dev/null || true
         ip netns del "$ns" 2>/dev/null || true
