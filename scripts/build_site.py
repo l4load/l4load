@@ -39,11 +39,11 @@ It is not a production deployment or a throughput result.</p>
 </div>
 <h2>Backend failure and recovery.</h2>
 <p>The Keepalived/IPVS trial checks healthy, health-failed and recovered backends.
-All 640 TCP/UDP exchanges passed, including HTTP health failure, rejected configuration, drain and rollback: new flows avoided the unhealthy backend and
+All 768 IPv4 TCP/UDP exchanges passed, including HTTP health failure, rejected configuration, drain and rollback: new flows avoided the unhealthy backend and
 returned to both backends after recovery, preserving client IP and payload.</p>
 <p><a href="https://github.com/l4load/l4load/tree/main/lab/ipvs">Run the lifecycle trial ↗</a> ·
-<a href="https://github.com/l4load/l4load/actions/runs/36132397199/job/108062445520">Verified execution ↗</a></p>
-<p>Two established TCP sessions survived health exclusion, reload and a gated controller restart. Direct restart with retained state failed; the tested workaround pauses new flows until health is confirmed. Sustained load, abrupt failure and HA remain unqualified.</p>
+<a href="https://github.com/l4load/l4load/actions/runs/36135359918/job/108072010672">Verified execution ↗</a></p>
+<p>Two established TCP sessions survived health exclusion, reload and gated restart after forced controller termination. Direct restart with retained state failed; the tested workaround pauses new flows until health is confirmed. Sustained load, host failure and HA remain unqualified.</p>
 <p>A separate IPv6-over-IPv6 IPVS trial passed 192 TCP/UDP exchanges across
 health-port failure and recovery with client addresses preserved. IPv6 reload,
 persistent-session and restart behaviour remain unqualified.</p>

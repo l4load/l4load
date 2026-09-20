@@ -30,8 +30,8 @@ passed 640 fresh exchanges and two persistent sessions. A candidate with port
 Valid drain/rollback candidates use the same preflight, atomic rename and HUP.
 This checks one malformed input, not every invalid configuration or update race.
 
-Counts demonstrate short functional coverage only. Sustained traffic, abrupt
-controller failure, concurrent configuration updates, HA and capacity remain unqualified.
+Counts demonstrate short functional coverage only. Sustained traffic, host failure, concurrent configuration updates, HA and
+capacity remain unqualified.
 Health checks cannot protect traffic while the controller is stopped. The observed
 restart limitation is scoped to the recorded package/configuration.
 
@@ -40,3 +40,10 @@ restart limitation is scoped to the recorded package/configuration.
 192 TCP/UDP exchanges preserved source IP through healthy, failed TCP-health-port
 and recovered phases. IPv6 persistent sessions, HTTP health, reload and restart
 are not qualified by this test; the richer lifecycle above remains IPv4-only.
+
+[Process-tree crash trial](https://github.com/l4load/l4load/actions/runs/36135359918/job/108072010672)
+passed 768 IPv4 exchanges and two persistent sessions. The test stopped the
+supervisor, sent SIGKILL to every process in its isolated namespace, verified no
+processes remained, and exercised gated restart after a health-port failure.
+Kernel state survived; stale health decisions persisted until restart. This does
+not qualify reboot, kernel failure or automatic service-manager recovery.
