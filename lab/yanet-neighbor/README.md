@@ -8,5 +8,6 @@ updates ownership of their input data. This is upstream work, not a new L4Load f
 CI runs the original neighbor tests, installs the PR's regression test alone
 and requires it to fail, then installs its two implementation files and requires
 all tests to pass. Explicit neighbor clear must still remove static entries.
-Results are pending; packet-level reload and concurrent updates require separate
+[Run36144972495](https://github.com/l4load/l4load/actions/runs/36144972495) passed
+the before/after checks. Packet-level reload and concurrent updates require separate
 qualification. The earlier local candidate was discarded after finding this PR.

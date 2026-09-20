@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yanet-platform/yanet
-          ref: 6b30c2f376c5148a661eadb57fd316d3b453e085
+          ref: dacf4015f794e978c74200bb49f35472114d66aa
           submodules: recursive
           path: upstream/yanet
       - uses: actions/cache/restore@v4
@@ -64,13 +64,24 @@ jobs:
           config['ealArgs'] = config.get('ealArgs', []) + ['--no-pci']
           Path('../../lab/results/yanet/dataplane.conf').write_text(json.dumps(config, indent=2))
           PYCONFIG
-          timeout --kill-after=10s 180s python3 -u autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
+          timeout --kill-after=10s 180s unshare --ipc --pid --fork --mount-proc --kill-child=KILL python3 -u autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
             ../../lab/results/yanet \
             autotest/units/001_one_port/049_balancer_tcp_udp \
             autotest/units/001_one_port/049_balancer_real_ipv4 \
             autotest/units/001_one_port/049_balancer_reload \
             autotest/units/001_one_port/056_balancer_ops \
             2>&1 | tee ../../lab/results/yanet/autotest.log
+      - name: Repeat reload qualification
+        timeout-minutes: 5
+        run: |
+          cd upstream/yanet
+          for attempt in 1 2 3 4 5; do
+            timeout --kill-after=10s 45s unshare --ipc --pid --fork --mount-proc --kill-child=KILL \
+              python3 -u autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
+              ../../lab/results/yanet autotest/units/001_one_port/049_balancer_reload \
+              2>&1 | tee "../../lab/results/yanet/reload-$attempt.log"
+            echo "RELOAD_REPEAT_PASS $attempt"
+          done
       - name: Collect runtime diagnostics
         if: always()
         run: |
