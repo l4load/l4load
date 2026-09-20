@@ -27,7 +27,7 @@ jobs:
           import hashlib, json
           from pathlib import Path
           for path in sorted(Path('lab/results').glob('*/load/*')):
-              if path.suffix == '.txt':
+              if path.suffix in ('.txt', '.json'):
                   print('EVIDENCE ' + json.dumps({'file': str(path.relative_to('lab/results')), 'content': path.read_text()}))
               elif path.suffix == '.csv':
                   print('SAMPLES ' + json.dumps({'file': str(path.relative_to('lab/results')), 'bytes': path.stat().st_size, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}))

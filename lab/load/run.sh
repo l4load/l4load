@@ -32,4 +32,5 @@ for protocol in udp tcp; do
     cleanup
     pids=()
 done
+python3 lab/load/summarize.py "$out" | tee "$out/summary.json"
 echo SOCKPERF_TRIAL_DONE
