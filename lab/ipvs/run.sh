@@ -106,6 +106,10 @@ PY
 wait_weight 1
 wait_weight 1 10.0.3.2:8080
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 20000 | tee "$out/healthy.json"
+if [ "${L4LOAD_FILTER:-0}" = 1 ]; then
+    source lab/filter/run.sh
+    exit
+fi
 if [ "${L4LOAD_CUTOVER:-0}" = 1 ]; then
     source lab/cutover/run.sh
     exit

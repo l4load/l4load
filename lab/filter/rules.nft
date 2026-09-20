@@ -1,0 +1,10 @@
+table netdev l4load {
+    set blocked {
+        type ipv4_addr . ipv4_addr
+        flags timeout
+    }
+    chain ingress {
+        type filter hook ingress device "eth0" priority -500; policy accept;
+        ip saddr . ip daddr @blocked counter drop
+    }
+}
