@@ -88,7 +88,8 @@ CONF
     echo '}'
 done > "$out/keepalived.conf"
 ip netns exec l4-lb keepalived -n -l -C -f "$out/keepalived.conf" > "$out/keepalived.log" 2>&1 &
-pids+=("$!")
+controller=$!
+pids+=("$controller")
 wait_weight() {
     for attempt in $(seq 1 15); do
         ip netns exec l4-lb ipvsadm -Sn > "$out/state.txt"
@@ -106,13 +107,54 @@ PY
 }
 wait_weight 1
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 20000 | tee "$out/healthy.json"
+rm -f "$out"/session-*
+: > "$out/session-phase"
+ip netns exec l4-client python3 -u lab/ipvs/sessions.py "$out" > "$out/sessions.jsonl" 2>&1 &
+session_pid=$!
+pids+=("$session_pid")
+wait_session() {
+    for attempt in $(seq 1 100); do
+        if [ -f "$out/session-$1" ]; then return; fi
+        kill -0 "$session_pid" || { cat "$out/sessions.jsonl"; return 1; }
+        sleep 0.1
+    done
+    cat "$out/sessions.jsonl"
+    return 1
+}
+phase() {
+    echo "$1" > "$out/session-phase"
+    wait_session "$1"
+}
+wait_session ready
 kill "$first_health"
 wait "$first_health" 2>/dev/null || true
 wait_weight 0
+phase health-down
 cp "$out/state.txt" "$out/down-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 21000 | tee "$out/down.json"
 start_health 1
 wait_weight 1
 cp "$out/state.txt" "$out/recovered-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 22000 | tee "$out/recovered.json"
+phase recovered
+cp "$out/keepalived.conf" "$out/original.conf"
+python3 - "$out/keepalived.conf" <<'PYCONFIG'
+import sys
+from pathlib import Path
+p=Path(sys.argv[1])
+p.write_text(p.read_text().replace('real_server 10.0.2.2 8080 {\n        weight 1', 'real_server 10.0.2.2 8080 {\n        weight 0'))
+PYCONFIG
+kill -HUP "$controller"
+wait_weight 0
+phase drained
+cp "$out/state.txt" "$out/drained-state.txt"
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 23000 | tee "$out/drained.json"
+cp "$out/original.conf" "$out/keepalived.conf"
+kill -HUP "$controller"
+wait_weight 1
+phase restored
+ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 24000 | tee "$out/restored.json"
+phase done
+wait "$session_pid"
+cat "$out/sessions.jsonl"
 echo IPVS_LIFECYCLE_PASS

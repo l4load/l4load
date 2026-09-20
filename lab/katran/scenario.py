@@ -43,6 +43,12 @@ def serve(backend):
                 data, peer = sock.recvfrom(4096)
                 sock.sendto(f'{backend} {peer[0]} '.encode() + data, peer)
 
+    def tcp(conn, peer):
+        with conn:
+            conn.settimeout(60)
+            while data := conn.recv(4096):
+                conn.sendall(f'{backend} {peer[0]} '.encode() + data)
+
     threading.Thread(target=udp, daemon=True).start()
     with socket.socket() as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -51,10 +57,7 @@ def serve(backend):
         print('READY', backend, flush=True)
         while True:
             conn, peer = sock.accept()
-            with conn:
-                conn.settimeout(3)
-                data = conn.recv(4096)
-                conn.sendall(f'{backend} {peer[0]} '.encode() + data)
+            threading.Thread(target=tcp, args=(conn, peer), daemon=True).start()
 
 
 def check(expected="b1,b2", base_port="0"):
