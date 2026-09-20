@@ -10,6 +10,7 @@ done
 pids=()
 cleanup() {
     if [ -n "${unitfile:-}" ]; then
+        journalctl -u l4load-ipvs-lab.service --no-pager > "$out/service-journal.txt" || true
         systemctl stop l4load-ipvs-lab.service || true
         rm -f "$unitfile"
         systemctl daemon-reload

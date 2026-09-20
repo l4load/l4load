@@ -37,7 +37,6 @@ phase service-recovered
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 32000 | tee "$out/service-recovered.json"
 systemctl show "$unit" -p ActiveState -p MainPID -p NRestarts > "$out/service-state.txt"
 test "$(systemctl show "$unit" -p NRestarts --value)" -ge 1
-journalctl -u "$unit" --no-pager > "$out/service.log"
 cp "$unitfile" "$out/service.txt"
 start_health 1
 wait_weight 1
