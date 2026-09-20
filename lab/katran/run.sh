@@ -28,7 +28,7 @@ uname -a > "$out/kernel.txt"
 clang --version > "$out/compiler.txt"
 git -C "$src" rev-parse HEAD > "$out/upstream.txt"
 git rev-parse HEAD > "$out/harness.txt"
-clang -D__KERNEL__ -O2 -g -I "$src" -I "$src/katran/lib/linux_includes" -I /usr/include/x86_64-linux-gnu \
+clang -D__KERNEL__ -O2 -g -Wno-compare-distinct-pointer-types -I "$src" -I "$src/katran/lib/linux_includes" -I /usr/include/x86_64-linux-gnu \
     -emit-llvm -c "$src/katran/lib/bpf/balancer.bpf.c" -o - | llc -march=bpf -filetype=obj -o "$out/balancer.o"
 sha256sum "$out/balancer.o" > "$out/object.sha256"
 cp "$src/LICENSE" "$out/Katran-LICENSE"
@@ -66,7 +66,7 @@ for n in 1 2; do
 done
 mac=$(ip -j -n l4-router link show r1 | python3 -c 'import json,sys; print(json.load(sys.stdin)[0]["address"])')
 python3 lab/katran/scenario.py configure "$pin/maps" "$mac"
-ip -n l4-lb link set eth0 xdpgeneric pinned "$pin/prog"
+nsenter --net=/run/netns/l4-lb ip link set eth0 xdpgeneric pinned "$pin/prog"
 ip netns exec l4-router tcpdump -U -ni r1 -w "$out/forwarding.pcap" > "$out/capture.log" 2>&1 &
 pids+=("$!")
 sleep 1
