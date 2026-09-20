@@ -1,0 +1,74 @@
+[
+  {
+    "repeat": 1,
+    "denied_requested_mps": 0,
+    "denied_generator_mps": 0,
+    "allowed_requested_mps": 1000,
+    "allowed_sent": 4549,
+    "allowed_received": 4549,
+    "allowed_actual_mps": 1000.2198768689534,
+    "dropped": 0,
+    "p99_rtt_us": 42.018,
+    "samples_sha256": "c78b1306a56c77119feb1ffc89bd174a25085ab6b69228a6790fac34c47ef2f9"
+  },
+  {
+    "repeat": 1,
+    "denied_requested_mps": 100000,
+    "denied_generator_mps": 100003.08333333333,
+    "allowed_requested_mps": 1000,
+    "allowed_sent": 4550,
+    "allowed_received": 4550,
+    "allowed_actual_mps": 1000.2198285337436,
+    "dropped": 0,
+    "p99_rtt_us": 45.002,
+    "samples_sha256": "15092f32981bfd36949d6edfabc9f66d836dd0efe2cecf3846bf4327193191b9"
+  },
+  {
+    "repeat": 2,
+    "denied_requested_mps": 0,
+    "denied_generator_mps": 0,
+    "allowed_requested_mps": 1000,
+    "allowed_sent": 4550,
+    "allowed_received": 4550,
+    "allowed_actual_mps": 1000.2198285337436,
+    "dropped": 0,
+    "p99_rtt_us": 44.291,
+    "samples_sha256": "60f41608e0cdd81255b9a8b172ad4b76f7460e25de61371292deb0a501606ca7"
+  },
+  {
+    "repeat": 2,
+    "denied_requested_mps": 100000,
+    "denied_generator_mps": 100006.91666666667,
+    "allowed_requested_mps": 1000,
+    "allowed_sent": 4549,
+    "allowed_received": 4549,
+    "allowed_actual_mps": 1000.2198768689534,
+    "dropped": 0,
+    "p99_rtt_us": 74.857,
+    "samples_sha256": "cf04744cb3619c8f79a3f42afd7c1d1ab23992981e7538cf0e1750e135a37caf"
+  },
+  {
+    "repeat": 3,
+    "denied_requested_mps": 0,
+    "denied_generator_mps": 0,
+    "allowed_requested_mps": 1000,
+    "allowed_sent": 4549,
+    "allowed_received": 4549,
+    "allowed_actual_mps": 1000.2198768689534,
+    "dropped": 0,
+    "p99_rtt_us": 44.351,
+    "samples_sha256": "4603d988675173dbd0fc0f0de455c8f9fe5aa932985241b6c8dec8fb3b7e4619"
+  },
+  {
+    "repeat": 3,
+    "denied_requested_mps": 100000,
+    "denied_generator_mps": 100007.0,
+    "allowed_requested_mps": 1000,
+    "allowed_sent": 4550,
+    "allowed_received": 4550,
+    "allowed_actual_mps": 1000.2198285337436,
+    "dropped": 0,
+    "p99_rtt_us": 45.828,
+    "samples_sha256": "f1318cec40bf7c18fbb1b7b9f18ffa8ba8ba111f6f79ee24786e38d6af340e38"
+  }
+]

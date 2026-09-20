@@ -78,6 +78,14 @@ working, reject an invalid update and restore forwarding. The nftables rule
 also expired without a controller; YANET removal was explicit.
 Overload protection, filtering throughput and feature parity are not established.
 <a href="https://github.com/l4load/l4load/tree/main/lab/filter">Reproduce the filter trial ↗</a></p>
+<p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
+kept about 1,000 allowed messages/s without reported loss while generators sent
+about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
+nftables/IPVS and 510–1040 µs for YANET AF_PACKET. Without background traffic,
+the respective ranges were 42–44 µs and 92–1003 µs. YANET baseline variability,
+shared CPU contention, fixed order and short intervals prevent a capacity or
+production-superiority claim. All twelve raw CSVs are
+<a href="https://github.com/l4load/l4load/tree/main/lab/filter/results/2026-09-25">preserved with hashes</a>.</p>
 <p>In an isolated Katran test, freezing a kernel map caused a backend update to return success
 while the kernel ring stayed unchanged. This artificial permanent-write failure does not establish
 production incidence; it shows why an API acknowledgement alone is insufficient.</p>
