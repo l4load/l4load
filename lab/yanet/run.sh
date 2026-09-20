@@ -18,6 +18,11 @@ for ns in l4-client l4-router l4-b1 l4-b2; do
 done
 pids=()
 cleanup() {
+    if [ "$mode" = af-packet ]; then
+        ip -s link show l4-yanet > "$out/port.txt" 2>&1 || true
+        ip -n l4-router -s link > "$out/router.txt" 2>&1 || true
+        timeout 3s yanet-cli balancer state balancer0 > "$out/state.txt" 2>&1 || true
+    fi
     for pid in "${pids[@]}"; do
         kill -KILL "$pid" 2>/dev/null || true
         wait "$pid" 2>/dev/null || true
@@ -105,6 +110,11 @@ for proto in tcp udp; do
 done
 yanet-cli balancer real flush
 yanet-cli balancer real balancer0 > "$out/reals.txt"
+if [ "$mode" = af-packet ]; then
+    ip netns exec l4-router tcpdump -l -nn -e -vv -i any > "$out/packets.txt" 2>&1 &
+    pids+=("$!")
+    sleep 0.2
+fi
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 20000 | tee "$out/healthy.json"
 yanet-cli balancer state balancer0 > "$out/state.txt"
 echo YANET_DSR_PASS
