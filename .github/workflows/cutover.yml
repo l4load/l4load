@@ -11,12 +11,16 @@ jobs:
       fail-fast: false
       matrix:
         sync: [0, 1]
+        loss: [0]
+        include:
+          - sync: 1
+            loss: 1
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter
-      - run: sudo env L4LOAD_CUTOVER=1 L4LOAD_SYNC=${{ matrix.sync }} bash lab/ipvs/run.sh
+      - run: sudo env L4LOAD_CUTOVER=1 L4LOAD_SYNC=${{ matrix.sync }} L4LOAD_SYNC_LOSS=${{ matrix.loss }} bash lab/ipvs/run.sh
       - if: always()
         run: |
           python3 - <<'PY'
@@ -29,5 +33,5 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vip-cutover-${{ matrix.sync }}
+          name: vip-cutover-${{ matrix.sync }}-${{ matrix.loss }}
           path: lab/results/ipvs

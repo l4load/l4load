@@ -26,7 +26,7 @@ PY
         then ready=true; break; fi
         sleep 0.1
     done
-    test "$ready" = true
+    test "$ready" = true || return 1
     ip netns exec "$sender" ipvsadm --stop-daemon master
     ip netns exec "$receiver" ipvsadm --stop-daemon backup
     ip netns exec "$sender" ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42
