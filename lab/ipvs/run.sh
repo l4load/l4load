@@ -116,6 +116,7 @@ PY
     return 1
 }
 wait_weight 1
+wait_weight 1 10.0.3.2:8080
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 20000 | tee "$out/healthy.json"
 rm -f "$out"/session-*
 : > "$out/session-phase"
