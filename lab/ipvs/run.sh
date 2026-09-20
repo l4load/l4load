@@ -65,35 +65,7 @@ start_health() {
 start_health 1
 first_health=$health_pid
 start_health 2
-for proto in TCP UDP; do
-    cat <<CONF
-virtual_server 198.18.0.1 8080 {
-    delay_loop 1
-    lvs_sched rr
-    lvs_method TUN
-    protocol $proto
-    alpha
-CONF
-    for n in 1 2; do
-        cat <<CONF
-    real_server 10.0.$((n+1)).2 8080 {
-        weight 1
-        inhibit_on_failure
-        HTTP_GET {
-            url {
-                path /health
-                status_code 200
-            }
-            connect_port 9090
-            connect_timeout 1
-            retry 1
-            delay_before_retry 1
-        }
-    }
-CONF
-    done
-    echo '}'
-done > "$out/keepalived.conf"
+cp profiles/ipvs/keepalived.conf "$out/keepalived.conf"
 start_controller() {
     ip netns exec l4-lb keepalived -n -l -C -I -f "$out/keepalived.conf" >> "$out/keepalived.log" 2>&1 &
     controller=$!

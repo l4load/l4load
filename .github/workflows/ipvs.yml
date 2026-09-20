@@ -1,9 +1,9 @@
 name: IPVS lifecycle
 on:
   push:
-    paths: ['lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
+    paths: ['profiles/ipvs/**', 'lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
   pull_request:
-    paths: ['lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
+    paths: ['profiles/ipvs/**', 'lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
   workflow_dispatch:
 permissions:
   contents: read
