@@ -5,7 +5,8 @@ Independent L4 networking tools. Experimental; not production-ready.
 Balance work starts with existing dataplanes: configure, test and tune before
 implementing an engine. The [Katran DSR scenario](lab/katran/README.md) exercises
 one IPv4 VIP and two backends over TCP/UDP without DPDK. Shield, Pulse and Fabric
-are planned. No comparative performance results are available yet.
+are planned. [Short synthetic comparisons](lab/filter/README.md) include raw
+samples and limits; they do not establish capacity or production superiority.
 
 The [Keepalived/IPVS lifecycle trial](lab/ipvs/README.md) adds health-driven backend
 exclusion and recovery, verified with TCP/UDP and kernel table snapshots. Neither
@@ -20,7 +21,8 @@ used by the lifecycle tests, with deployment prerequisites and operational limit
 
 The [YANET baseline](lab/yanet/README.md) passes the shared DSR echo scenario and
 repeated reload tests using an existing upstream neighbor fix. The socket/TAP
-path qualifies correctness only; it is not a throughput comparison.
+path qualifies correctness only. Native AF_PACKET is used in the separate
+load comparisons; virtual results do not establish physical NIC performance.
 
 ## Run the trials
 
