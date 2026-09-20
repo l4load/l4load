@@ -8,7 +8,7 @@ exec > >(tee "$out/run.log") 2>&1
 test "$(git -C "$src" rev-parse HEAD)" = 4546144594d11d7bf342d008e7b94922fc9bbaa3
 test -z "$(git -C "$src" status --porcelain)"
 if ! bpftool version >/dev/null 2>&1; then
-    export PATH="$(dirname "$(find /usr/lib/linux-tools -name bpftool -type f -print -quit)"):$PATH"
+    export PATH="$(dirname "$(find -L /usr/lib/linux-tools -name bpftool -type f -print -quit)"):$PATH"
 fi
 bpftool version > "$out/bpftool.txt"
 pin=/sys/fs/bpf/l4load-katran
