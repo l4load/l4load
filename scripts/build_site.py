@@ -63,13 +63,18 @@ The <a href="https://github.com/l4load/l4load/actions/runs/36148196614">native A
 also passed, using MTU 1500 and software-completed virtual-port checksums.
 These are correctness checks, not competitive throughput measurements.
 <a href="https://github.com/l4load/l4load/actions/runs/36146170902">Verified execution ↗</a></p>
-<p>Our target is strong performance with fewer deployment dependencies. No competitive
-comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>
-<p><a href="https://github.com/l4load/l4load/actions/runs/36150467534">IPVS and Katran load-tool qualification</a>
-completed 24 short TCP/UDP trials on one runner without reported message loss.
-The shared sockperf scenario records full RTT and actual message rates.
-Fixed engine order, unpinned CPUs and single-flow traffic prevent a capacity or
-performance ranking. <a href="https://github.com/l4load/l4load/tree/main/lab/load">Run the load scenario ↗</a></p>
+<p>Our target is strong performance with fewer deployment dependencies.
+Virtual results are distinguished from hardware measurements.</p>
+<p>The <a href="https://github.com/l4load/l4load/actions/runs/36152260708">shared IPVS, Katran and YANET experiment</a>
+completed 36 five-second TCP/UDP trials in one pinned builder container on one runner,
+with 64-byte messages at requested 1k/10k messages per second and no reported drops.
+The shared sockperf scenario records full RTT and actual message rates.</p>
+<p>At 10k messages per second, trial p99 full RTT ranged from 57.7–62.3 µs for IPVS,
+54.1–63.2 µs for Katran and 936.1–1421.3 µs for YANET AF_PACKET.
+These ranges span individual TCP/UDP trial percentiles; they are not pooled percentiles.
+The virtual paths differ, engine order was fixed and CPU placement was uncontrolled.
+This is a latency observation to investigate, not a capacity, hardware or superiority claim.
+<a href="https://github.com/l4load/l4load/tree/main/lab/load">Run the load scenario ↗</a></p>
 <a href="https://github.com/l4load/l4load/blob/main/docs/benchmarks.md">Comparison criteria ↗</a>
 <h2>Know the limits.</h2>
 <p>The Katran scenario does not yet qualify backend changes, failover, IPv6 or physical NICs.
