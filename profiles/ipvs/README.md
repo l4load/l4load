@@ -62,15 +62,13 @@ health checks resume. Do not share its network namespace with another IPVS owner
 Use Ubuntu 24.04, packaged Keepalived/IPVS, Python 3 and the network prerequisites
 above. Stop any previous controller before transferring ownership.
 
-On an independent prepared host, with a reviewed `candidate.conf`:
+On an independent prepared host, with a reviewed `candidate.conf`, run the
+fresh-install script below. It rejects an existing `/etc/l4load/ipvs.conf`,
+validates the candidate before changes, masks the packaged service and installs
+the profile without starting or enabling it:
 
 ```sh
-sudo keepalived -t -f candidate.conf
-sudo systemctl mask --now keepalived.service
-sudo install -D -m 600 candidate.conf /etc/l4load/ipvs.conf
-sudo install -D -m 644 profiles/ipvs/gate.py /usr/local/libexec/l4load-ipvs-gate.py
-sudo install -D -m 644 profiles/ipvs/l4load-ipvs.service /etc/systemd/system/l4load-ipvs.service
-sudo systemctl daemon-reload
+sudo bash profiles/ipvs/install.sh candidate.conf
 sudo systemctl start l4load-ipvs
 ```
 

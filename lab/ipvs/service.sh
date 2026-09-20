@@ -6,9 +6,7 @@ done
 kill -TERM "$controller"
 wait "$controller"
 unitfile=/etc/systemd/system/$unit
-install -D -m 600 "$out/keepalived.conf" /etc/l4load/ipvs.conf
-install -D -m 644 profiles/ipvs/gate.py /usr/local/libexec/l4load-ipvs-gate.py
-install -D -m 644 profiles/ipvs/l4load-ipvs.service "$unitfile"
+bash profiles/ipvs/install.sh "$out/keepalived.conf"
 mkdir -p /run/systemd/system/$unit.d
 cat > /run/systemd/system/$unit.d/lab.conf <<UNIT
 [Service]
