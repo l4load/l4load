@@ -1,17 +1,20 @@
 import json
+import os
 import socket
 import sys
 import time
 from pathlib import Path
 
 out = Path(sys.argv[1])
+vip = os.environ.get('L4LOAD_VIP', '198.18.0.1')
+client = os.environ.get('L4LOAD_CLIENT', '10.0.0.2')
 sessions = {}
 for _ in range(8):
-    sock = socket.create_connection(('198.18.0.1', 8080), timeout=3)
+    sock = socket.create_connection((vip, 8080), timeout=3)
     stream = sock.makefile('rb')
     sock.sendall(b'initial\n')
     backend, source, payload = stream.readline().decode().split(' ', 2)
-    assert source == '10.0.0.2' and payload == 'initial\n'
+    assert source == client and payload == 'initial\n'
     if backend in sessions:
         stream.close()
         sock.close()
@@ -34,7 +37,7 @@ while time.monotonic() < deadline:
         sent = time.monotonic()
         sock.sendall(payload.encode())
         reply = stream.readline().decode()
-        assert reply == f'{backend} 10.0.0.2 {payload}', reply
+        assert reply == f'{backend} {client} {payload}', reply
         max_rtt_ms[backend] = max(max_rtt_ms[backend], (time.monotonic() - sent) * 1000)
         counts[backend] += 1
     if phase and phase != previous:
