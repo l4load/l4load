@@ -14,8 +14,17 @@ versions, recursive source revisions, environment and raw logs on every run.
 checks. This does not establish live DSR return-path equivalence or throughput.
 Later builds use ccache to avoid recompiling unchanged upstream code.
 
-The pending live trial uses `run.sh upstream/yanet` after building that source.
+The live trial uses `run.sh upstream/yanet` after building that source.
 It needs a disposable privileged Linux host, `/dev/net/tun` and the IPIP module.
 One socket/TAP port joins the same synthetic client/backend subnets used by the
 other trials. The adapter checks stream framing; it is not a throughput generator.
-The IPv4 TCP/UDP echo and source-identity result is not yet verified.
+[Live execution](https://github.com/l4load/l4load/actions/runs/36142209366/job/108094522813),
+2026-09-25: 32 TCP and 32 UDP exchanges passed, split equally across both
+backends with client IP and payload preserved. All four upstream suites also
+passed. This uses upstream autotest table limits; the initial default-sized
+configuration exhausted the runner's allocation budget.
+
+Earlier runs intermittently failed the upstream reload packet expectation;
+the cause is unresolved. Passing this run does not erase those failures.
+The Python/TAP bridge and socket driver make this a functional baseline only.
+Use a qualified native virtual-device path before measuring engine performance.
