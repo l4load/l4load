@@ -39,11 +39,11 @@ It is not a production deployment or a throughput result.</p>
 </div>
 <h2>Backend failure and recovery.</h2>
 <p>The Keepalived/IPVS trial checks healthy, health-failed and recovered backends.
-All 320 TCP/UDP exchanges passed, including configured drain and rollback: new flows avoided the unhealthy backend and
+All 576 TCP/UDP exchanges passed, including HTTP health failure, configured drain and rollback: new flows avoided the unhealthy backend and
 returned to both backends after recovery, preserving client IP and payload.</p>
 <p><a href="https://github.com/l4load/l4load/tree/main/lab/ipvs">Run the lifecycle trial ↗</a> ·
-<a href="https://github.com/l4load/l4load/actions/runs/36129548239/job/108053397947">Verified execution ↗</a></p>
-<p>Two established TCP sessions also survived health exclusion, weight-zero reload and rollback. Sustained load, controller failure and HA remain unqualified.</p>
+<a href="https://github.com/l4load/l4load/actions/runs/36130798955/job/108057346193">Verified execution ↗</a></p>
+<p>Two established TCP sessions survived health exclusion, reload and a gated controller restart. Direct restart with retained state failed; the tested workaround pauses new flows until health is confirmed. Sustained load, abrupt failure and HA remain unqualified.</p>
 <h2>Evidence before performance claims.</h2>
 <p>Our target is strong performance with fewer deployment dependencies. No competitive
 comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>

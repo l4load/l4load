@@ -21,6 +21,7 @@ modprobe ip_vs_rr
 modprobe ipip
 uname -a > "$out/kernel.txt"
 dpkg-query -W keepalived ipvsadm > "$out/packages.txt"
+cat "$out/packages.txt" "$out/kernel.txt"
 date -u +%FT%TZ > "$out/started.txt"
 git rev-parse HEAD > "$out/source.txt"
 for ns in l4-client l4-router l4-lb l4-b1 l4-b2; do
