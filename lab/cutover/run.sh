@@ -10,12 +10,16 @@ for ns in l4-lb l4-alt; do
     ip netns exec "$ns" sysctl net.ipv4.vs.sloppy_tcp net.ipv4.vs.conn_reuse_mode > "$out/$ns-sysctl.txt"
     ip netns exec "$ns" ipvsadm -Sn > "$out/$ns-config.txt"
 done
+if [ "${L4LOAD_SYNC:-0}" = 1 ]; then source lab/cutover/sync.sh; fi
 : > "$out/cutover-phase"
 ip netns exec l4-client python3 -u lab/cutover/probe.py "$out" > "$out/cutover.jsonl" 2>&1 &
 probe=$!
 pids+=("$probe")
 port=40000
 for stage in baseline cutover rollback done; do
+    if [ "${L4LOAD_SYNC:-0}" = 1 ] && { [ "$stage" = cutover ] || [ "$stage" = rollback ]; }; then
+        sync_handoff
+    fi
     case "$stage" in
         cutover) ip -n l4-router route replace 198.18.0.1/32 via 10.0.4.2 ;;
         rollback) ip -n l4-router route replace 198.18.0.1/32 via 10.0.1.2 ;;
@@ -36,11 +40,14 @@ for stage in baseline cutover rollback done; do
 done
 wait "$probe"
 cat "$out/cutover.jsonl"
-python3 - "$out/cutover.jsonl" <<'PY'
+python3 - "$out/cutover.jsonl" "${L4LOAD_SYNC:-0}" <<'PY'
 import json, sys
 rows = [json.loads(line) for line in open(sys.argv[1])]
 assert [r['phase'] for r in rows] == ['baseline', 'cutover', 'rollback', 'done']
 assert all(set(r['fresh']) == {'b1', 'b2'} for r in rows[:-1])
 assert [len(r['retained']) for r in rows] == [0, 4, 8, 12]
+if sys.argv[2] == '1':
+    assert all(s['status'] == 'pass' for r in rows for s in r['retained']), rows
+    print('SYNC_CUTOVER_PASS')
 print('CUTOVER_OBSERVATION_COMPLETE')
 PY
