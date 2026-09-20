@@ -1,0 +1,21 @@
+name: Load harness
+on:
+  push:
+    paths: ['lab/load/**', '.github/workflows/load.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ipvs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter sockperf
+      - run: sudo systemctl stop keepalived prometheus-node-exporter
+      - run: sudo env L4LOAD_LOAD=1 bash lab/ipvs/run.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-harness
+          path: lab/results/ipvs

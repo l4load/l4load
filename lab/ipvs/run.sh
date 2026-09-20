@@ -8,6 +8,7 @@ for ns in l4-client l4-router l4-lb l4-b1 l4-b2; do
     ! ip netns list | cut -d ' ' -f 1 | grep -qx "$ns"
 done
 pids=()
+backend_pids=()
 cleanup() {
     if [ -n "${unitfile:-}" ]; then
         journalctl -u l4load-ipvs-lab.service --no-pager > "$out/service-journal.txt" || true
@@ -57,6 +58,7 @@ for n in 1 2; do
     ip -n "l4-b$n" addr add 198.18.0.1/32 dev lo
     ip netns exec "l4-b$n" python3 -u lab/katran/scenario.py serve "b$n" > "$out/backend$n.log" 2>&1 &
     pids+=("$!")
+    backend_pids+=("$!")
 done
 
 ip -n l4-lb addr add 198.18.0.1/32 dev lo
@@ -96,6 +98,11 @@ PY
 wait_weight 1
 wait_weight 1 10.0.3.2:8080
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 20000 | tee "$out/healthy.json"
+if [ "${L4LOAD_LOAD:-0}" = 1 ]; then
+    for pid in "${backend_pids[@]}"; do kill "$pid"; wait "$pid" || true; done
+    bash lab/load/run.sh "$out/load"
+    exit
+fi
 ip netns exec l4-lb prometheus-node-exporter --collector.disable-defaults --collector.ipvs --web.listen-address=127.0.0.1:19100 > "$out/exporter.log" 2>&1 &
 exporter_pid=$!
 pids+=("$exporter_pid")
