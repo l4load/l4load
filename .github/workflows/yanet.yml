@@ -64,7 +64,7 @@ jobs:
           config['ealArgs'] = config.get('ealArgs', []) + ['--no-pci']
           Path('../../lab/results/yanet/dataplane.conf').write_text(json.dumps(config, indent=2))
           PYCONFIG
-          timeout --kill-after=10s 180s unshare --ipc --pid --fork --mount-proc --kill-child=KILL python3 -u autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
+          timeout --kill-after=10s 180s unshare --ipc python3 -u autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
             ../../lab/results/yanet \
             autotest/units/001_one_port/049_balancer_tcp_udp \
             autotest/units/001_one_port/049_balancer_real_ipv4 \
@@ -76,7 +76,7 @@ jobs:
         run: |
           cd upstream/yanet
           for attempt in 1 2 3 4 5; do
-            timeout --kill-after=10s 45s unshare --ipc --pid --fork --mount-proc --kill-child=KILL \
+            timeout --kill-after=10s 45s unshare --ipc \
               python3 -u autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
               ../../lab/results/yanet autotest/units/001_one_port/049_balancer_reload \
               2>&1 | tee "../../lab/results/yanet/reload-$attempt.log"
