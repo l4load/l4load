@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -21,5 +22,7 @@ for protocol in ('udp', 'tcp'):
             assert samples.is_file() and samples.stat().st_size > 0, name
             rows.append(dict(protocol=protocol, requested_mps=rate, repeat=repeat,
                              duration_s=duration, sent=sent, received=received,
-                             actual_mps=sent / duration, dropped=dropped, p99_rtt_us=p99))
+                             actual_mps=sent / duration, dropped=dropped, p99_rtt_us=p99,
+                             samples_file=samples.name, samples_bytes=samples.stat().st_size,
+                             samples_sha256=hashlib.sha256(samples.read_bytes()).hexdigest()))
 print(json.dumps(rows, indent=2))
