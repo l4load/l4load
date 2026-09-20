@@ -5,6 +5,12 @@ upstream=$(realpath "${1:?upstream source directory}")
 build="$upstream/build_autotest"
 export PATH="$build/dataplane:$build/controlplane:$build/cli:$PATH"
 out=$(pwd)/lab/results/yanet-dsr
+mode=${2:-socket}
+case "$mode" in
+    socket) ;;
+    af-packet) out="$out-native"; ! ip link show l4-yanet >/dev/null 2>&1 ;;
+    *) exit 2 ;;
+esac
 mkdir -p "$out"
 exec > >(tee "$out/run.log") 2>&1
 for ns in l4-client l4-router l4-b1 l4-b2; do
@@ -60,7 +66,11 @@ for n in 1 2; do
 done
 
 mkdir -p /run/yanet
-python3 lab/yanet/configure.py "$out" "$upstream"
+python3 lab/yanet/configure.py "$out" "$upstream" "$mode"
+if [ "$mode" = af-packet ]; then
+    ip link add l4-yanet type veth peer name vp0 netns l4-router
+    ip link set l4-yanet up
+fi
 yanet-dataplane -c "$out/dataplane.conf" > "$out/dataplane.log" 2>&1 &
 pids+=("$!")
 wait_app() {
@@ -72,8 +82,10 @@ wait_app() {
     return 1
 }
 wait_app dataplane
-ip netns exec l4-router python3 -u lab/yanet/tap.py vp0 /run/yanet/vp0 > "$out/tap.log" 2>&1 &
-pids+=("$!")
+if [ "$mode" = socket ]; then
+    ip netns exec l4-router python3 -u lab/yanet/tap.py vp0 /run/yanet/vp0 > "$out/tap.log" 2>&1 &
+    pids+=("$!")
+fi
 for attempt in $(seq 1 30); do
     if ip -n l4-router link show vp0 >/dev/null 2>&1; then break; fi
     sleep 0.1

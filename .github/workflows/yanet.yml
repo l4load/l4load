@@ -52,6 +52,10 @@ jobs:
       - name: Check live DSR forwarding
         timeout-minutes: 5
         run: unshare --ipc bash lab/yanet/run.sh upstream/yanet
+      - name: Check native virtual forwarding
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        timeout-minutes: 5
+        run: unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet
       - name: Exercise public balancer cases
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         timeout-minutes: 5
@@ -78,7 +82,7 @@ jobs:
           for file in /tmp/yanet*.pcap /tmp/yanet-dp.report; do
             if [ -f "$file" ]; then cp "$file" lab/results/yanet/; fi
           done
-          for file in lab/results/yanet/autotest.log lab/results/yanet-dsr/*.log; do
+          for file in lab/results/yanet/autotest.log lab/results/yanet-dsr*/*.log; do
             if [ -f "$file" ]; then
               echo "$file"
               tail -n 100 "$file"
@@ -100,7 +104,7 @@ jobs:
           name: yanet-baseline
           path: |
             lab/results/yanet
-            lab/results/yanet-dsr
+            lab/results/yanet-dsr*
             upstream/yanet/build_autotest/meson-logs
           if-no-files-found: warn
       - uses: actions/cache/save@v4
