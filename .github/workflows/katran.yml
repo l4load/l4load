@@ -1,0 +1,28 @@
+name: Katran DSR
+on:
+  push:
+    paths: ['lab/katran/**', '.github/workflows/katran.yml']
+  pull_request:
+    paths: ['lab/katran/**', '.github/workflows/katran.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dsr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: facebookincubator/katran
+          ref: 4546144594d11d7bf342d008e7b94922fc9bbaa3
+          path: upstream/katran
+      - run: sudo apt-get update && sudo apt-get install -y clang libbpf1 linux-tools-common linux-tools-generic tcpdump
+      - run: sudo bash lab/katran/run.sh upstream/katran
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: katran-dsr
+          path: lab/results/katran
+          if-no-files-found: warn
