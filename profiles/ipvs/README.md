@@ -82,6 +82,10 @@ The packaged service must stay masked while this profile owns IPVS: package
 maintainer scripts target `keepalived.service`. A one-time stop is insufficient.
 The package-lifecycle trial reinstalls the same recorded `.deb` under traffic,
 checks that the mask survives and the custom controller PID is unchanged, then
-explicitly restarts the custom service through its gate. Qualification is pending;
-this is not a cross-version upgrade test. Preserve the prior package and config
+explicitly restarts the custom service through its gate.
+[This passed](https://github.com/l4load/l4load/actions/runs/36164628266) with
+Keepalived `1:2.2.8-1build2`: the mask survived, the packaged service could not
+start, and two retained TCP sessions carried 777 exchanges each over 39.2 seconds.
+New flows passed after reinstall and explicit restart. This is not a cross-version
+upgrade test. Preserve the prior package and config
 before a separately qualified version change.
