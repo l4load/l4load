@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     container:
+      options: --privileged --volume /lib/modules:/lib/modules:ro
       image: yanetplatform/builder-lite@sha256:e37933067f57fc5025df09cd329bf494d97d5d866be31acfb022e9721a6758c8
     env:
       CCACHE_DIR: /tmp/l4load-ccache
@@ -29,7 +30,7 @@ jobs:
           path: /tmp/l4load-ccache
           key: yanet-6b30c2f-builder-e379330-v1-${{ github.sha }}
           restore-keys: yanet-6b30c2f-builder-e379330-v1-
-      - run: apt-get update && apt-get install -y cmake ccache
+      - run: apt-get update && apt-get install -y cmake ccache iproute2 kmod
       - run: ccache --max-size=2G
       - name: Record environment
         run: |
@@ -41,6 +42,7 @@ jobs:
           git -C upstream/yanet rev-parse HEAD > lab/results/yanet/upstream.txt
           git -C upstream/yanet submodule status --recursive > lab/results/yanet/submodules.txt
           dpkg-query -W > lab/results/yanet/packages.txt
+      - run: python3 lab/yanet/test_tap.py
       - name: Build upstream autotest
         run: |
           cd upstream/yanet
@@ -56,12 +58,15 @@ jobs:
             autotest/units/001_one_port/049_balancer_reload \
             autotest/units/001_one_port/056_balancer_ops \
             2>&1 | tee ../../lab/results/yanet/autotest.log
+      - name: Check live DSR forwarding
+        run: bash lab/yanet/run.sh upstream/yanet
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: yanet-baseline
           path: |
             lab/results/yanet
+            lab/results/yanet-dsr
             upstream/yanet/build_autotest/meson-logs
           if-no-files-found: warn
       - uses: actions/cache/save@v4

@@ -13,3 +13,9 @@ versions, recursive source revisions, environment and raw logs on every run.
 2026-09-25: all four suites completed, including packet expectations and state
 checks. This does not establish live DSR return-path equivalence or throughput.
 Later builds use ccache to avoid recompiling unchanged upstream code.
+
+The pending live trial uses `run.sh upstream/yanet` after building that source.
+It needs a disposable privileged Linux host, `/dev/net/tun` and the IPIP module.
+One socket/TAP port joins the same synthetic client/backend subnets used by the
+other trials. The adapter checks stream framing; it is not a throughput generator.
+The IPv4 TCP/UDP echo and source-identity result is not yet verified.
