@@ -1,33 +1,39 @@
 name: Load harness
 on:
   push:
-    paths: ['lab/load/**', 'lab/ipvs/run.sh', '.github/workflows/load.yml']
+    paths: ['lab/load/**', 'lab/ipvs/run.sh', 'lab/katran/run.sh', '.github/workflows/load.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  ipvs:
+  virtual:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter sockperf
+      - uses: actions/checkout@v4
+        with:
+          repository: facebookincubator/katran
+          ref: 4546144594d11d7bf342d008e7b94922fc9bbaa3
+          path: upstream/katran
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter sockperf clang llvm libbpf1 linux-tools-common linux-tools-generic tcpdump
       - run: sudo systemctl stop keepalived prometheus-node-exporter
       - run: sudo env L4LOAD_LOAD=1 bash lab/ipvs/run.sh
+      - run: sudo env L4LOAD_LOAD=1 bash lab/katran/run.sh upstream/katran
       - name: Record measurements
         if: always()
         run: |
           python3 - <<'PYLOG'
           import hashlib, json
           from pathlib import Path
-          for path in sorted(Path('lab/results/ipvs/load').glob('*')):
+          for path in sorted(Path('lab/results').glob('*/load/*')):
               if path.suffix == '.txt':
-                  print('EVIDENCE ' + json.dumps({'file': path.name, 'content': path.read_text()}))
+                  print('EVIDENCE ' + json.dumps({'file': str(path.relative_to('lab/results')), 'content': path.read_text()}))
               elif path.suffix == '.csv':
-                  print('SAMPLES ' + json.dumps({'file': path.name, 'bytes': path.stat().st_size, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}))
+                  print('SAMPLES ' + json.dumps({'file': str(path.relative_to('lab/results')), 'bytes': path.stat().st_size, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}))
           PYLOG
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: load-harness
-          path: lab/results/ipvs
+          path: lab/results

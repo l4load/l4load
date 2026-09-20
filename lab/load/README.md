@@ -14,3 +14,8 @@ This first run qualifies the tool integration only. Shared-runner scheduling,
 generator/receiver limits, CPU placement, paired engines and sustained load
 remain uncontrolled; do not rank engines from it.
 See [sockperf under-load semantics](https://github.com/Mellanox/sockperf/wiki/UnderLoad).
+
+The integration workflow also runs pinned Katran generic XDP after IPVS on the
+same host. Packet capture is disabled during load. This checks reuse of the
+same traffic tool; fixed engine order, unpinned CPU placement and single-flow
+trials still prevent a controlled ranking. YANET integration remains pending.
