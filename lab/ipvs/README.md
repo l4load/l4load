@@ -1,7 +1,8 @@
 # IPVS lifecycle trial
 
-Disposable Ubuntu 24.04 only: install keepalived and ipvsadm, stop the packaged
-keepalived service, then run `sudo bash lab/ipvs/run.sh`. Requires kernel modules
+Disposable Ubuntu 24.04 only: install keepalived, ipvsadm and
+prometheus-node-exporter, stop their packaged services, then run
+`sudo bash lab/ipvs/run.sh`. Requires kernel modules
 ip_vs, ip_vs_rr and ipip. The test creates and cleans up five network namespaces.
 Package versions, kernel, configuration, table snapshots and logs are recorded.
 
@@ -66,3 +67,8 @@ passed after retained-session tests finished: the service rebuilt two VIP
 services and four destinations, then forwarded 64 new exchanges. The full
 IPv4 lifecycle now checks 896 fresh exchanges. Networking and packages were
 already configured; this does not establish reboot or installation readiness.
+
+[IPVS metrics](https://github.com/l4load/l4load/actions/runs/36140910330)
+passed using the packaged node_exporter collector on namespace loopback.
+Raw scrapes matched all four destination weights through health failure and
+recovery. This qualifies collection, not retention, alerts or monitoring HA.
