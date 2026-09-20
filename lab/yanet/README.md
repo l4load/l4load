@@ -42,5 +42,10 @@ The native experiment uses DPDK AF_PACKET on a veth, with two symmetric queues
 and hardware RSS disabled. The first run failed before forwarding: YANET's
 9000-byte MTU exceeded the PMD's advertised 1500-byte limit. This branch changes
 the build-time MTU to 1500 and records the exact diff in `build-profile.txt`.
-Both socket and native cases use that build. Native forwarding is still pending;
-jumbo frames and hardware performance are outside this virtual profile.
+Both socket and native cases use that build. Linux veth checksum/segmentation
+offloads are disabled on the router port before AF_PACKET; otherwise partial
+TCP checksums survive encapsulation and the first connection times out.
+[Native run](https://github.com/l4load/l4load/actions/runs/36148196614) passed
+32 TCP and 32 UDP exchanges with source/payload preserved, all four upstream
+suites and five reload repetitions. Feature settings and the build diff are
+recorded. Jumbo frames, capacity and hardware performance remain unqualified.

@@ -1,7 +1,7 @@
 name: YANET baseline
 on:
   push:
-    paths: ['lab/yanet/**', '.github/workflows/yanet.yml']
+    paths: ['lab/yanet/**', '!lab/yanet/**/*.md', '.github/workflows/yanet.yml']
   workflow_dispatch:
 permissions:
   contents: read
