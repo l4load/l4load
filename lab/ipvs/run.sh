@@ -157,20 +157,34 @@ echo healthy > "$out/health1/health"
 wait_weight 1
 phase http-recovered
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 28000 | tee "$out/http-recovered.json"
+reload_config() {
+    ip netns exec l4-lb keepalived -t -f "$1" >> "$out/validation.log" 2>&1 || return
+    cp "$1" "$out/next.conf" || return
+    mv "$out/next.conf" "$out/keepalived.conf" || return
+    kill -HUP "$controller"
+}
 cp "$out/keepalived.conf" "$out/original.conf"
-python3 - "$out/keepalived.conf" <<'PYCONFIG'
+sed 's/virtual_server 198.18.0.1 8080/virtual_server 198.18.0.1 70000/' "$out/original.conf" > "$out/invalid.conf"
+if reload_config "$out/invalid.conf"; then
+    echo 'invalid configuration accepted'
+    exit 1
+fi
+cmp "$out/original.conf" "$out/keepalived.conf"
+phase invalid-rejected
+ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 29000 | tee "$out/invalid-rejected.json"
+cp "$out/original.conf" "$out/drain.conf"
+python3 - "$out/drain.conf" <<'PYCONFIG'
 import sys
 from pathlib import Path
 p=Path(sys.argv[1])
 p.write_text(p.read_text().replace('real_server 10.0.2.2 8080 {\n        weight 1', 'real_server 10.0.2.2 8080 {\n        weight 0'))
 PYCONFIG
-kill -HUP "$controller"
+reload_config "$out/drain.conf"
 wait_weight 0
 phase drained
 cp "$out/state.txt" "$out/drained-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 23000 | tee "$out/drained.json"
-cp "$out/original.conf" "$out/keepalived.conf"
-kill -HUP "$controller"
+reload_config "$out/original.conf"
 wait_weight 1
 phase restored
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 24000 | tee "$out/restored.json"
