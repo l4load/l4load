@@ -75,6 +75,8 @@ python3 lab/yanet/configure.py "$out" "$upstream" "$mode"
 if [ "$mode" = af-packet ]; then
     ip link add l4-yanet type veth peer name vp0 netns l4-router
     ip link set l4-yanet up
+    ip netns exec l4-router ethtool -K vp0 tx off tso off gso off
+    ip netns exec l4-router ethtool -k vp0 > "$out/offloads.txt"
 fi
 yanet-dataplane -c "$out/dataplane.conf" > "$out/dataplane.log" 2>&1 &
 pids+=("$!")
