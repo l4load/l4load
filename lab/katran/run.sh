@@ -17,6 +17,7 @@ for ns in l4-client l4-router l4-lb l4-b1 l4-b2; do
     ! ip netns list | cut -d ' ' -f 1 | grep -qx "$ns"
 done
 pids=()
+backend_pids=()
 cleanup() {
     for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done
     for ns in l4-client l4-router l4-lb l4-b1 l4-b2; do ip netns del "$ns" 2>/dev/null || true; done
@@ -63,14 +64,21 @@ for n in 1 2; do
     ip -n "l4-b$n" addr add 198.18.0.1/32 dev lo
     ip netns exec "l4-b$n" python3 -u lab/katran/scenario.py serve "b$n" > "$out/backend$n.log" 2>&1 &
     pids+=("$!")
+    backend_pids+=("$!")
 done
 mac=$(ip -j -n l4-router link show r1 | python3 -c 'import json,sys; print(json.load(sys.stdin)[0]["address"])')
 python3 lab/katran/scenario.py configure "$pin/maps" "$mac"
 nsenter --net=/run/netns/l4-lb ip link set eth0 xdpgeneric pinned "$pin/prog"
-ip netns exec l4-router tcpdump -U -ni r1 -w "$out/forwarding.pcap" > "$out/capture.log" 2>&1 &
-pids+=("$!")
+if [ "${L4LOAD_LOAD:-0}" != 1 ]; then
+    ip netns exec l4-router tcpdump -U -ni r1 -w "$out/forwarding.pcap" > "$out/capture.log" 2>&1 &
+    pids+=("$!")
+fi
 sleep 1
 ip netns exec l4-client python3 lab/katran/scenario.py check | tee "$out/result.json"
+if [ "${L4LOAD_LOAD:-0}" = 1 ]; then
+    for pid in "${backend_pids[@]}"; do kill "$pid"; wait "$pid" || true; done
+    bash lab/load/run.sh "$out/load"
+fi
 bpftool -j prog show pinned "$pin/prog" > "$out/program.json"
 ip -j -n l4-lb link show eth0 > "$out/attachment.json"
 echo 'KATRAN_DSR_PASS'
