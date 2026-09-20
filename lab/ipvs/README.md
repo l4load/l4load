@@ -60,3 +60,9 @@ passed with `NRestarts=1`, a new controller PID, 832 fresh IPv4 exchanges and
 to the owned network namespace and gates retained destinations before startup.
 Cold installation, host reboot and HA remain unqualified. The earlier manual
 termination trial does not by itself establish this service-manager result.
+
+[Empty-table startup](https://github.com/l4load/l4load/actions/runs/36138065416)
+passed after retained-session tests finished: the service rebuilt two VIP
+services and four destinations, then forwarded 64 new exchanges. The full
+IPv4 lifecycle now checks 896 fresh exchanges. Networking and packages were
+already configured; this does not establish reboot or installation readiness.

@@ -37,7 +37,8 @@ lab prerequisites. Tested packages: Keepalived `1:2.2.8-1build2`,
 ipvsadm `1:1.31-1ubuntu0.1`; every run records its actual kernel and versions.
 A disposable systemd unit with `Restart=on-failure` and the zero-weight
 `ExecStartPre` gate passed automatic recovery after main-process SIGKILL, with
-retained sessions and healthy-only new flows. The lab unit requires existing
-services/destinations; it is not a cold-start installation recipe.
+retained sessions and healthy-only new flows. Startup from an empty IPVS table
+also passed, with the network and packages already configured. The lab gate
+uses this profile's fixed addresses; it is not a general installation recipe.
 Fresh service installation, reboot, HA, capacity and a real operator's
 acceptance remain open. This is not an automated installer or production release.

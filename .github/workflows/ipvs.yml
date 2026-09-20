@@ -1,6 +1,7 @@
 name: IPVS lifecycle
 on:
   push:
+    branches: [main]
     paths: ['profiles/ipvs/**', 'lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
   pull_request:
     paths: ['profiles/ipvs/**', 'lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
