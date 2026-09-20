@@ -3,10 +3,24 @@ test "$(systemctl show "$unit" -p LoadState --value)" = not-found
 for file in /etc/l4load/ipvs.conf /etc/l4load/next.conf /usr/local/libexec/l4load-ipvs-gate.py /etc/systemd/system/$unit /run/systemd/system/$unit.d; do
     test ! -e "$file"
 done
+packaged_state=$(systemctl is-enabled keepalived.service || true)
+if bash profiles/ipvs/install.sh "$out/invalid.conf"; then
+    echo 'invalid installation accepted'
+    exit 1
+fi
+test "$(systemctl is-enabled keepalived.service || true)" = "$packaged_state"
+for file in /etc/l4load/ipvs.conf /usr/local/libexec/l4load-ipvs-gate.py /etc/systemd/system/$unit; do
+    test ! -e "$file"
+done
 kill -TERM "$controller"
 wait "$controller"
 unitfile=/etc/systemd/system/$unit
 bash profiles/ipvs/install.sh "$out/keepalived.conf"
+if bash profiles/ipvs/install.sh "$out/drain.conf"; then
+    echo 'existing installation overwritten'
+    exit 1
+fi
+cmp "$out/keepalived.conf" /etc/l4load/ipvs.conf
 mkdir -p /run/systemd/system/$unit.d
 cat > /run/systemd/system/$unit.d/lab.conf <<UNIT
 [Service]
