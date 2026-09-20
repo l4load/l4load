@@ -169,17 +169,47 @@ sleep 3
 wait_weight 1
 cp "$out/state.txt" "$out/controller-stopped-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 25000 | tee "$out/controller-stopped.json"
-for proto in t u; do
-    for backend in 10.0.2.2 10.0.3.2; do
-        ip netns exec l4-lb ipvsadm -e "-$proto" 198.18.0.1:8080 -r "$backend:8080" -i -w 0
+gate_reals() {
+    for proto in t u; do
+        for backend in 10.0.2.2 10.0.3.2; do
+            ip netns exec l4-lb ipvsadm -e "-$proto" 198.18.0.1:8080 -r "$backend:8080" -i -w 0
+        done
     done
-done
+}
+gate_reals
 phase restart-gated
 start_controller
 wait_weight 0
 wait_weight 1 10.0.3.2:8080
 phase controller-restarted
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 26000 | tee "$out/controller-restarted.json"
+start_health 1
+first_health=$health_pid
+wait_weight 1
+kill -STOP "$controller"
+mapfile -t crashed_pids < <(ip netns pids l4-lb)
+test "${#crashed_pids[@]}" -ge 2
+printf '%s\n' "${crashed_pids[@]}" > "$out/crashed-pids.txt"
+kill -KILL "${crashed_pids[@]}"
+wait "$controller" 2>/dev/null || true
+for attempt in $(seq 1 30); do
+    if [ -z "$(ip netns pids l4-lb)" ]; then break; fi
+    sleep 0.1
+done
+test -z "$(ip netns pids l4-lb)"
+phase controller-crashed
+kill "$first_health"
+wait "$first_health" 2>/dev/null || true
+sleep 3
+wait_weight 1
+ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 30000 | tee "$out/controller-crashed.json"
+gate_reals
+phase crash-gated
+start_controller
+wait_weight 0
+wait_weight 1 10.0.3.2:8080
+phase crash-recovered
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 31000 | tee "$out/crash-recovered.json"
 start_health 1
 wait_weight 1
 phase done
