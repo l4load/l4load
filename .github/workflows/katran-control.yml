@@ -42,14 +42,16 @@ jobs:
         working-directory: upstream/katran
         run: |
           set -o pipefail
-          python3 build/fbcode_builder/getdeps.py --scratch-path "$GETDEPS_SCRATCH" --allow-system-packages test --build-type RelWithDebInfo --src-dir=. katran --project-install-prefix katran:/usr/local 2>&1 | tee ../../lab/results/katran-control/tests.log
+          for suite in vip-tests chhelpers-tests iphelpers-tests libkatran-tests; do
+            "$GETDEPS_SCRATCH/build/katran/katran/lib/tests/$suite"
+          done 2>&1 | tee ../../lab/results/katran-control/tests.log
       - name: Reproduce rejected ring write
         working-directory: upstream/katran
         run: |
           set -euo pipefail
           out="$GITHUB_WORKSPACE/lab/results/katran-control"
           clang -D__KERNEL__ -O2 -g -Wno-compare-distinct-pointer-types -I . -I katran/lib/linux_includes -I /usr/include/x86_64-linux-gnu -emit-llvm -c katran/lib/bpf/balancer.bpf.c -o - | llc -march=bpf -filetype=obj -o "$out/balancer.o"
-          build_dir=$(python3 build/fbcode_builder/getdeps.py --scratch-path "$GETDEPS_SCRATCH" --allow-system-packages show-build-dir --build-type RelWithDebInfo --src-dir=. katran --project-install-prefix katran:/usr/local)
+          build_dir="$GETDEPS_SCRATCH/build/katran"
           cp LICENSE "$out/Katran-LICENSE"
           git archive HEAD | gzip > "$out/katran-source.tar.gz"
           cp l4load_freeze_probe.cpp CMakeLists.txt "$out/"

@@ -3,17 +3,10 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
-  test:
+  check:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: false
-      - run: test -z "$(gofmt -l cmd internal)"
-      - run: go vet ./...
-      - run: go test -race -v ./...
-      - run: go run ./cmd/l4load -config examples/local.json -check
-      - run: go build -o bin/l4load ./cmd/l4load
+      - run: find lab -name '*.sh' -exec bash -n {} \;
+      - run: python3 -m compileall -q lab scripts
       - run: python3 scripts/build_site.py

@@ -1,4 +1,3 @@
 /site/
-/bin/
-*.test
 /lab/results/
+__pycache__/
