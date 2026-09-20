@@ -1,20 +1,20 @@
-unit=l4load-ipvs-lab.service
+unit=l4load-ipvs.service
 test "$(systemctl show "$unit" -p LoadState --value)" = not-found
+for file in /etc/l4load/ipvs.conf /etc/l4load/next.conf /usr/local/libexec/l4load-ipvs-gate.py /etc/systemd/system/$unit /run/systemd/system/$unit.d; do
+    test ! -e "$file"
+done
 kill -TERM "$controller"
 wait "$controller"
-unitfile=/run/systemd/system/$unit
-cat > "$unitfile" <<UNIT
-[Unit]
-Description=Disposable IPVS recovery trial
+unitfile=/etc/systemd/system/$unit
+install -D -m 600 "$out/keepalived.conf" /etc/l4load/ipvs.conf
+install -D -m 644 profiles/ipvs/gate.py /usr/local/libexec/l4load-ipvs-gate.py
+install -D -m 644 profiles/ipvs/l4load-ipvs.service "$unitfile"
+mkdir -p /run/systemd/system/$unit.d
+cat > /run/systemd/system/$unit.d/lab.conf <<UNIT
 [Service]
-Type=simple
 NetworkNamespacePath=/run/netns/l4-lb
-ExecStartPre=/usr/bin/bash $(pwd)/lab/ipvs/gate.sh
-ExecStart=/usr/sbin/keepalived -n -l -C -I -f $out/keepalived.conf
-Restart=on-failure
-RestartSec=1
-KillMode=control-group
 UNIT
+systemd-analyze verify "$unitfile"
 systemctl daemon-reload
 systemctl start "$unit"
 wait_weight 1
@@ -40,3 +40,28 @@ test "$(systemctl show "$unit" -p NRestarts --value)" -ge 1
 cp "$unitfile" "$out/service.txt"
 start_health 1
 wait_weight 1
+install -m 600 "$out/invalid.conf" /etc/l4load/ipvs.conf
+if systemctl reload "$unit"; then
+    echo 'invalid service reload accepted'
+    exit 1
+fi
+systemctl is-active --quiet "$unit"
+wait_weight 1
+wait_weight 1 10.0.3.2:8080
+for candidate in drain original; do
+    install -m 600 "$out/$candidate.conf" /etc/l4load/next.conf
+    mv /etc/l4load/next.conf /etc/l4load/ipvs.conf
+    systemctl reload "$unit"
+    if [ "$candidate" = drain ]; then
+        wait_weight 0
+        phase service-drained
+        ip netns exec l4-client python3 lab/katran/scenario.py check b2 34000 | tee "$out/service-drained.json"
+    else
+        wait_weight 1
+        phase service-restored
+        ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 35000 | tee "$out/service-restored.json"
+    fi
+done
+cmp "$out/original.conf" /etc/l4load/ipvs.conf
+systemctl cat "$unit" > "$out/installed-service.txt"
+echo INSTALLED_SERVICE_PASS

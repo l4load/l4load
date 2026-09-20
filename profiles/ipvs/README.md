@@ -42,3 +42,32 @@ also passed, with the network and packages already configured. The lab gate
 uses this profile's fixed addresses; it is not a general installation recipe.
 Fresh service installation, reboot, HA, capacity and a real operator's
 acceptance remain open. This is not an automated installer or production release.
+
+## Installed service — qualification pending
+
+The [unit](l4load-ipvs.service) and [restart gate](gate.py) are for a dedicated
+IPVS director: the gate sets **every existing destination** to weight zero before
+health checks resume. Do not share its network namespace with another IPVS owner.
+Use Ubuntu 24.04, packaged Keepalived/IPVS, Python 3 and the network prerequisites
+above. Stop any previous controller before transferring ownership.
+
+On an independent prepared host, with a reviewed `candidate.conf`:
+
+```sh
+sudo keepalived -t -f candidate.conf
+sudo install -D -m 600 candidate.conf /etc/l4load/ipvs.conf
+sudo install -D -m 644 profiles/ipvs/gate.py /usr/local/libexec/l4load-ipvs-gate.py
+sudo install -D -m 644 profiles/ipvs/l4load-ipvs.service /etc/systemd/system/l4load-ipvs.service
+sudo systemctl daemon-reload
+sudo systemctl start l4load-ipvs
+```
+
+Check kernel weights, health and traffic before enabling boot startup with
+`systemctl enable l4load-ipvs`. Boot/network ordering is not yet qualified.
+Keep the last-good configuration outside the active path. To update or roll back,
+validate the chosen file, install it as `/etc/l4load/next.conf`, rename it to
+`/etc/l4load/ipvs.conf`, then `systemctl reload l4load-ipvs`. The unit validates
+again before signalling; rejection leaves the running configuration unchanged,
+but the invalid file must be replaced before a later restart. Verify applied
+kernel state and traffic after either operation. Package upgrades and host
+reboots remain separate unqualified steps.

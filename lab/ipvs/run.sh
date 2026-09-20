@@ -16,9 +16,11 @@ pids=()
 backend_pids=()
 cleanup() {
     if [ -n "${unitfile:-}" ]; then
-        journalctl -u l4load-ipvs-lab.service --no-pager > "$out/service-journal.txt" || true
-        systemctl stop l4load-ipvs-lab.service || true
+        journalctl -u "$unit" --no-pager > "$out/service-journal.txt" || true
+        systemctl stop "$unit" || true
         rm -f "$unitfile"
+        rm -f /etc/l4load/ipvs.conf /etc/l4load/next.conf /usr/local/libexec/l4load-ipvs-gate.py /run/systemd/system/$unit.d/lab.conf
+        rmdir /run/systemd/system/$unit.d 2>/dev/null || true
         systemctl daemon-reload
     fi
     for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done
@@ -239,11 +241,11 @@ source lab/ipvs/service.sh
 phase done
 wait "$session_pid"
 cat "$out/sessions.jsonl"
-systemctl stop l4load-ipvs-lab.service
+systemctl stop "$unit"
 ip netns exec l4-lb ipvsadm -C
 ip netns exec l4-lb ipvsadm -Sn > "$out/cold-empty.txt"
 test ! -s "$out/cold-empty.txt"
-systemctl start l4load-ipvs-lab.service
+systemctl start "$unit"
 wait_weight 1
 wait_weight 1 10.0.3.2:8080
 cp "$out/state.txt" "$out/cold-ready.txt"
