@@ -47,6 +47,15 @@ jobs:
         id: build
         run: |
           cd upstream/yanet
+          python3 - <<'PYMTU'
+          from pathlib import Path
+          path = Path('common/config.release.h')
+          config = path.read_text()
+          old = '#define CONFIG_YADECAP_MTU (9000)'
+          assert config.count(old) == 1
+          path.write_text(config.replace(old, '#define CONFIG_YADECAP_MTU (1500)'))
+          PYMTU
+          git diff -- common/config.release.h > ../../lab/results/yanet/build-profile.txt
           CC="ccache gcc" CXX="ccache g++" meson setup --prefix=/target -Dtarget=autotest -Dstrip=true -Db_lto=false build_autotest 2>&1 | tee ../../lab/results/yanet/configure.log
           meson compile -C build_autotest -j 2 2>&1 | tee ../../lab/results/yanet/build.log
       - name: Check live DSR forwarding

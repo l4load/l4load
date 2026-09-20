@@ -36,3 +36,10 @@ reproduced that PR's regression on the base and passed all three neighbor tests
 with the upstream implementation. The workflow now pins that candidate and adds
 five reload repetitions; their packet-level results are pending. This is not a
 new L4Load patch or a claim of production qualification.
+
+The native experiment uses DPDK AF_PACKET on a veth, with two symmetric queues
+and hardware RSS disabled. The first run failed before forwarding: YANET's
+9000-byte MTU exceeded the PMD's advertised 1500-byte limit. This branch changes
+the build-time MTU to 1500 and records the exact diff in `build-profile.txt`.
+Both socket and native cases use that build. Native forwarding is still pending;
+jumbo frames and hardware performance are outside this virtual profile.
