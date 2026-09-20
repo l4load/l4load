@@ -39,8 +39,10 @@ restart limitation is scoped to the recorded package/configuration.
 `sudo bash lab/ipvs/ipv6.sh` runs a separate IPv6-over-IPv6 DSR trial.
 [Verified run](https://github.com/l4load/l4load/actions/runs/36134413105/job/108068928725):
 192 TCP/UDP exchanges preserved source IP through healthy, failed TCP-health-port
-and recovered phases. IPv6 persistent sessions, HTTP health, reload and restart
-are not qualified by this test; the richer lifecycle above remains IPv4-only.
+and recovered phases. A subsequent [continuity trial](https://github.com/l4load/l4load/actions/runs/36141957631)
+preserved two TCP sessions across health exclusion/recovery: 71 exchanges each
+over 3.5 seconds. This is short functional coverage; IPv6 HTTP health, reload,
+restart and sustained traffic remain unqualified.
 
 [Process-tree crash trial](https://github.com/l4load/l4load/actions/runs/36135359918/job/108072010672)
 passed 768 IPv4 exchanges and two persistent sessions. The test stopped the
