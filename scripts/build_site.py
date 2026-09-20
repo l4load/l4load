@@ -39,10 +39,15 @@ It is not a production deployment or a throughput result.</p>
 </div>
 <h2>Backend failure and recovery.</h2>
 <p>The Keepalived/IPVS trial checks healthy, health-failed and recovered backends.
-All 896 IPv4 TCP/UDP exchanges passed, including HTTP health failure, rejected configuration, drain and rollback: new flows avoided the unhealthy backend and
+All 1024 IPv4 TCP/UDP exchanges passed, including HTTP health failure, rejected configuration, drain and rollback: new flows avoided the unhealthy backend and
 returned to both backends after recovery, preserving client IP and payload.</p>
 <p><a href="https://github.com/l4load/l4load/tree/main/lab/ipvs">Run the lifecycle trial ↗</a> ·
-<a href="https://github.com/l4load/l4load/actions/runs/36138065416/job/108080863480">Verified execution ↗</a></p>
+<a href="https://github.com/l4load/l4load/actions/runs/36161652255/job/108159407383">Verified execution ↗</a></p>
+<p>The <a href="https://github.com/l4load/l4load/tree/main/profiles/ipvs">installable IPVS service</a>
+passed supervisor recovery, rejected reload and configuration drain/rollback.
+The lab installed the profile files with only a network-namespace override.
+Two retained TCP sessions carried 706 exchanges each over 35.6 seconds.
+Packages and networking were prepared; host boot and package upgrades remain unqualified.</p>
 <p>Two established TCP sessions carried continuous low-rate requests through health exclusion, reload and gated controller recovery, including automatic systemd restart. Empty-table service startup also passed. Direct restart with retained state failed; the tested workaround pauses new flows until health is confirmed. Sustained load, host failure and HA remain unqualified.</p>
 <p>A separate IPv6-over-IPv6 IPVS trial passed 192 TCP/UDP exchanges across
 health-port failure and recovery with client addresses preserved. Two existing
@@ -75,6 +80,14 @@ These ranges span individual TCP/UDP trial percentiles; they are not pooled perc
 The virtual paths differ, engine order was fixed and CPU placement was uncontrolled.
 This is a latency observation to investigate, not a capacity, hardware or superiority claim.
 <a href="https://github.com/l4load/l4load/tree/main/lab/load">Run the load scenario ↗</a></p>
+<p><a href="https://github.com/l4load/l4load/actions/runs/36155111339">108 trials with cyclic engine order</a>
+repeated the elevated YANET tail latency in every order. A subsequent
+<a href="https://github.com/l4load/l4load/actions/runs/36159160252">workload-placement experiment</a>
+put client and servers together on logical CPU 3: 10k-message/s p99 rose to
+2.5–2.9 ms across all engines and returned to the prior range after restoring
+normal placement. CPU 3 also shares a physical core with YANET worker 2.
+This rejected configuration combines workload colocation and SMT contention;
+it neither isolates their effects nor explains the original latency gap.</p>
 <a href="https://github.com/l4load/l4load/blob/main/docs/benchmarks.md">Comparison criteria ↗</a>
 <h2>Know the limits.</h2>
 <p>The Katran scenario does not yet qualify backend changes, failover, IPv6 or physical NICs.
