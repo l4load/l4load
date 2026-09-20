@@ -59,7 +59,7 @@ jobs:
           config['ealArgs'] = config.get('ealArgs', []) + ['--no-pci']
           Path('../../lab/results/yanet/dataplane.conf').write_text(json.dumps(config, indent=2))
           PYCONFIG
-          python3 autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
+          timeout --kill-after=10s 180s python3 -u autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
             ../../lab/results/yanet \
             autotest/units/001_one_port/049_balancer_tcp_udp \
             autotest/units/001_one_port/049_balancer_real_ipv4 \
@@ -69,6 +69,16 @@ jobs:
       - name: Check live DSR forwarding
         timeout-minutes: 5
         run: bash lab/yanet/run.sh upstream/yanet
+      - name: Collect runtime diagnostics
+        if: always()
+        run: |
+          ps -eo pid,ppid,pgid,stat,wchan:32,args > lab/results/yanet/processes.txt
+          for file in lab/results/yanet/autotest.log lab/results/yanet-dsr/*.log; do
+            if [ -f "$file" ]; then
+              echo "$file"
+              tail -n 100 "$file"
+            fi
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
