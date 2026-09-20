@@ -73,6 +73,9 @@ jobs:
         if: always()
         run: |
           ps -eo pid,ppid,pgid,stat,wchan:32,args > lab/results/yanet/processes.txt
+          for file in /tmp/yanet*.pcap /tmp/yanet-dp.report; do
+            if [ -f "$file" ]; then cp "$file" lab/results/yanet/; fi
+          done
           for file in lab/results/yanet/autotest.log lab/results/yanet-dsr/*.log; do
             if [ -f "$file" ]; then
               echo "$file"
