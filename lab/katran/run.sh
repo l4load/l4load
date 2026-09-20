@@ -28,8 +28,8 @@ uname -a > "$out/kernel.txt"
 clang --version > "$out/compiler.txt"
 git -C "$src" rev-parse HEAD > "$out/upstream.txt"
 git rev-parse HEAD > "$out/harness.txt"
-clang -target bpf -D__KERNEL__ -O2 -g -I "$src" -I "$src/katran/lib/linux_includes" -I /usr/include/x86_64-linux-gnu \
-    -c "$src/katran/lib/bpf/balancer.bpf.c" -o "$out/balancer.o"
+clang -D__KERNEL__ -O2 -g -I "$src" -I "$src/katran/lib/linux_includes" -I /usr/include/x86_64-linux-gnu \
+    -emit-llvm -c "$src/katran/lib/bpf/balancer.bpf.c" -o - | llc -march=bpf -filetype=obj -o "$out/balancer.o"
 sha256sum "$out/balancer.o" > "$out/object.sha256"
 cp "$src/LICENSE" "$out/Katran-LICENSE"
 git -C "$src" archive HEAD | gzip > "$out/katran-source.tar.gz"

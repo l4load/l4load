@@ -2,9 +2,13 @@
 
 Independent L4 networking tools. Experimental; not production-ready.
 
-Balance currently provides a loopback TCP reference: round-robin, connect-only
-fallback, half-close, connection limits and bounded shutdown. Shield, Pulse and
-Fabric are planned. No comparative performance results are available yet.
+Balance work starts with existing dataplanes: configure, test and tune before
+implementing an engine. The [Katran DSR scenario](lab/katran/README.md) exercises
+one IPv4 VIP and two backends over TCP/UDP without DPDK. Shield, Pulse and Fabric
+are planned. No comparative performance results are available yet.
+
+The Go loopback TCP proxy below remains a reference utility; feature development
+is paused. It is not the selected product dataplane.
 
 ## Try Balance
 
@@ -34,7 +38,7 @@ Session timeout is a hard lifetime, not idle time. Configuration changes require
 restart. There is no active health checking, UDP, DSR, reload, HA or DDoS protection.
 JSON rejects unknown fields; repeated object keys follow Go's last-value semantics.
 
-Next: safe configuration changes and a reproducible packet-level comparison lab.
+Next: qualify backend-change behaviour and compare matched scenarios with YANET.
 See [benchmark criteria](docs/benchmarks.md) and the [QEMU lab](lab/README.md).
 Tests do not establish performance.
 

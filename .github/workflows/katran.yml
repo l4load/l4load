@@ -18,7 +18,7 @@ jobs:
           repository: facebookincubator/katran
           ref: 4546144594d11d7bf342d008e7b94922fc9bbaa3
           path: upstream/katran
-      - run: sudo apt-get update && sudo apt-get install -y clang libbpf1 linux-tools-common linux-tools-generic tcpdump
+      - run: sudo apt-get update && sudo apt-get install -y clang llvm libbpf1 linux-tools-common linux-tools-generic tcpdump
       - run: sudo bash lab/katran/run.sh upstream/katran
       - uses: actions/upload-artifact@v4
         if: always()

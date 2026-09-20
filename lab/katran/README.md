@@ -1,7 +1,7 @@
 # Katran DSR smoke
 
 Run `sudo bash lab/katran/run.sh /path/to/katran` on disposable Ubuntu 24.04
-with clang, libbpf1, bpftool, iproute2, tcpdump and Python 3. Checkout upstream
+with clang, llvm, libbpf1, bpftool, iproute2, tcpdump and Python 3. Checkout upstream
 revision `4546144594d11d7bf342d008e7b94922fc9bbaa3`; the script rejects changes.
 The Katran DSR workflow provisions that environment.
 
