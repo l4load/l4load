@@ -49,16 +49,25 @@ jobs:
           CC="ccache gcc" CXX="ccache g++" meson setup --prefix=/target -Dtarget=autotest -Dstrip=true -Db_lto=false build_autotest 2>&1 | tee ../../lab/results/yanet/configure.log
           meson compile -C build_autotest -j 2 2>&1 | tee ../../lab/results/yanet/build.log
       - name: Exercise public balancer cases
+        timeout-minutes: 5
         run: |
           cd upstream/yanet
+          python3 - <<'PYCONFIG'
+          import json
+          from pathlib import Path
+          config = json.loads(Path('autotest/units/001_one_port/dataplane.conf').read_text())
+          config['ealArgs'] = config.get('ealArgs', []) + ['--no-pci']
+          Path('../../lab/results/yanet/dataplane.conf').write_text(json.dumps(config, indent=2))
+          PYCONFIG
           python3 autotest/yanet-autotest-run.py --prefix="$PWD/build_autotest" \
-            autotest/units/001_one_port \
+            ../../lab/results/yanet \
             autotest/units/001_one_port/049_balancer_tcp_udp \
             autotest/units/001_one_port/049_balancer_real_ipv4 \
             autotest/units/001_one_port/049_balancer_reload \
             autotest/units/001_one_port/056_balancer_ops \
             2>&1 | tee ../../lab/results/yanet/autotest.log
       - name: Check live DSR forwarding
+        timeout-minutes: 5
         run: bash lab/yanet/run.sh upstream/yanet
       - uses: actions/upload-artifact@v4
         if: always()

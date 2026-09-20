@@ -7,6 +7,7 @@ configs = {
     'dataplane.conf': {
         'ports': [{'interfaceName': 'vp0', 'pci': 'sock_dev:/run/yanet/vp0', 'coreIds': [2]}],
         'hugeMem': False, 'useKni': False, 'workerGC': [1],
+        'ealArgs': ['--no-pci'],
         'controlPlaneCoreId': 0, 'memory': 8192,
     },
     'services.conf': [
