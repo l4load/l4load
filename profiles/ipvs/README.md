@@ -8,7 +8,16 @@ The synthetic topology uses VIP `198.18.0.1:8080` for TCP/UDP and backends
 `10.0.2.2` and `10.0.3.2`. Replace these addresses for an independent deployment.
 Each backend must bind the VIP on loopback, receive IPIP traffic and route replies
 directly to clients. Allow encapsulated traffic through the network and account
-for tunnel MTU. The director needs IPVS round-robin/IPIP kernel support, forwarding
+for tunnel MTU. With the lab's 1500-byte links, IPv4 IPIP leaves a 1480-byte
+inner MTU (1452-byte UDP payload without IP options). The independent IPv6
+trial leaves 1460/1412 bytes. Initial oversized datagrams produced `EMSGSIZE`;
+a fresh-socket retry after the learned MTU delivered the tested sizes through
+4000 bytes. This is not lossless first-packet delivery. Preserve PMTU feedback
+and validate application error handling and both traffic directions; blocked
+ICMP, other socket policies and arbitrary MTUs remain unqualified.
+See [the recorded boundary/recovery trial](https://github.com/l4load/l4load/actions/runs/36137087795).
+
+The director needs IPVS round-robin/IPIP kernel support, forwarding
 and a route to each backend. Probe HTTP `/health` on port 9090 must return 200.
 
 Validate a candidate with `keepalived -t -f candidate.conf` before replacing the

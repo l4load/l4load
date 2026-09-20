@@ -47,3 +47,9 @@ supervisor, sent SIGKILL to every process in its isolated namespace, verified no
 processes remained, and exercised gated restart after a health-port failure.
 Kernel state survived; stale health decisions persisted until restart. This does
 not qualify reboot, kernel failure or automatic service-manager recovery.
+
+The datagram probe checks 64–4000-byte binary payloads on IPv4 and IPv6.
+It records every attempt and route-cache change. Only `EMSGSIZE` with the
+expected learned MTU permits one fresh-socket retry; timeout, corruption or
+failed retry fails the trial. The first failures remain part of the evidence.
+This checks PMTU feedback/recovery, not lossless delivery or all ICMP cases.
