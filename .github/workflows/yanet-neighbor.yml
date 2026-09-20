@@ -44,14 +44,19 @@ jobs:
           meson compile -C build_neighbor -j 2 yanet-dataplane-unittest-neighbor
           binary=build_neighbor/dataplane/unittest/yanet-dataplane-unittest-neighbor
           "$binary" | tee "$out/original.log"
-          git apply ../../lab/yanet-neighbor/neighbor-test.patch
+          candidate=dacf4015f794e978c74200bb49f35472114d66aa
+          git fetch origin "$candidate"
+          printf '%s\n' "$candidate" > "$out/candidate.txt"
+          git show "$candidate:dataplane/unittest/neighbor.cpp" > dataplane/unittest/neighbor.cpp
           meson compile -C build_neighbor -j 2 yanet-dataplane-unittest-neighbor
           status=0
           "$binary" > "$out/regression.log" 2>&1 || status=$?
           cat "$out/regression.log"
           test "$status" -eq 1
-          grep -q '\[  FAILED  \] NeighborTest.Basic' "$out/regression.log"
-          git apply ../../lab/yanet-neighbor/neighbor-fix.patch
+          grep -q '\[  FAILED  \] NeighborTest.StaticNeighborSurvivesInterfaceUpdate' "$out/regression.log"
+          for file in dataplane/neighbor.cpp dataplane/neighbor.h; do
+            git show "$candidate:$file" > "$file"
+          done
           meson compile -C build_neighbor -j 2 yanet-dataplane-unittest-neighbor
           "$binary" | tee "$out/candidate.log"
           git diff > "$out/candidate.patch"

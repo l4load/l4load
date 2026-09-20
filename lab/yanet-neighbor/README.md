@@ -1,12 +1,12 @@
 # Neighbor reload experiment
 
-Pinned YANET's interface update clears its previous ID/name map before the
-neighbor dump uses that map to preserve static entries. The candidate passes
-an explicit previous-map snapshot during remapping and uses the current map
-for ordinary refreshes.
+Evaluate the existing [upstream PR #335](https://github.com/yanet-platform/yanet/pull/335)
+by ezhk, pinned at `dacf4015f794e978c74200bb49f35472114d66aa`.
+It preserves static neighbors during interface ID changes and gives deferred
+updates ownership of their input data. This is upstream work, not a new L4Load fix.
 
-CI runs the original neighbor tests, adds a regression that must fail upstream,
-then applies the candidate and requires all neighbor tests to pass. The
-regression covers unchanged interfaces, reassigned IDs, refresh and removal.
-Results are pending. This does not yet prove the cause of the intermittent
-packet-level reload failure or qualify concurrent updates and production use.
+CI runs the original neighbor tests, installs the PR's regression test alone
+and requires it to fail, then installs its two implementation files and requires
+all tests to pass. Explicit neighbor clear must still remove static entries.
+Results are pending; packet-level reload and concurrent updates require separate
+qualification. The earlier local candidate was discarded after finding this PR.
