@@ -39,11 +39,19 @@ It is not a production deployment or a throughput result.</p>
 </div>
 <h2>Backend failure and recovery.</h2>
 <p>The Keepalived/IPVS trial checks healthy, health-failed and recovered backends.
-All 576 TCP/UDP exchanges passed, including HTTP health failure, configured drain and rollback: new flows avoided the unhealthy backend and
+All 896 IPv4 TCP/UDP exchanges passed, including HTTP health failure, rejected configuration, drain and rollback: new flows avoided the unhealthy backend and
 returned to both backends after recovery, preserving client IP and payload.</p>
 <p><a href="https://github.com/l4load/l4load/tree/main/lab/ipvs">Run the lifecycle trial ↗</a> ·
-<a href="https://github.com/l4load/l4load/actions/runs/36130798955/job/108057346193">Verified execution ↗</a></p>
-<p>Two established TCP sessions survived health exclusion, reload and a gated controller restart. Direct restart with retained state failed; the tested workaround pauses new flows until health is confirmed. Sustained load, abrupt failure and HA remain unqualified.</p>
+<a href="https://github.com/l4load/l4load/actions/runs/36138065416/job/108080863480">Verified execution ↗</a></p>
+<p>Two established TCP sessions carried continuous low-rate requests through health exclusion, reload and gated controller recovery, including automatic systemd restart. Empty-table service startup also passed. Direct restart with retained state failed; the tested workaround pauses new flows until health is confirmed. Sustained load, host failure and HA remain unqualified.</p>
+<p>A separate IPv6-over-IPv6 IPVS trial passed 192 TCP/UDP exchanges across
+health-port failure and recovery with client addresses preserved. IPv6 reload,
+persistent-session and restart behaviour remain unqualified.</p>
+<h2>Check applied state.</h2>
+<p>In an isolated Katran test, freezing a kernel map caused a backend update to return success
+while the kernel ring stayed unchanged. This artificial permanent-write failure does not establish
+production incidence; it shows why an API acknowledgement alone is insufficient.</p>
+<a href="https://github.com/l4load/l4load/tree/main/lab/katran-control">Reproduce the experiment ↗</a>
 <h2>Evidence before performance claims.</h2>
 <p>Our target is strong performance with fewer deployment dependencies. No competitive
 comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>

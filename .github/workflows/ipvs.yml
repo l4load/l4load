@@ -1,9 +1,10 @@
 name: IPVS lifecycle
 on:
   push:
-    paths: ['lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
+    branches: [main]
+    paths: ['profiles/ipvs/**', 'lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
   pull_request:
-    paths: ['lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
+    paths: ['profiles/ipvs/**', 'lab/ipvs/**', 'lab/katran/scenario.py', '.github/workflows/ipvs.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,10 +16,23 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y keepalived ipvsadm
       - run: sudo systemctl stop keepalived
+        id: setup
       - run: sudo bash lab/ipvs/run.sh
+      - run: sudo bash lab/ipvs/ipv6.sh
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+      - name: Preserve diagnostic evidence in the job log
+        if: always()
+        run: |
+          python3 - <<'PYLOG'
+          import json
+          from pathlib import Path
+          for path in sorted(Path('lab/results').glob('ipvs*/*')):
+              if path.suffix in ('.txt', '.conf', '.json', '.jsonl') or path.name == 'validation.log':
+                  print('EVIDENCE ' + json.dumps({'file': str(path.relative_to('lab/results')), 'content': path.read_text()}))
+          PYLOG
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ipvs-lifecycle
-          path: lab/results/ipvs
+          path: lab/results/ipvs*
           if-no-files-found: warn

@@ -24,7 +24,45 @@ synthetic recipe, not seamless restart or a general reconciliation service.
 | [Gated restart](https://github.com/l4load/l4load/actions/runs/36130540624/job/108056535442) | 448 fresh exchanges and two persistent sessions passed with TCP health checks |
 | [HTTP health](https://github.com/l4load/l4load/actions/runs/36130798955/job/108057346193) | 576 fresh exchanges and two persistent sessions passed, including HTTP 404/recovery |
 
-Counts demonstrate short functional coverage only. Sustained traffic, abrupt
-controller failure, invalid configuration, IPv6, HA and capacity remain unqualified.
+[Configuration trial](https://github.com/l4load/l4load/actions/runs/36132397199/job/108062445520)
+passed 640 fresh exchanges and two persistent sessions. A candidate with port
+70000 was rejected by `keepalived -t`, leaving the working file byte-identical.
+Valid drain/rollback candidates use the same preflight, atomic rename and HUP.
+This checks one malformed input, not every invalid configuration or update race.
+
+Counts demonstrate short functional coverage only. Sustained traffic, host failure, concurrent configuration updates, HA and
+capacity remain unqualified.
 Health checks cannot protect traffic while the controller is stopped. The observed
 restart limitation is scoped to the recorded package/configuration.
+
+`sudo bash lab/ipvs/ipv6.sh` runs a separate IPv6-over-IPv6 DSR trial.
+[Verified run](https://github.com/l4load/l4load/actions/runs/36134413105/job/108068928725):
+192 TCP/UDP exchanges preserved source IP through healthy, failed TCP-health-port
+and recovered phases. IPv6 persistent sessions, HTTP health, reload and restart
+are not qualified by this test; the richer lifecycle above remains IPv4-only.
+
+[Process-tree crash trial](https://github.com/l4load/l4load/actions/runs/36135359918/job/108072010672)
+passed 768 IPv4 exchanges and two persistent sessions. The test stopped the
+supervisor, sent SIGKILL to every process in its isolated namespace, verified no
+processes remained, and exercised gated restart after a health-port failure.
+Kernel state survived; stale health decisions persisted until restart. This does
+not qualify reboot, kernel failure or automatic service-manager recovery.
+
+The datagram probe checks 64–4000-byte binary payloads on IPv4 and IPv6.
+It records every attempt and route-cache change. Only `EMSGSIZE` with the
+expected learned MTU permits one fresh-socket retry; timeout, corruption or
+failed retry fails the trial. The first failures remain part of the evidence.
+This checks PMTU feedback/recovery, not lossless delivery or all ICMP cases.
+
+[Automatic service recovery](https://github.com/l4load/l4load/actions/runs/36137752964)
+passed with `NRestarts=1`, a new controller PID, 832 fresh IPv4 exchanges and
+678 continuous exchanges per retained TCP session. The disposable unit binds
+to the owned network namespace and gates retained destinations before startup.
+Cold installation, host reboot and HA remain unqualified. The earlier manual
+termination trial does not by itself establish this service-manager result.
+
+[Empty-table startup](https://github.com/l4load/l4load/actions/runs/36138065416)
+passed after retained-session tests finished: the service rebuilt two VIP
+services and four destinations, then forwarded 64 new exchanges. The full
+IPv4 lifecycle now checks 896 fresh exchanges. Networking and packages were
+already configured; this does not establish reboot or installation readiness.
