@@ -1,0 +1,9 @@
+{
+  "version": "l4load.dev/v0alpha1",
+  "listen": "127.0.0.1:18080",
+  "backends": ["127.0.0.1:18081", "127.0.0.1:18082"],
+  "max_connections": 128,
+  "connect_timeout_ms": 500,
+  "max_session_ms": 60000,
+  "drain_timeout_ms": 3000
+}
