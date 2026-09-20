@@ -24,7 +24,13 @@ synthetic recipe, not seamless restart or a general reconciliation service.
 | [Gated restart](https://github.com/l4load/l4load/actions/runs/36130540624/job/108056535442) | 448 fresh exchanges and two persistent sessions passed with TCP health checks |
 | [HTTP health](https://github.com/l4load/l4load/actions/runs/36130798955/job/108057346193) | 576 fresh exchanges and two persistent sessions passed, including HTTP 404/recovery |
 
+[Configuration trial](https://github.com/l4load/l4load/actions/runs/36132397199/job/108062445520)
+passed 640 fresh exchanges and two persistent sessions. A candidate with port
+70000 was rejected by `keepalived -t`, leaving the working file byte-identical.
+Valid drain/rollback candidates use the same preflight, atomic rename and HUP.
+This checks one malformed input, not every invalid configuration or update race.
+
 Counts demonstrate short functional coverage only. Sustained traffic, abrupt
-controller failure, invalid configuration, IPv6, HA and capacity remain unqualified.
+controller failure, concurrent configuration updates, IPv6, HA and capacity remain unqualified.
 Health checks cannot protect traffic while the controller is stopped. The observed
 restart limitation is scoped to the recorded package/configuration.
