@@ -60,7 +60,7 @@ for n in 1 2; do
 done
 
 mkdir -p /run/yanet
-python3 lab/yanet/configure.py "$out"
+python3 lab/yanet/configure.py "$out" "$upstream"
 yanet-dataplane -c "$out/dataplane.conf" > "$out/dataplane.log" 2>&1 &
 pids+=("$!")
 wait_app() {

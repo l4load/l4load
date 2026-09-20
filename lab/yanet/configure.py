@@ -3,12 +3,14 @@ import sys
 from pathlib import Path
 
 out = Path(sys.argv[1]).resolve()
+limits = json.loads((Path(sys.argv[2]) / 'autotest/units/001_one_port/dataplane.conf').read_text())['configValues']
 configs = {
     'dataplane.conf': {
         'ports': [{'interfaceName': 'vp0', 'pci': 'sock_dev:/run/yanet/vp0', 'coreIds': [2]}],
         'hugeMem': False, 'useKni': False, 'workerGC': [1],
         'ealArgs': ['--no-pci'],
         'controlPlaneCoreId': 0, 'memory': 8192,
+        'configValues': limits,
     },
     'services.conf': [
         {'vip': '198.18.0.1', 'proto': proto, 'vport': '8080', 'scheduler': 'rr',
