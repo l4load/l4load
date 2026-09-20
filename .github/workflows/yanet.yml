@@ -44,6 +44,8 @@ jobs:
       - run: ccache --max-size=2G
       - name: Record environment
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE/upstream/katran"
           mkdir -p lab/results/yanet
           date -u +%FT%TZ > lab/results/yanet/started.txt
           uname -a > lab/results/yanet/kernel.txt
@@ -83,8 +85,6 @@ jobs:
         if: ${{ !cancelled() && steps.build.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.workload_placement }}
         timeout-minutes: 25
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git config --global --add safe.directory "$GITHUB_WORKSPACE/upstream/katran"
           for engine in ipvs katran yanet; do
             for trial in baseline-before cpu-3 baseline-after; do
               export L4LOAD_TRIAL="$trial" L4LOAD_LOAD=1
@@ -145,11 +145,20 @@ jobs:
         if: always()
         run: |
           python3 - <<'PYLOG'
+          import base64, gzip, hashlib
           import json
           from pathlib import Path
           for path in sorted(Path('lab/results').glob('**/*')):
               if path.suffix in ('.txt', '.conf', '.json'):
                   print('EVIDENCE ' + json.dumps({'file': str(path.relative_to('lab/results')), 'content': path.read_text()}))
+              elif path.suffix == '.csv' and path.parent.name == 'filter-load':
+                  raw = path.read_bytes()
+                  data = base64.b64encode(gzip.compress(raw, mtime=0)).decode()
+                  chunks = [data[i:i+32000] for i in range(0, len(data), 32000)]
+                  for part, content in enumerate(chunks):
+                      print('SAMPLES ' + json.dumps({'file': str(path.relative_to('lab/results')),
+                            'sha256': hashlib.sha256(raw).hexdigest(), 'part': part,
+                            'parts': len(chunks), 'gzip_base64': content}))
           PYLOG
       - uses: actions/upload-artifact@v4
         if: always()
