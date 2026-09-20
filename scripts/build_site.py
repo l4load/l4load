@@ -39,11 +39,16 @@ It is not a production deployment or a throughput result.</p>
 </div>
 <h2>Backend failure and recovery.</h2>
 <p>The Keepalived/IPVS trial checks healthy, health-failed and recovered backends.
-All 576 TCP/UDP exchanges passed, including HTTP health failure, configured drain and rollback: new flows avoided the unhealthy backend and
+All 640 TCP/UDP exchanges passed, including HTTP health failure, rejected configuration, drain and rollback: new flows avoided the unhealthy backend and
 returned to both backends after recovery, preserving client IP and payload.</p>
 <p><a href="https://github.com/l4load/l4load/tree/main/lab/ipvs">Run the lifecycle trial ↗</a> ·
-<a href="https://github.com/l4load/l4load/actions/runs/36130798955/job/108057346193">Verified execution ↗</a></p>
+<a href="https://github.com/l4load/l4load/actions/runs/36132397199/job/108062445520">Verified execution ↗</a></p>
 <p>Two established TCP sessions survived health exclusion, reload and a gated controller restart. Direct restart with retained state failed; the tested workaround pauses new flows until health is confirmed. Sustained load, abrupt failure and HA remain unqualified.</p>
+<h2>Check applied state.</h2>
+<p>In an isolated Katran test, freezing a kernel map caused a backend update to return success
+while the kernel ring stayed unchanged. This artificial permanent-write failure does not establish
+production incidence; it shows why an API acknowledgement alone is insufficient.</p>
+<a href="https://github.com/l4load/l4load/tree/main/lab/katran-control">Reproduce the experiment ↗</a>
 <h2>Evidence before performance claims.</h2>
 <p>Our target is strong performance with fewer deployment dependencies. No competitive
 comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>

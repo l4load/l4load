@@ -11,6 +11,10 @@ The [Keepalived/IPVS lifecycle trial](lab/ipvs/README.md) adds health-driven bac
 exclusion and recovery, verified with TCP/UDP and kernel table snapshots. Neither
 trial establishes production readiness or performance superiority.
 
+The [Katran control-plane experiment](lab/katran-control/README.md) reproduces
+an API/kernel-state mismatch under permanent injected write rejection. It is a
+fault experiment, not a production-incidence or novelty claim.
+
 ## Run the trials
 
 Use disposable Linux hosts and the instructions in the [lab](lab/README.md).
