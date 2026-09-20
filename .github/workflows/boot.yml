@@ -1,0 +1,22 @@
+name: Host boot
+on:
+  pull_request:
+    paths: ['lab/boot/**', 'profiles/ipvs/**', '.github/workflows/boot.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  boot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils cloud-image-utils
+      - run: bash lab/boot/run.sh
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-boot
+          path: |
+            lab/results/boot/*.txt
+            lab/results/boot/*.log
