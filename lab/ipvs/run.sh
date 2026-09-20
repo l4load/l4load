@@ -96,10 +96,10 @@ start_controller
 wait_weight() {
     for attempt in $(seq 1 15); do
         ip netns exec l4-lb ipvsadm -Sn > "$out/state.txt"
-        if python3 - "$out/state.txt" "$1" <<'PY'
+        if python3 - "$out/state.txt" "$1" "${2:-10.0.2.2:8080}" <<'PY'
 import sys
 rows=[x.split() for x in open(sys.argv[1]) if x.startswith('-a ')]
-matched=[x for x in rows if x[x.index('-r')+1]=='10.0.2.2:8080' and x[x.index('-w')+1]==sys.argv[2]]
+matched=[x for x in rows if x[x.index('-r')+1]==sys.argv[3] and x[x.index('-w')+1]==sys.argv[2]]
 sys.exit(0 if len(matched)==2 else 1)
 PY
         then return; fi
@@ -167,8 +167,15 @@ sleep 3
 wait_weight 1
 cp "$out/state.txt" "$out/controller-stopped-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 25000 | tee "$out/controller-stopped.json"
+for proto in t u; do
+    for backend in 10.0.2.2 10.0.3.2; do
+        ip netns exec l4-lb ipvsadm -e "-$proto" 198.18.0.1:8080 -r "$backend:8080" -i -w 0
+    done
+done
+phase restart-gated
 start_controller
 wait_weight 0
+wait_weight 1 10.0.3.2:8080
 phase controller-restarted
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 26000 | tee "$out/controller-restarted.json"
 start_health 1
