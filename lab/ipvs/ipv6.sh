@@ -109,4 +109,6 @@ ip netns exec l6-client python3 lab/katran/scenario.py check b2 21000 | tee "$ou
 start_health 1
 wait_state 1
 ip netns exec l6-client python3 lab/katran/scenario.py check b1,b2 22000 | tee "$out/recovered.json"
+ip netns exec l6-client ip -j link show > "$out/links.json"
+ip netns exec l6-client python3 -u lab/ipvs/datagrams.py | tee "$out/datagrams.jsonl"
 echo IPVS_IPV6_PASS

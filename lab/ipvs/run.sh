@@ -215,4 +215,6 @@ wait_weight 1
 phase done
 wait "$session_pid"
 cat "$out/sessions.jsonl"
+ip netns exec l4-client ip -j link show > "$out/links.json"
+ip netns exec l4-client python3 -u lab/ipvs/datagrams.py | tee "$out/datagrams.jsonl"
 echo IPVS_LIFECYCLE_PASS
