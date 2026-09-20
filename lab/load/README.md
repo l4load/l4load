@@ -28,3 +28,9 @@ same pinned builder container on one host. It records package versions and uses
 the installed libbpf for Katran's map API. This removes the previous userspace
 mismatch; qualification is pending. Fixed order, shared CPUs, scheduler noise,
 short duration and low rates still prevent capacity or superiority claims.
+
+Ordered trials use three cyclic engine orders so each engine occupies each
+position once. `L4LOAD_TRIAL=round-1` adds an output suffix; an existing directory
+is rejected instead of overwritten. The order/UTC log and observed affinity,
+cgroup path and available limits accompany reports. These records do not prove
+CPU isolation or account for veth softirq placement. Qualification is pending.

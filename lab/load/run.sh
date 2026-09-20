@@ -6,6 +6,13 @@ date -u +%FT%TZ > "$out/started.txt"
 sockperf --version > "$out/version.txt" 2>&1
 uname -a > "$out/kernel.txt"
 lscpu > "$out/cpu.txt"
+taskset -pc $$ > "$out/affinity.txt"
+cat /proc/self/cgroup > "$out/cgroup.txt"
+for name in cpu.max memory.max cpuset.cpus.effective; do
+    if [ -r "/sys/fs/cgroup/$name" ]; then
+        cat "/sys/fs/cgroup/$name" > "$out/$name.txt"
+    fi
+done
 dpkg-query -W sockperf > "$out/packages.txt"
 pids=()
 cleanup() {

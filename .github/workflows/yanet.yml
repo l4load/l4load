@@ -66,22 +66,25 @@ jobs:
       - name: Check live DSR forwarding
         timeout-minutes: 5
         run: unshare --ipc bash lab/yanet/run.sh upstream/yanet
-      - name: Exercise IPVS in the shared environment
+      - name: Run balanced engine orders
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        timeout-minutes: 5
+        timeout-minutes: 25
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          L4LOAD_LOAD=1 bash lab/ipvs/run.sh
-      - name: Exercise Katran in the shared environment
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        timeout-minutes: 5
-        run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE/upstream/katran"
-          L4LOAD_LOAD=1 bash lab/katran/run.sh upstream/katran
-      - name: Check native virtual forwarding
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        timeout-minutes: 5
-        run: L4LOAD_LOAD=1 unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet
+          round=0
+          for order in "ipvs katran yanet" "katran yanet ipvs" "yanet ipvs katran"; do
+            round=$((round + 1))
+            for engine in $order; do
+              export L4LOAD_TRIAL="round-$round" L4LOAD_LOAD=1
+              printf '%s %s %s\n' "$(date -u +%FT%TZ)" "$L4LOAD_TRIAL" "$engine" >> lab/results/order.txt
+              case "$engine" in
+                ipvs) bash lab/ipvs/run.sh ;;
+                katran) bash lab/katran/run.sh upstream/katran ;;
+                yanet) unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet ;;
+              esac
+            done
+          done
       - name: Exercise public balancer cases
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         timeout-minutes: 5
