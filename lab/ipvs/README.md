@@ -31,6 +31,12 @@ Valid drain/rollback candidates use the same preflight, atomic rename and HUP.
 This checks one malformed input, not every invalid configuration or update race.
 
 Counts demonstrate short functional coverage only. Sustained traffic, abrupt
-controller failure, concurrent configuration updates, IPv6, HA and capacity remain unqualified.
+controller failure, concurrent configuration updates, HA and capacity remain unqualified.
 Health checks cannot protect traffic while the controller is stopped. The observed
 restart limitation is scoped to the recorded package/configuration.
+
+`sudo bash lab/ipvs/ipv6.sh` runs a separate IPv6-over-IPv6 DSR trial.
+[Verified run](https://github.com/l4load/l4load/actions/runs/36134413105/job/108068928725):
+192 TCP/UDP exchanges preserved source IP through healthy, failed TCP-health-port
+and recovered phases. IPv6 persistent sessions, HTTP health, reload and restart
+are not qualified by this test; the richer lifecycle above remains IPv4-only.
