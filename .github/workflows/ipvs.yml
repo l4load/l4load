@@ -16,6 +16,17 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y keepalived ipvsadm
       - run: sudo systemctl stop keepalived
       - run: sudo bash lab/ipvs/run.sh
+      - name: Preserve diagnostic evidence in the job log
+        if: always()
+        run: |
+          python3 - <<'PYLOG'
+          import json
+          from pathlib import Path
+          root = Path('lab/results/ipvs')
+          for path in sorted(root.glob('*')):
+              if path.suffix in ('.txt', '.conf', '.json', '.jsonl') or path.name == 'validation.log':
+                  print('EVIDENCE ' + json.dumps({'file': path.name, 'content': path.read_text()}))
+          PYLOG
       - uses: actions/upload-artifact@v4
         if: always()
         with:
