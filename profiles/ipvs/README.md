@@ -75,11 +75,13 @@ sudo systemctl start l4load-ipvs
 Check kernel weights, health and traffic before enabling boot startup with
 `systemctl enable l4load-ipvs`. Boot/network ordering is not yet qualified.
 Keep the last-good configuration outside the active path. To update or roll back,
-validate the chosen file, install it as `/etc/l4load/next.conf`, rename it to
-`/etc/l4load/ipvs.conf`, then `systemctl reload l4load-ipvs`. The unit validates
-again before signalling; rejection leaves the running configuration unchanged,
-but the invalid file must be replaced before a later restart. Verify applied
-kernel state and traffic after either operation. Host reboots remain unqualified;
+run `sudo bash profiles/ipvs/update.sh candidate.conf`. Use a self-contained
+configuration, as in this profile; external includes and concurrent manual edits
+are outside this recipe. The helper locks concurrent helper calls, validates a
+private copy before atomic replacement and restores the previous file if reload
+fails. A successful reload only confirms signal delivery: verify kernel weights,
+health and traffic, and use the same command with the last-good file if needed.
+Directly overwriting the active file bypasses this protection. Host reboots remain unqualified;
 the separate package trial below covers only its exact versions and environment.
 
 The packaged service must stay masked while this profile owns IPVS: package

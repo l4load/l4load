@@ -52,6 +52,29 @@ test "$(systemctl show "$unit" -p NRestarts --value)" -ge 1
 cp "$unitfile" "$out/service.txt"
 start_health 1
 wait_weight 1
+if bash profiles/ipvs/update.sh "$out/invalid.conf"; then
+    echo 'invalid update accepted'
+    exit 1
+fi
+cmp "$out/original.conf" /etc/l4load/ipvs.conf
+systemctl restart "$unit"
+wait_weight 1
+wait_weight 1 10.0.3.2:8080
+cat > /run/systemd/system/$unit.d/reject.conf <<'UNIT'
+[Service]
+ExecReload=
+ExecReload=/bin/false
+UNIT
+systemctl daemon-reload
+if bash profiles/ipvs/update.sh "$out/drain.conf"; then
+    echo 'failed reload reported success'
+    exit 1
+fi
+cmp "$out/original.conf" /etc/l4load/ipvs.conf
+rm /run/systemd/system/$unit.d/reject.conf
+systemctl daemon-reload
+wait_weight 1
+wait_weight 1 10.0.3.2:8080
 install -m 600 "$out/invalid.conf" /etc/l4load/ipvs.conf
 if systemctl reload "$unit"; then
     echo 'invalid service reload accepted'
@@ -61,9 +84,7 @@ systemctl is-active --quiet "$unit"
 wait_weight 1
 wait_weight 1 10.0.3.2:8080
 for candidate in drain original; do
-    install -m 600 "$out/$candidate.conf" /etc/l4load/next.conf
-    mv /etc/l4load/next.conf /etc/l4load/ipvs.conf
-    systemctl reload "$unit"
+    bash profiles/ipvs/update.sh "$out/$candidate.conf"
     if [ "$candidate" = drain ]; then
         wait_weight 0
         phase service-drained
