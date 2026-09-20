@@ -1,9 +1,18 @@
 {
-  "yanet": {"repository": "https://github.com/yanet-platform/yanet", "revision": "6b30c2f376c5148a661eadb57fd316d3b453e085", "status": "source-reviewed, not executed"},
-  "katran": {"repository": "https://github.com/facebookincubator/katran", "revision": "4546144594d11d7bf342d008e7b94922fc9bbaa3", "status": "IPv4 TCP/UDP DSR smoke passed; no performance result"},
-  "yanet2": {"repository": "https://github.com/yanet-platform/yanet2", "revision": "0825c0fc86226cfe16c89c9e7f1e521fb68c4ad9", "status": "separate candidate, not executed"},
-  "kernel": {
-    "url": "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/x86_64/netboot/vmlinuz-virt",
-    "sha256": "6b58e5d779e44e57c9efa20232da18650415eceb9d4f544e5c165c1f392c5d51"
+  "yanet": {
+    "repository": "https://github.com/yanet-platform/yanet",
+    "revision": "dacf4015f794e978c74200bb49f35472114d66aa",
+    "status": "upstream PR335: socket DSR, four packet suites and five reload repetitions passed; no performance result",
+    "evidence": "https://github.com/l4load/l4load/actions/runs/36146170902"
+  },
+  "katran": {
+    "repository": "https://github.com/facebookincubator/katran",
+    "revision": "4546144594d11d7bf342d008e7b94922fc9bbaa3",
+    "status": "IPv4 TCP/UDP DSR smoke passed; no performance result"
+  },
+  "yanet2": {
+    "repository": "https://github.com/yanet-platform/yanet2",
+    "revision": "0825c0fc86226cfe16c89c9e7f1e521fb68c4ad9",
+    "status": "separate candidate, not executed"
   }
 }
