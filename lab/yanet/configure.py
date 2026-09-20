@@ -32,7 +32,7 @@ configs = {
 }
 if len(sys.argv) > 3 and sys.argv[3] == 'af-packet':
     port = configs['dataplane.conf']['ports'][0]
-    port.update(pci='0000:00:00.0', name='net_af_packet0', rssFlags=[], symmetric_mode=True)
+    port.update(pci='net_af_packet0', rssFlags=[], symmetric_mode=True)
     configs['dataplane.conf']['ealArgs'].append('--vdev=net_af_packet0,iface=l4-yanet,qpairs=2,framesz=9216,blocksz=36864')
 for name, config in configs.items():
     (out / name).write_text(json.dumps(config, indent=2) + '\n')
