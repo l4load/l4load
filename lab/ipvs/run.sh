@@ -55,7 +55,9 @@ done
 ip -n l4-lb addr add 198.18.0.1/32 dev lo
 ip netns exec l4-lb sysctl -qw net.ipv4.ip_forward=1
 start_health() {
-    ip netns exec "l4-b$1" python3 -m http.server 9090 --bind "10.0.$(($1+1)).2" > "$out/health$1.log" 2>&1 &
+    mkdir -p "$out/health$1"
+    echo healthy > "$out/health$1/health"
+    ip netns exec "l4-b$1" python3 -m http.server 9090 --directory "$out/health$1" --bind "10.0.$(($1+1)).2" > "$out/health$1.log" 2>&1 &
     health_pid=$!
     pids+=("$health_pid")
 }
@@ -76,7 +78,11 @@ CONF
     real_server 10.0.$((n+1)).2 8080 {
         weight 1
         inhibit_on_failure
-        TCP_CHECK {
+        HTTP_GET {
+            url {
+                path /health
+                status_code 200
+            }
             connect_port 9090
             connect_timeout 1
             retry 1
@@ -141,6 +147,14 @@ wait_weight 1
 cp "$out/state.txt" "$out/recovered-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 22000 | tee "$out/recovered.json"
 phase recovered
+rm "$out/health1/health"
+wait_weight 0
+phase http-unhealthy
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 27000 | tee "$out/http-unhealthy.json"
+echo healthy > "$out/health1/health"
+wait_weight 1
+phase http-recovered
+ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 28000 | tee "$out/http-recovered.json"
 cp "$out/keepalived.conf" "$out/original.conf"
 python3 - "$out/keepalived.conf" <<'PYCONFIG'
 import sys
