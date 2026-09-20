@@ -2,7 +2,8 @@ ip -n l4-client addr add 10.0.0.3/24 dev eth0
 ip netns exec l4-lb nft --version > "$out/nft-version.txt"
 nftlb() { ip netns exec l4-lb nft "$@"; }
 probe() { ip netns exec l4-client python3 lab/filter/probe.py "$@"; }
-nftlb -f lab/filter/rules.nft
+nftlb -c -f profiles/nftables/filter.nft
+nftlb -f profiles/nftables/filter.nft
 probe 10.0.0.2 pass
 probe 10.0.0.3 pass
 nftlb 'add element netdev l4load blocked { 10.0.0.3 . 198.18.0.1 timeout 15s }'
@@ -33,7 +34,7 @@ nftlb delete table netdev l4load
 probe 10.0.0.3 pass
 echo FILTER_LIFECYCLE_PASS
 if [ "${L4LOAD_FILTER_LOAD:-0}" = 1 ]; then
-    nftlb -f lab/filter/rules.nft
+    nftlb -f profiles/nftables/filter.nft
     nftlb 'add element netdev l4load blocked { 10.0.0.3 . 198.18.0.1 }'
     for pid in "${backend_pids[@]}"; do kill "$pid"; wait "$pid" || true; done
     bash lab/filter/load.sh "$out/filter-load"

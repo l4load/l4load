@@ -1,7 +1,7 @@
 name: YANET baseline
 on:
   push:
-    paths: ['lab/yanet/**', '!lab/yanet/**/*.md', 'lab/filter/**', '!lab/filter/**/*.md', 'lab/ipvs/run.sh', 'lab/katran/run.sh', 'lab/katran/scenario.py', 'lab/load/**', '!lab/load/**/*.md', '.github/workflows/yanet.yml']
+    paths: ['lab/yanet/**', '!lab/yanet/**/*.md', 'lab/filter/**', '!lab/filter/**/*.md', 'profiles/nftables/**', '!profiles/nftables/**/*.md', 'lab/ipvs/run.sh', 'lab/katran/run.sh', 'lab/katran/scenario.py', 'lab/load/**', '!lab/load/**/*.md', '.github/workflows/yanet.yml']
   workflow_dispatch:
     inputs:
       workload_placement:
