@@ -1,0 +1,42 @@
+name: Katran control build
+on:
+  push:
+    paths: ['.github/workflows/katran-control.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: facebookincubator/katran
+          ref: 4546144594d11d7bf342d008e7b94922fc9bbaa3
+          path: upstream/katran
+      - name: Install upstream build dependencies
+        working-directory: upstream/katran
+        run: |
+          sudo apt-get update
+          sudo python3 build/fbcode_builder/getdeps.py --allow-system-packages install-system-deps --recursive katran
+      - name: Build upstream control library
+        working-directory: upstream/katran
+        run: |
+          set -o pipefail
+          mkdir -p ../../lab/results/katran-control
+          date -u +%FT%TZ > ../../lab/results/katran-control/started.txt
+          git rev-parse HEAD > ../../lab/results/katran-control/upstream.txt
+          python3 build/fbcode_builder/getdeps.py --allow-system-packages build --build-type RelWithDebInfo --src-dir=. katran --project-install-prefix katran:/usr/local 2>&1 | tee ../../lab/results/katran-control/build.log
+      - name: Run upstream tests
+        working-directory: upstream/katran
+        run: |
+          set -o pipefail
+          python3 build/fbcode_builder/getdeps.py --allow-system-packages test --build-type RelWithDebInfo --src-dir=. katran --project-install-prefix katran:/usr/local 2>&1 | tee ../../lab/results/katran-control/tests.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: katran-control
+          path: lab/results/katran-control
+          if-no-files-found: warn
