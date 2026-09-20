@@ -7,7 +7,7 @@ page = '''<!doctype html>
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="L4Load: independent tools for L4 networking. Explore the experimental Balance TCP reference.">
+<meta name="description" content="L4Load: independent tools for L4 networking. Reproducible experiments with existing dataplanes.">
 <title>L4Load — L4 networking, made operable</title>
 <style>
 :root{color-scheme:dark;font:17px/1.7 system-ui;background:#0c1423;color:#e5ecf6}
@@ -23,17 +23,16 @@ footer{border-top:1px solid #31415b;margin-top:40px;padding-top:20px;font-size:1
 <h1>L4 networking,<br>made operable.</h1>
 <p>Tools for teams that need to handle traffic without building a networking platform.</p>
 <a href="https://github.com/l4load/l4load">Source &amp; quickstart ↗</a></header>
-<main><h2>Start small. Verify the behaviour.</h2>
-<p>Balance has a loopback TCP reference with backend selection, connect-only fallback,
-half-close, connection limits and bounded shutdown. It is not production-ready.</p>
-<pre><code>git clone https://github.com/l4load/l4load.git
-cd l4load
-go test -race ./...
-go run ./cmd/l4load -config examples/local.json -check</code></pre>
-<p>Go 1.26+ required. See the <a href="https://github.com/l4load/l4load#try-balance">quickstart</a>
-for a local two-backend demo.</p>
+<main><h2>Start with a working dataplane.</h2>
+<p>Balance experiments reuse existing engines before adding new code.
+Our Katran lab sends TCP and UDP through one IPv4 VIP to two IPIP backends,
+checks replies and preserves the original client address without DPDK.</p>
+<p><a href="https://github.com/l4load/l4load/tree/main/lab/katran">Run the Katran scenario ↗</a> ·
+<a href="https://github.com/l4load/l4load/actions/workflows/katran.yml">Execution logs &amp; artifacts ↗</a></p>
+<p>This is a functional Linux namespace test using generic XDP and static maps.
+It is not a production deployment or a throughput result.</p>
 <div class="grid">
-<article><h3>Balance</h3><small>TCP lab available</small><p>Connection handling with explicit limits.</p></article>
+<article><h3>Balance</h3><small>Katran DSR lab</small><p>Test and tune existing dataplanes.</p></article>
 <article><h3>Shield</h3><small>Planned</small><p>Traffic filtering and protection.</p></article>
 <article><h3>Pulse</h3><small>Planned</small><p>Traffic and failure analysis.</p></article>
 <article><h3>Fabric</h3><small>Planned</small><p>Configuration and multi-site operation.</p></article>
@@ -43,13 +42,14 @@ for a local two-backend demo.</p>
 This is a functional test over guest loopback, not a NIC or throughput benchmark.</p>
 <a href="https://github.com/l4load/l4load/tree/main/lab">Run the lab ↗</a>
 <h2>Evidence before performance claims.</h2>
-<p>Our target is strong performance with fewer deployment dependencies. No YANET or
-Katran comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>
+<p>Our target is strong performance with fewer deployment dependencies. No competitive
+comparison has run yet. Virtual results will be distinguished from hardware measurements.</p>
 <a href="https://github.com/l4load/l4load/blob/main/docs/benchmarks.md">Comparison criteria ↗</a>
 <h2>Know the limits.</h2>
-<p>The current lab is a full TCP proxy restricted to loopback. It does not preserve
-client source IP or provide UDP, DSR, reload, high availability or DDoS protection.</p>
-</main><footer>Apache-2.0 · Generated from
+<p>The Katran scenario does not yet qualify backend changes, failover, IPv6 or physical NICs.
+The earlier Go loopback TCP proxy remains a reference utility; its feature development is paused.
+No production readiness, high availability or DDoS protection is claimed.</p>
+</main><footer>L4Load glue: Apache-2.0 · Katran: GPL-2.0 · Generated from
 <a href="https://github.com/l4load/l4load/tree/SOURCE_SHA">SOURCE_SHORT</a></footer>
 </html>
 '''

@@ -18,3 +18,8 @@ No failover, reload, IPv6 or NIC qualification is claimed.
 Evidence in `lab/results/katran`: real UTC start, revisions, kernel/compiler,
 object checksum, result, attachment and forwarding capture. The script cleans up
 its namespaces and BPF pins; it must not run on a production host.
+
+Verified on 2026-09-25: [Linux CI](https://github.com/l4load/l4load/actions/runs/36118696252/job/108018772268)
+passed all 64 exchanges. TCP and UDP each reached b1 15 times and b2 17 times;
+all replies reported the original client address. These counts are smoke coverage,
+not a statistical distribution or performance result.
