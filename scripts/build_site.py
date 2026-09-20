@@ -37,6 +37,13 @@ It is not a production deployment or a throughput result.</p>
 <article><h3>Pulse</h3><small>Planned</small><p>Traffic and failure analysis.</p></article>
 <article><h3>Fabric</h3><small>Planned</small><p>Configuration and multi-site operation.</p></article>
 </div>
+<h2>Backend failure and recovery.</h2>
+<p>The Keepalived/IPVS trial checks healthy, health-failed and recovered backends.
+All 192 TCP/UDP exchanges passed: new flows avoided the unhealthy backend and
+returned to both backends after recovery, preserving client IP and payload.</p>
+<p><a href="https://github.com/l4load/l4load/tree/main/lab/ipvs">Run the lifecycle trial ↗</a> ·
+<a href="https://github.com/l4load/l4load/actions/runs/36128690604/job/108050671742">Verified execution ↗</a></p>
+<p>This tests new-flow routing. Existing-session drain, reload and HA remain unqualified.</p>
 <h2>A reproducible virtual lab.</h2>
 <p>A QEMU Linux guest runs the TCP checks with recorded image hashes and execution logs.
 This is a functional test over guest loopback, not a NIC or throughput benchmark.</p>

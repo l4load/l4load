@@ -10,6 +10,10 @@ are planned. No comparative performance results are available yet.
 The Go loopback TCP proxy below remains a reference utility; feature development
 is paused. It is not the selected product dataplane.
 
+The [Keepalived/IPVS lifecycle trial](lab/ipvs/README.md) adds health-driven backend
+exclusion and recovery, verified with TCP/UDP and kernel table snapshots. Neither
+trial establishes production readiness or performance superiority.
+
 ## Try Balance
 
 Requires Go 1.26+; Python 3 is used only for the demo backends and site generation.
