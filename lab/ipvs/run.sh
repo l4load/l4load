@@ -87,9 +87,12 @@ CONF
     done
     echo '}'
 done > "$out/keepalived.conf"
-ip netns exec l4-lb keepalived -n -l -C -f "$out/keepalived.conf" > "$out/keepalived.log" 2>&1 &
-controller=$!
-pids+=("$controller")
+start_controller() {
+    ip netns exec l4-lb keepalived -n -l -C -I -f "$out/keepalived.conf" >> "$out/keepalived.log" 2>&1 &
+    controller=$!
+    pids+=("$controller")
+}
+start_controller
 wait_weight() {
     for attempt in $(seq 1 15); do
         ip netns exec l4-lb ipvsadm -Sn > "$out/state.txt"
@@ -133,6 +136,7 @@ phase health-down
 cp "$out/state.txt" "$out/down-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 21000 | tee "$out/down.json"
 start_health 1
+first_health=$health_pid
 wait_weight 1
 cp "$out/state.txt" "$out/recovered-state.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 22000 | tee "$out/recovered.json"
@@ -154,6 +158,21 @@ kill -HUP "$controller"
 wait_weight 1
 phase restored
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 24000 | tee "$out/restored.json"
+kill -TERM "$controller"
+wait "$controller"
+phase controller-stopped
+kill "$first_health"
+wait "$first_health" 2>/dev/null || true
+sleep 3
+wait_weight 1
+cp "$out/state.txt" "$out/controller-stopped-state.txt"
+ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 25000 | tee "$out/controller-stopped.json"
+start_controller
+wait_weight 0
+phase controller-restarted
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 26000 | tee "$out/controller-restarted.json"
+start_health 1
+wait_weight 1
 phase done
 wait "$session_pid"
 cat "$out/sessions.jsonl"
