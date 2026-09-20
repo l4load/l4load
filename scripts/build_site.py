@@ -47,7 +47,12 @@ returned to both backends after recovery, preserving client IP and payload.</p>
 passed supervisor recovery, rejected reload and configuration drain/rollback.
 The lab installed the profile files with only a network-namespace override.
 Two retained TCP sessions carried 706 exchanges each over 35.6 seconds.
-Packages and networking were prepared; host boot remains unqualified.</p>
+Packages and networking were prepared for that installation trial.</p>
+<p>A separate <a href="https://github.com/l4load/l4load/actions/runs/36167949921">Ubuntu VM boot trial</a>
+passed two reboots with automatic service startup and 64 fresh TCP/UDP flows
+after each boot. It used software emulation and an explicitly ordered synthetic
+network service. Physical network startup, automatic failover and performance
+remain unqualified.</p>
 <p>A separate <a href="https://github.com/l4load/l4load/actions/runs/36165653126">package upgrade and rollback trial</a>
 passed Keepalived 2.2.8 → 2.3.2 → 2.2.8 with gated restarts, fresh TCP/UDP flows
 and two retained TCP sessions carrying 913 exchanges each over 46.1 seconds.
@@ -95,6 +100,12 @@ This rejected configuration combines workload colocation and SMT contention;
 it neither isolates their effects nor explains the original latency gap.</p>
 <a href="https://github.com/l4load/l4load/blob/main/docs/benchmarks.md">Comparison criteria ↗</a>
 <h2>Know the limits.</h2>
+<p><a href="https://github.com/l4load/l4load/actions/runs/36169152717">Planned IPVS cutover and rollback</a>
+compared independent director tables with and without native connection sync.
+Without sync, four existing TCP sessions reset on cutover and four newer sessions
+reset on rollback. With sync and a state-readback barrier, four sessions survived
+cutover and eight survived rollback; fresh TCP/UDP traffic passed in both modes.
+This does not qualify abrupt failure, lost sync messages or automatic failover.</p>
 <p>The Katran scenario does not yet qualify backend changes, failover, IPv6 or physical NICs.
 No production readiness, high availability or DDoS protection is claimed.</p>
 </main><footer>L4Load glue: Apache-2.0 · Katran: GPL-2.0 · Generated from

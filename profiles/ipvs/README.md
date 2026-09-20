@@ -50,6 +50,12 @@ passed. Two retained TCP sessions carried 706 exchanges each over 35.6 seconds,
 including service drain and rollback. This does not qualify host boot or a
 package upgrade; packages and networking were prepared before installation.
 
+A separate [VM trial](https://github.com/l4load/l4load/actions/runs/36167949921)
+installed the profile and passed two reboots, with 64 fresh TCP/UDP flows after
+each boot and no automatic service restarts. It uses QEMU TCG and an explicitly
+ordered namespace topology service. This qualifies that lab's boot recipe;
+physical network ordering and retained sessions through reboot remain unqualified.
+
 The [unit](l4load-ipvs.service) and [restart gate](gate.py) are for a dedicated
 IPVS director: the gate sets **every existing destination** to weight zero before
 health checks resume. Do not share its network namespace with another IPVS owner.
