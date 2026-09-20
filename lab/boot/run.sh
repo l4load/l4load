@@ -4,6 +4,8 @@ cd "$(dirname "$0")/../.."
 out=$(pwd)/lab/results/boot
 mkdir -p "$out"
 exec > >(tee "$out/run.log") 2>&1
+git rev-parse HEAD > "$out/source.txt"
+date -u +%FT%TZ > "$out/started.txt"
 image_url=https://cloud-images.ubuntu.com/noble/20260911/noble-server-cloudimg-amd64.img
 curl --max-time 300 -fL "$image_url" -o "$out/base.img"
 echo "612b2c0cc1bc413a6cb8c38fd611794caf0f2b436c50013d8b3794db12ad7354  $out/base.img" | sha256sum -c -
@@ -38,6 +40,7 @@ git archive HEAD | remote 'sudo mkdir -p /opt/l4load && sudo tar -x -C /opt/l4lo
 remote sudo bash /opt/l4load/lab/boot/install.sh
 for cycle in 1 2; do
     before=$(remote cat /proc/sys/kernel/random/boot_id)
+    echo "$before" > "$out/before-$cycle.txt"
     remote sudo systemctl reboot || true
     changed=false
     for attempt in $(seq 1 180); do
@@ -48,7 +51,9 @@ for cycle in 1 2; do
     done
     test "$changed" = true
     remote sudo systemctl is-system-running --wait || true
-    remote sudo bash /opt/l4load/lab/boot/check.sh | tee "$out/boot-$cycle.txt"
+    result=0
+    remote sudo bash /opt/l4load/lab/boot/check.sh | tee "$out/boot-$cycle.txt" || result=$?
     remote sudo journalctl -b -u l4load-ipvs -u l4load-lab-network --no-pager > "$out/journal-$cycle.txt"
+    test "$result" = 0
 done
 echo HOST_REBOOT_PASS

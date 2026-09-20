@@ -13,6 +13,18 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils cloud-image-utils
       - run: bash lab/boot/run.sh
+      - name: Preserve boot evidence in the job log
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for path in sorted(Path('lab/results/boot').glob('*.txt')):
+              print('EVIDENCE ' + json.dumps({'file': path.name, 'content': path.read_text()}))
+          path = Path('lab/results/boot/serial.log')
+          if path.exists():
+              print('SERIAL_TAIL ' + json.dumps(path.read_text(errors='replace')[-24000:]))
+          PY
       - if: always()
         uses: actions/upload-artifact@v4
         with:
