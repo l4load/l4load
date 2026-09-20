@@ -1,5 +1,6 @@
 import collections
 import ctypes
+import ctypes.util
 import json
 import os
 from pathlib import Path
@@ -15,7 +16,10 @@ PORT = 8080
 
 
 def configure(directory, mac):
-    lib = ctypes.CDLL('libbpf.so.1', use_errno=True)
+    name = ctypes.util.find_library('bpf')
+    if not name:
+        raise RuntimeError('libbpf is required')
+    lib = ctypes.CDLL(name, use_errno=True)
     lib.bpf_obj_get.argtypes = [ctypes.c_char_p]
     lib.bpf_map_update_elem.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_ulonglong]
 

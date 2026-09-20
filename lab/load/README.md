@@ -22,3 +22,9 @@ trials still prevent a controlled ranking. YANET uses the same generator in its 
 `L4LOAD_LOAD=1 unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet`.
 That is a separate environment/run, not a paired ranking. Capture stays disabled
 during load; native checksum and MTU settings still apply.
+
+The shared-environment workflow runs all three engines sequentially inside the
+same pinned builder container on one host. It records package versions and uses
+the installed libbpf for Katran's map API. This removes the previous userspace
+mismatch; qualification is pending. Fixed order, shared CPUs, scheduler noise,
+short duration and low rates still prevent capacity or superiority claims.

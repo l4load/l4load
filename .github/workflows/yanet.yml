@@ -1,7 +1,7 @@
 name: YANET baseline
 on:
   push:
-    paths: ['lab/yanet/**', '!lab/yanet/**/*.md', 'lab/load/**', '!lab/load/**/*.md', '.github/workflows/yanet.yml']
+    paths: ['lab/yanet/**', '!lab/yanet/**/*.md', 'lab/ipvs/run.sh', 'lab/katran/run.sh', 'lab/katran/scenario.py', 'lab/load/**', '!lab/load/**/*.md', '.github/workflows/yanet.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -25,12 +25,17 @@ jobs:
           ref: dacf4015f794e978c74200bb49f35472114d66aa
           submodules: recursive
           path: upstream/yanet
+      - uses: actions/checkout@v4
+        with:
+          repository: facebookincubator/katran
+          ref: 4546144594d11d7bf342d008e7b94922fc9bbaa3
+          path: upstream/katran
       - uses: actions/cache/restore@v4
         with:
           path: /tmp/l4load-ccache
           key: yanet-6b30c2f-builder-e379330-v1-${{ github.sha }}
           restore-keys: yanet-6b30c2f-builder-e379330-v1-
-      - run: apt-get update && apt-get install -y cmake ccache iproute2 kmod tcpdump ethtool sockperf
+      - run: apt-get update && apt-get install -y cmake ccache iproute2 kmod tcpdump ethtool sockperf keepalived ipvsadm prometheus-node-exporter clang llvm libbpf-dev linux-tools-common linux-tools-generic
       - run: ccache --max-size=2G
       - name: Record environment
         run: |
@@ -61,6 +66,18 @@ jobs:
       - name: Check live DSR forwarding
         timeout-minutes: 5
         run: unshare --ipc bash lab/yanet/run.sh upstream/yanet
+      - name: Exercise IPVS in the shared environment
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        timeout-minutes: 5
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          L4LOAD_LOAD=1 bash lab/ipvs/run.sh
+      - name: Exercise Katran in the shared environment
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        timeout-minutes: 5
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE/upstream/katran"
+          L4LOAD_LOAD=1 bash lab/katran/run.sh upstream/katran
       - name: Check native virtual forwarding
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         timeout-minutes: 5
@@ -114,7 +131,7 @@ jobs:
           python3 - <<'PYLOG'
           import json
           from pathlib import Path
-          for path in sorted(Path('lab/results').glob('yanet*/**/*')):
+          for path in sorted(Path('lab/results').glob('**/*')):
               if path.suffix in ('.txt', '.conf', '.json'):
                   print('EVIDENCE ' + json.dumps({'file': str(path.relative_to('lab/results')), 'content': path.read_text()}))
           PYLOG
@@ -123,8 +140,7 @@ jobs:
         with:
           name: yanet-baseline
           path: |
-            lab/results/yanet
-            lab/results/yanet-dsr*
+            lab/results
             upstream/yanet/build_autotest/meson-logs
           if-no-files-found: warn
       - uses: actions/cache/save@v4
