@@ -94,6 +94,10 @@ phase failover
 python3 -c 'import time; print(time.monotonic())' > "$out/traffic-route-standby.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-failover.json"
 sleep 2
+if [ "$fault_ns" = l4-r ]; then
+    ip -n l4-r route get 198.18.0.1 > "$out/route-bfd-still-down.txt"
+    grep -q 'via 10.1.2.2 ' "$out/route-bfd-still-down.txt"
+fi
 ip netns exec "$fault_ns" nft -a list table inet fault > "$out/fault-counters.txt"
 phase return
 ip netns exec "$fault_ns" nft delete table inet fault

@@ -23,7 +23,11 @@ for ns in l4-r l4-d1 l4-d2; do
     ip -n "$ns" link set lo up
 done
 bfd_clause=
-if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ]; then bfd_clause='bfd yes;'; fi
+retry_clause=
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ]; then
+    bfd_clause='bfd yes;'
+    retry_clause='error wait time 1, 5; connect delay time 1;'
+fi
 for n in 1 2; do
     ip link add "r$n" type veth peer name eth0 netns "l4-d$n"
     ip link set "r$n" netns l4-r
@@ -43,6 +47,7 @@ protocol bgp upstream {
     local 10.1.$n.2 as 6500$n;
     neighbor 10.1.$n.1 as 65000;
     $bfd_clause
+    $retry_clause
     ipv4 { import none; export where net = 198.18.0.1/32; };
 }
 EOF
@@ -56,12 +61,14 @@ protocol bgp primary {
     local 10.1.1.1 as 65000;
     neighbor 10.1.1.2 as 65001;
     $bfd_clause
+    $retry_clause
     ipv4 { preference 200; import all; export none; };
 }
 protocol bgp standby {
     local 10.1.2.1 as 65000;
     neighbor 10.1.2.2 as 65002;
     $bfd_clause
+    $retry_clause
     ipv4 { preference 100; import all; export none; };
 }
 EOF
@@ -87,7 +94,7 @@ wait_route() {
         sleep 0.1
     done
     if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ]; then
-        birdc -s "$out/router.ctl" 'show bfd sessions all' > "$out/bfd-timeout-$phase.txt" || true
+        birdc -s "$out/router.ctl" 'show bfd sessions' > "$out/bfd-timeout-$phase.txt" || true
         birdc -s "$out/router.ctl" 'show protocols all' > "$out/protocol-timeout-$phase.txt" || true
         ip netns exec l4-r nft -a list table inet fault > "$out/fault-timeout-$phase.txt" 2>&1 || true
     fi
