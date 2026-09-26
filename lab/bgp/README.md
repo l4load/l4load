@@ -23,3 +23,8 @@ Set `L4LOAD_BGP_TRAFFIC=3` for [single-hop BFD loss](results/2026-09-26-bfd.json
 The director gates its VIP advertisement on its local BFD state. The trial drops
 BFD packets both ways while IPVS traffic remains reachable. It does not qualify
 multihop BFD or physical link failure.
+
+Set `L4LOAD_BGP_TRAFFIC=4` for [established-session handoff](results/2026-09-26-session.json).
+IPVS replicates connection state over a dedicated link. One TCP socket survived
+route failover and failback, but an exchange paused for up to 3.35 s in this
+virtual run. This does not qualify sync-link failure or session retention at scale.

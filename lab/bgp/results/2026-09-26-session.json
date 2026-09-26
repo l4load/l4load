@@ -1,0 +1,19 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36241144926/job/108401749864",
+  "head": "fade012bea7eb6f99a4a55994110ce46455de4e8",
+  "environment": "Ubuntu 24.04 virtual runner, Linux 6.17.0-1022-azure, BIRD 2.14, IPVS 1.31",
+  "topology": "one backend, two BGP directors, IPIP, dedicated IPVS sync link",
+  "fault": "drop VIP ingress on primary while its BGP process remains alive",
+  "route": ["primary", "standby", "primary"],
+  "established_mapping_on_both_directors_before_each_handoff": true,
+  "one_tcp_socket_exchanges": {"baseline": 54, "fault": 1, "failover": 42, "return": 28, "restored": 41},
+  "socket_reset": false,
+  "maximum_exchange_rtt_ms": 3348.778,
+  "fresh_attempts_at_approximately_100_per_second_per_protocol": {
+    "tcp_fault": "5/260",
+    "udp_fault": "5/260",
+    "tcp_failover": "288/288",
+    "udp_failover": "288/288"
+  },
+  "limit": "One short virtual trial of one established TCP session. Retention depended on a working dedicated IPVS sync link. The maximum exchange RTT shows a multi-second pause; no physical-link, sync-loss, scale, resource, or production-SLO qualification."
+}
