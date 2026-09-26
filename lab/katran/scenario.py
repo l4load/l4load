@@ -1,6 +1,7 @@
 import collections
 import ctypes
 import ctypes.util
+import errno
 import json
 import os
 from pathlib import Path
@@ -75,7 +76,15 @@ def check(expected="b1,b2", base_port="0"):
             with socket.socket(FAMILY, kind) as sock:
                 sock.settimeout(3)
                 if int(base_port):
-                    sock.bind((CLIENT, int(base_port) + n))
+                    for port in range(int(base_port) + n, int(base_port) + 1000):
+                        try:
+                            sock.bind((CLIENT, port))
+                            break
+                        except OSError as error:
+                            if error.errno != errno.EADDRINUSE:
+                                raise
+                    else:
+                        raise OSError(errno.EADDRINUSE, 'no free probe port')
                 sock.connect((VIP, PORT))
                 sock.sendall(payload)
                 if kind == socket.SOCK_STREAM:
