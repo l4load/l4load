@@ -179,6 +179,10 @@ survived routed failover and failback without reconnecting in a short virtual
 trial. Its slowest exchange took 3.35 seconds, and new TCP/UDP attempts failed
 during the forwarding fault. Sync-link loss, scale and physical links remain
 unqualified.</p>
+<p>In a separate <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-sync-loss.json">negative control</a>,
+the sync link was cut before a TCP session opened. That session reset after
+routed failover, while 279/279 fresh TCP and UDP attempts passed on standby.
+Loss after state has already replicated remains untested.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
