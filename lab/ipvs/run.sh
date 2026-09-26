@@ -22,7 +22,7 @@ cleanup() {
     done
     if [ "${L4LOAD_HA_PROFILE:-0}" = 1 ]; then
         rm -f /etc/l4load/ha-{1,2}.conf /etc/systemd/system/l4load-ha@.service /usr/local/libexec/l4load-ipvs-gate.py
-        rm -f /run/systemd/system/l4load-ha@{1,2}.service.d/lab.conf
+        rm -f /run/systemd/system/l4load-ha@{1,2}.service.d/*.conf
         rmdir /run/systemd/system/l4load-ha@{1,2}.service.d 2>/dev/null || true
         systemctl daemon-reload
     fi

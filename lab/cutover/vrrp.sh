@@ -64,6 +64,16 @@ vrrp_instance DIRECTOR {
 EOF
     if [ "${L4LOAD_HA_PROFILE:-0}" = 1 ]; then
         cat profiles/ipvs/keepalived.conf >> "$out/vrrp-$n.conf"
+        if [ "$n" = 1 ]; then
+            sed 's/virtual_server 198.18.0.1 8080/virtual_server 198.18.0.1 70000/' "$out/vrrp-$n.conf" > "$out/ha-invalid.conf"
+            packaged_state=$(systemctl is-enabled keepalived.service || true)
+            if ip netns exec "$director" bash profiles/ipvs/install-ha.sh "$n" "$out/ha-invalid.conf"; then
+                echo 'invalid HA installation accepted'
+                exit 1
+            fi
+            test ! -e "/etc/l4load/ha-$n.conf"
+            test "$(systemctl is-enabled keepalived.service || true)" = "$packaged_state"
+        fi
         ip netns exec "$director" bash profiles/ipvs/install-ha.sh "$n" "$out/vrrp-$n.conf"
         unit="l4load-ha@$n.service"
         mkdir -p "/run/systemd/system/$unit.d"
@@ -121,7 +131,21 @@ wait_vip() {
     cat "$out"/vrrp-*.log
     return 1
 }
+check_sync_roles() {
+    if [ "${L4LOAD_HA_PROFILE:-0}" != 1 ]; then return; fi
+    local phase=$1 primary=$2 backup=$3
+    for pair in "$primary:master" "$backup:backup"; do
+        local ns=${pair%%:*} role=${pair#*:}
+        for attempt in $(seq 1 30); do
+            ip netns exec "$ns" ipvsadm -Ln --daemon > "$out/sync-daemon-$phase-$ns.txt"
+            if grep -qi "$role" "$out/sync-daemon-$phase-$ns.txt"; then break; fi
+            sleep 0.1
+        done
+        grep -qi "$role" "$out/sync-daemon-$phase-$ns.txt"
+    done
+}
 wait_vip l4-lb l4-alt
+check_sync_roles baseline l4-lb l4-alt
 if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
     sync_client=10.0.0.2
     if [ "${L4LOAD_HA_PROFILE:-0}" != 1 ]; then source lab/cutover/sync.sh; fi
@@ -158,6 +182,7 @@ table netdev fault {
 NFT
 python3 -c 'import time; print(time.monotonic())' > "$out/vrrp-fault-start.txt"
 wait_vip l4-alt l4-lb
+check_sync_roles failover l4-alt l4-lb
 kill -0 "$controller"
 kill -0 "$alt_controller"
 wait_real l4-alt 0 failover
@@ -181,6 +206,7 @@ if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
 fi
 ip netns exec l4-lb nft delete table netdev fault
 wait_vip l4-lb l4-alt
+check_sync_roles restored l4-lb l4-alt
 wait_real l4-lb 0 restored
 record_vip restored
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-restored.jsonl"
@@ -195,6 +221,52 @@ wait_real l4-alt 1 healthy
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 13000 > "$out/vrrp-healthy-backend.json"
 kill -0 "$controller"
 kill -0 "$alt_controller"
+if [ "${L4LOAD_HA_PROFILE:-0}" = 1 ]; then
+    if ip netns exec l4-lb bash profiles/ipvs/update-ha.sh 1 "$out/ha-invalid.conf"; then
+        echo 'invalid HA update accepted'
+        exit 1
+    fi
+    cmp "$out/vrrp-1.conf" /etc/l4load/ha-1.conf
+    python3 - "$out" <<'PY'
+from pathlib import Path
+import sys
+out=Path(sys.argv[1])
+for n in (1, 2):
+    text=(out/f'vrrp-{n}.conf').read_text()
+    old='real_server 10.0.2.2 8080 {\n        weight 1'
+    assert text.count(old)==2
+    (out/f'ha-drain-{n}.conf').write_text(text.replace(old, old[:-1]+'0'))
+PY
+    cat > /run/systemd/system/l4load-ha@1.service.d/reject.conf <<'UNIT'
+[Service]
+ExecReload=
+ExecReload=/bin/false
+UNIT
+    systemctl daemon-reload
+    if ip netns exec l4-lb bash profiles/ipvs/update-ha.sh 1 "$out/ha-drain-1.conf"; then
+        echo 'failed HA reload reported success'
+        exit 1
+    fi
+    cmp "$out/vrrp-1.conf" /etc/l4load/ha-1.conf
+    rm /run/systemd/system/l4load-ha@1.service.d/reject.conf
+    systemctl daemon-reload
+    for n in 2 1; do
+        if [ "$n" = 1 ]; then director=l4-lb; else director=l4-alt; fi
+        ip netns exec "$director" bash profiles/ipvs/update-ha.sh "$n" "$out/ha-drain-$n.conf"
+        wait_real "$director" 0 ha-drain
+    done
+    ip netns exec l4-client python3 lab/katran/scenario.py check b2 14000 > "$out/ha-drained.json"
+    echo ha-drained > "$out/session-phase"
+    wait_session ha-drained
+    for n in 2 1; do
+        if [ "$n" = 1 ]; then director=l4-lb; else director=l4-alt; fi
+        ip netns exec "$director" bash profiles/ipvs/update-ha.sh "$n" "$out/vrrp-$n.conf"
+        wait_real "$director" 1 ha-rollback
+    done
+    ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 15000 > "$out/ha-rolled-back.json"
+    echo ha-rollback > "$out/session-phase"
+    wait_session ha-rollback
+fi
 if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
     echo done > "$out/session-phase"
     wait_session done
