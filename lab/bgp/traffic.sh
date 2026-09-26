@@ -43,6 +43,9 @@ for n in 1 2; do
     ip -n l4-r route add "10.2.$n.0/30" via "10.1.$n.2"
     ip netns exec "l4-d$n" ipvsadm -Sn > "$out/ipvs$n.txt"
 done
+for ns in l4-r l4-d1 l4-d2 l4-client l4-b1 l4-p1 l4-p2; do
+    ip netns exec "$ns" sh -c 'for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done'
+done
 for n in 1 2; do
     for attempt in $(seq 1 30); do
         if ip netns exec "l4-p$n" python3 lab/filter/probe.py "10.2.$n.2" pass > "$out/probe$n.jsonl" 2>&1; then break; fi
