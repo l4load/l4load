@@ -168,6 +168,12 @@ held about 100 actual fresh-flow starts/s per protocol through the failure.
 Each protocol had 244 consecutive errors and a 2.45-second gap between
 successful starts; 208/208 attempts passed after failover. This is one short
 software-network result, not a physical capacity or production SLO claim.</p>
+<p>In a separate <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-bfd.json">single-hop BFD trial</a>,
+the primary BFD session went Down when its control packets were dropped. The
+route moved to standby in 0.351 seconds and returned after recovery. At about
+100 fresh starts/s per protocol, all 716 TCP and 716 UDP exchanges passed;
+the forwarding path itself was healthy. Multihop BFD, physical links and
+production targets remain unqualified.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
