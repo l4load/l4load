@@ -49,14 +49,12 @@ protocol kernel k4 { ipv4 { import none; export all; }; }
 protocol bgp primary {
     local 10.1.1.1 as 65000;
     neighbor 10.1.1.2 as 65001;
-    preference 200;
-    ipv4 { import all; export none; };
+    ipv4 { preference 200; import all; export none; };
 }
 protocol bgp standby {
     local 10.1.2.1 as 65000;
     neighbor 10.1.2.2 as 65002;
-    preference 100;
-    ipv4 { import all; export none; };
+    ipv4 { preference 100; import all; export none; };
 }
 EOF
 for pair in 'l4-r router' 'l4-d1 d1' 'l4-d2 d2'; do
