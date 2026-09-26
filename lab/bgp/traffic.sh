@@ -113,7 +113,11 @@ if [ "${L4LOAD_BGP_LOAD:-0}" = 1 ]; then
     ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/allowed-probe.jsonl"
     lscpu > "$out/cpu.txt"
     duration=30
-    if [ "${L4LOAD_BGP_SOAK:-0}" = 1 ]; then duration=90; fi
+    if [ "${L4LOAD_BGP_SOAK:-0}" = 1 ]; then
+        soak_seconds=${L4LOAD_BGP_SOAK_SECONDS:-60}
+        test "$soak_seconds" -ge 60 && test "$soak_seconds" -le 600
+        duration=$((soak_seconds + 30))
+    fi
     ip netns exec l4-client sockperf throughput -i 198.18.0.1 -p 8080 --client_ip 10.0.0.3 -m 64 -t "$duration" --mps 100000 > "$out/denied-load.txt" 2>&1 &
     denied_pid=$!
     pids+=("$denied_pid")
@@ -228,7 +232,7 @@ if [ "${L4LOAD_BGP_SOAK:-0}" = 1 ]; then
     for protocol in tcp udp; do
         flags=()
         if [ "$protocol" = tcp ]; then flags+=(--tcp); fi
-        ip netns exec l4-client sockperf under-load -i 198.18.0.1 -p 8081 --client_ip 10.0.0.2 "${flags[@]}" -m 64 -t 60 --mps 1000 --reply-every 1 --full-rtt --full-log "$out/soak-$protocol.csv" > "$out/soak-$protocol.txt" 2>&1 &
+        ip netns exec l4-client sockperf under-load -i 198.18.0.1 -p 8081 --client_ip 10.0.0.2 "${flags[@]}" -m 64 -t "$soak_seconds" --mps 1000 --reply-every 1 --full-rtt --full-log "$out/soak-$protocol.csv" > "$out/soak-$protocol.txt" 2>&1 &
         pids+=("$!")
         if [ "$protocol" = tcp ]; then soak_tcp=$!; else soak_udp=$!; fi
     done

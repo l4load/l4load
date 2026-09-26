@@ -1,10 +1,12 @@
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
 out = Path(sys.argv[1])
+expected = int(os.environ.get('L4LOAD_BGP_SOAK_SECONDS', '60'))
 summary = {}
 for protocol in ('tcp', 'udp'):
     name = f'soak-{protocol}'
@@ -13,7 +15,7 @@ for protocol in ('tcp', 'udp'):
     dropped = int(re.search(r'# dropped messages = (\d+)', text)[1])
     p99 = float(re.search(r'percentile 99\.000 =\s*([\d.]+)', text)[1])
     samples = (out / f'{name}.csv').read_bytes()
-    assert float(duration) >= 59 and int(sent) > 0 and int(received) == int(sent) and dropped == 0 and samples
+    assert float(duration) >= expected - 1 and int(sent) > 0 and int(received) == int(sent) and dropped == 0 and samples
     summary[protocol] = {'requested_mps': 1000, 'actual_mps': int(sent) / float(duration), 'sent': int(sent), 'received': int(received), 'dropped': dropped, 'p99_rtt_us': p99, 'samples_sha256': hashlib.sha256(samples).hexdigest()}
 snapshots = [json.loads(line) for line in (out / 'phase-snapshots.jsonl').read_text().splitlines()]
 start = next(row['at'] for row in snapshots if row['phase'] == 'soak')
