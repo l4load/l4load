@@ -1,0 +1,26 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36248937982/job/108423219974",
+  "head": "264fc9d4abdefe70359cfe1357acef47c85b6045",
+  "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36248937982/artifacts/10907848584",
+  "artifact_sha256": "1e2333f2454a408d289f8f8e44d8c929d87114b3403240c6da3db0b8aad34a5c",
+  "environment": "Ubuntu 24.04 shared virtual runner; installed two-director IPVS/BIRD pair with nftables filters",
+  "fault": {
+    "withdraw_after_fault_applied_seconds": 1.199,
+    "route_observed_after_fault_applied_seconds": 1.293,
+    "tcp": {"errors": 121, "last_success_to_next_success_seconds": 1.220},
+    "udp": {"errors": 121, "last_success_to_next_success_seconds": 1.220},
+    "actual_useful_starts_per_second_per_protocol": 100
+  },
+  "steady_state_after_recovery": {
+    "denied_filter_pps": 99998.818,
+    "tcp": {"sent": 59548, "received": 59548, "dropped": 0, "p99_rtt_us": 567.295},
+    "udp": {"sent": 59549, "received": 59549, "dropped": 0, "p99_rtt_us": 744.84},
+    "requested_useful_mps_per_protocol": 1000
+  },
+  "earlier_separate_run": {
+    "result": "2026-09-26-soak.json",
+    "fault_tcp_errors": 250,
+    "fault_udp_errors": 249
+  },
+  "limit": "One later virtual result, not a randomized matched comparison. The 1000-mps steady-state trial begins after failover and recovery. Probe timeout is one second; route withdrawal remains about 1.2 seconds. Filter counter differences are not NIC ingress, and cgroup snapshots exclude kernel dataplane CPU. No physical capacity or production SLO."
+}

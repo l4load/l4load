@@ -65,3 +65,8 @@ it runs about one minute of TCP and UDP requests at 1000 messages/s each while
 the filter denies about 100,000 packets/s. The recorded virtual run lost no
 steady-state messages. It does not measure useful traffic at that rate during
 the failover, physical throughput, or total host CPU.
+
+[First-bad-check withdrawal](results/2026-09-26-fast-withdraw.json) reduced
+the observed request gap to about 1.2 s in a later virtual run under denied
+load. The earlier result came from a separate run, so this is a directional
+comparison, not a controlled production improvement or a guaranteed bound.
