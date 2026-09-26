@@ -166,6 +166,11 @@ if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
     wait_session baseline
     sync_minimum=2 stage=prepared
     sync_handoff
+    if [ "${L4LOAD_HA_SYNC_LOSS:-0}" = 1 ]; then
+        test "${L4LOAD_HA_PROFILE:-0}" = 1
+        source lab/cutover/sync-loss.sh
+        return
+    fi
 fi
 rm "$out/health1/health"
 wait_real l4-lb 0 backend-down
