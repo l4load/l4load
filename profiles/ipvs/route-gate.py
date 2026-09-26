@@ -62,6 +62,6 @@ try:
             streak = 0
             misses = 0
             print(json.dumps({'at': time.monotonic(), 'action': action, 'route': route}), flush=True)
-        time.sleep(0.2)
+        time.sleep(0 if healthy and misses else 0.2)
 finally:
     bird(['disable', route])

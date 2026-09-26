@@ -1,6 +1,6 @@
 check=/etc/l4load/check-d1
 cp "$check" "$out/check-original"
-chmod 700 "$out/check-original"
+chmod 755 "$out/check-original"
 cat > "$out/check-wrapper" <<EOF
 #!/bin/sh
 if [ -e "$out/probe-one" ]; then

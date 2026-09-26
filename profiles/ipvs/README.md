@@ -174,8 +174,9 @@ packaged BIRD and Keepalived services. The unit starts its matching
 BIRD, both native IPVS sync roles and the forwarding/BFD route gate. The gate
 advertises only after two healthy probes. Check route state, both sync daemons,
 backend health and real traffic on both directors before enabling startup.
-The gate withdraws after two consecutive failed checks. A single missed probe
-alone does not change the route; calibrate detection against the loss budget.
+The gate confirms a failed check immediately and withdraws after two
+consecutive failures. A single missed probe alone does not change the route;
+calibrate detection against the loss budget.
 Update or restore the IPVS config with
 `sudo bash profiles/ipvs/update.sh candidate-ipvs.conf director`, then check
 both routes, kernel weights and real traffic. A failed reload restores the
