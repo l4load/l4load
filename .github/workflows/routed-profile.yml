@@ -21,4 +21,4 @@ jobs:
           sudo bird -p -c /etc/l4load/bird-d1.conf
           sudo test "$(systemctl is-enabled bird.service)" = masked
           sudo test -x /etc/l4load/check-d1
-          grep -q 'disabled;' /etc/l4load/bird-d1.conf
+          sudo grep -q 'disabled;' /etc/l4load/bird-d1.conf

@@ -25,6 +25,7 @@ try:
         assert bird.poll() is None, 'BIRD exited during startup'
         time.sleep(0.1)
     assert control.exists(), 'BIRD control socket did not appear'
+    subprocess.run(['sysctl', '-qw', 'net.ipv4.vs.sync_threshold=0 1'], check=True)
     for role in ('backup', 'master'):
         subprocess.run(['/usr/sbin/ipvsadm', '--start-daemon', role, '--mcast-interface', config['sync_interface'], '--syncid', str(config['sync_id'])], check=True)
         started.append(role)
