@@ -61,6 +61,15 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
     source lab/bgp/sync.sh
     systemctl stop bird.service || true
     install -m 644 profiles/ipvs/l4load-ipvs.service /etc/systemd/system/l4load-ipvs.service
+    mkdir -p /run/systemd/system/l4load-ipvs.service.d
+    cat > /run/systemd/system/l4load-ipvs.service.d/lab.conf <<'UNIT'
+[Service]
+ExecStartPre=
+ExecStart=
+ExecStart=/usr/bin/sleep infinity
+ExecReload=
+Restart=no
+UNIT
     cat > "$out/routed-d1.json" <<'JSON'
 {"vip":"198.18.0.1","local_ip":"10.1.1.2","local_as":65001,"peer_ip":"10.1.1.1","peer_as":65000,"sync_interface":"sync0","sync_id":42}
 JSON
@@ -74,8 +83,6 @@ EOF
     chmod 644 "$out/installed-bird.conf" "$out/check-d1"
     mkdir -p /run/systemd/system/l4load-routed@d1.service.d
     cat > /run/systemd/system/l4load-routed@d1.service.d/lab.conf <<UNIT
-[Unit]
-BindsTo=
 [Service]
 NetworkNamespacePath=/run/netns/l4-d1
 StandardOutput=append:$out/health1.jsonl
