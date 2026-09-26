@@ -46,11 +46,16 @@ done
 for ns in l4-r l4-d1 l4-d2 l4-client l4-b1 l4-p1 l4-p2; do
     ip netns exec "$ns" sh -c 'for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done'
 done
+for ns in l4-r l4-d1 l4-b1 l4-p1; do
+    ip netns exec "$ns" tcpdump -i any -nn -l -U 'host 198.18.0.1 or host 10.2.1.2' > "$out/capture-$ns.log" 2>&1 &
+    pids+=("$!")
+done
 for n in 1 2; do
-    for attempt in $(seq 1 30); do
+    for attempt in $(seq 1 3); do
         if ip netns exec "l4-p$n" python3 lab/filter/probe.py "10.2.$n.2" pass > "$out/probe$n.jsonl" 2>&1; then break; fi
         sleep 0.1
     done
+    ip netns exec "l4-d$n" ipvsadm -Ln --stats > "$out/stats$n.txt"
     grep -q '"status": "pass"' "$out/probe$n.jsonl"
 done
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-baseline.json"
