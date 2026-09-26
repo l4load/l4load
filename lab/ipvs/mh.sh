@@ -27,6 +27,18 @@ for attempt in $(seq 1 15); do
 done
 test "$(grep -c '^-[A] .* -p 300' "$out/persistent-state.txt")" = 2
 ip netns exec l4-client python3 lab/katran/scenario.py check one 23000 | tee "$out/persistent-healthy.json"
-rm "$out/health1/health"
-wait_weight 0
-ip netns exec l4-client python3 lab/katran/scenario.py check b2 24000 | tee "$out/persistent-fallback.json"
+victim=$(python3 -c 'import json,sys; print(next(iter(json.load(open(sys.argv[1]))["flows"]["tcp"])))' "$out/persistent-healthy.json")
+survivor=b$((3-${victim#b}))
+rm "$out/health${victim#b}/health"
+wait_weight 0 "10.0.$((${victim#b}+1)).2:8080"
+ip netns exec l4-lb sysctl net.ipv4.vs.expire_quiescent_template > "$out/quiescent-before.txt"
+test "$(cat "$out/quiescent-before.txt")" = 'net.ipv4.vs.expire_quiescent_template = 0'
+ip netns exec l4-client python3 lab/katran/scenario.py check one 24000 | tee "$out/persistent-stale.json"
+python3 - "$out/persistent-stale.json" "$victim" <<'PY'
+import json, sys
+flows = json.load(open(sys.argv[1]))['flows']
+assert set(flows['tcp']) == {sys.argv[2]}, flows
+PY
+ip netns exec l4-lb sysctl -qw net.ipv4.vs.expire_quiescent_template=1
+ip netns exec l4-lb sysctl net.ipv4.vs.expire_quiescent_template > "$out/quiescent-after.txt"
+ip netns exec l4-client python3 lab/katran/scenario.py check "$survivor" 25000 | tee "$out/persistent-fallback.json"
