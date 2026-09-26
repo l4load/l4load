@@ -15,6 +15,12 @@ done
 pids=()
 backend_pids=()
 cleanup() {
+    if [ "${ha_ns:-0}" = 1 ]; then
+        for ns in l4-probe1 l4-probe2; do
+            ip netns pids "$ns" 2>/dev/null | xargs -r kill 2>/dev/null || true
+            ip netns del "$ns" 2>/dev/null || true
+        done
+    fi
     if [ "${cutover_ns:-0}" = 1 ]; then ip netns del l4-alt || true; fi
     if [ -n "${unitfile:-}" ]; then
         journalctl -u "$unit" --no-pager > "$out/service-journal.txt" || true
