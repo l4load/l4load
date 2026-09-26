@@ -61,7 +61,11 @@ for n in 1 2; do
     python3 -u lab/bgp/health.py "l4-p$n" "10.2.$n.2" "$out/d$n.ctl" "vip$n" > "$out/health$n.jsonl" 2>&1 &
     pids+=("$!")
 done
-echo baseline > "$out/useful-phase"
+phase() {
+    printf '%s\n' "$1" > "$out/useful-phase.next"
+    mv "$out/useful-phase.next" "$out/useful-phase"
+}
+phase baseline
 traffic_script=lab/cutover/useful.py
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 2 ]; then traffic_script=lab/bgp/offered.py; fi
 for protocol in tcp udp; do
@@ -74,21 +78,21 @@ ps -C bird -o pid,rss,vsz,time > "$out/bird-baseline.txt"
 ip netns exec l4-d1 nft add table inet fault
 ip netns exec l4-d1 nft add chain inet fault ingress '{ type filter hook prerouting priority -300; policy accept; }'
 python3 -c 'import time; print(time.monotonic())' > "$out/traffic-fault-start.txt"
-echo fault > "$out/useful-phase"
+phase fault
 ip netns exec l4-d1 nft add rule inet fault ingress ip daddr 198.18.0.1 counter drop
 wait_route 10.1.2.2 health-withdrawn
-echo failover > "$out/useful-phase"
+phase failover
 python3 -c 'import time; print(time.monotonic())' > "$out/traffic-route-standby.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-failover.json"
 sleep 2
 ip netns exec l4-d1 nft -a list table inet fault > "$out/fault-counters.txt"
-echo return > "$out/useful-phase"
+phase return
 ip netns exec l4-d1 nft delete table inet fault
 wait_route 10.1.1.2 health-restored
-echo restored > "$out/useful-phase"
+phase restored
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-restored.json"
 sleep 2
-echo done > "$out/useful-phase"
+phase done
 wait "$useful_tcp"
 wait "$useful_udp"
 ps -C bird -o pid,rss,vsz,time > "$out/bird-restored.txt"

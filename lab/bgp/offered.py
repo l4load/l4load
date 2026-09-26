@@ -38,6 +38,8 @@ with ThreadPoolExecutor(max_workers=64) as pool:
         phase = (out / 'useful-phase').read_text().strip()
         if phase == 'done':
             break
+        if phase not in ('baseline', 'fault', 'failover', 'return', 'restored'):
+            raise ValueError(phase)
         now = time.monotonic()
         if now < next_at:
             time.sleep(min(next_at - now, 0.002))
