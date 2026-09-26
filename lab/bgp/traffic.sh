@@ -10,11 +10,11 @@ done
 ip netns exec l4-r sysctl -qw net.ipv4.ip_forward=1
 connect_router() {
     local ns=$1 subnet=$2
-    ip link add "r$subnet" type veth peer name eth0 netns "$ns"
-    ip link set "r$subnet" netns l4-r
-    ip -n l4-r addr add "10.0.$subnet.1/24" dev "r$subnet"
+    ip link add "c$subnet" type veth peer name eth0 netns "$ns"
+    ip link set "c$subnet" netns l4-r
+    ip -n l4-r addr add "10.0.$subnet.1/24" dev "c$subnet"
     ip -n "$ns" addr add "10.0.$subnet.2/24" dev eth0
-    ip -n l4-r link set "r$subnet" up
+    ip -n l4-r link set "c$subnet" up
     ip -n "$ns" link set eth0 up
     ip -n "$ns" route add default via "10.0.$subnet.1"
 }
