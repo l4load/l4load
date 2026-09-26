@@ -42,3 +42,28 @@ PY
 ip netns exec l4-lb sysctl -qw net.ipv4.vs.expire_quiescent_template=1
 ip netns exec l4-lb sysctl net.ipv4.vs.expire_quiescent_template > "$out/quiescent-after.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check "$survivor" 25000 | tee "$out/persistent-fallback.json"
+echo healthy > "$out/health${victim#b}/health"
+wait_weight 1 "10.0.$((${victim#b}+1)).2:8080"
+kill -TERM "$controller"
+wait "$controller"
+unit=l4load-ipvs.service
+unitfile=/etc/systemd/system/$unit
+bash profiles/ipvs/install.sh "$out/keepalived.conf"
+mkdir -p /run/systemd/system/$unit.d
+cat > /run/systemd/system/$unit.d/lab.conf <<UNIT
+[Service]
+NetworkNamespacePath=/run/netns/l4-lb
+UNIT
+systemctl daemon-reload
+ip netns exec l4-lb sysctl -qw net.ipv4.vs.expire_quiescent_template=0
+systemctl start "$unit"
+test "$(ip netns exec l4-lb sysctl -n net.ipv4.vs.expire_quiescent_template)" = 1
+wait_weight 1
+wait_weight 1 10.0.3.2:8080
+ip -n l4-client addr add 10.0.0.3/24 dev eth0
+ip netns exec l4-client env L4LOAD_CLIENT=10.0.0.3 python3 lab/katran/scenario.py check one 26000 | tee "$out/installed-healthy.json"
+victim=$(python3 -c 'import json,sys; print(next(iter(json.load(open(sys.argv[1]))["flows"]["tcp"])))' "$out/installed-healthy.json")
+survivor=b$((3-${victim#b}))
+rm "$out/health${victim#b}/health"
+wait_weight 0 "10.0.$((${victim#b}+1)).2:8080"
+ip netns exec l4-client env L4LOAD_CLIENT=10.0.0.3 python3 lab/katran/scenario.py check "$survivor" 27000 | tee "$out/installed-fallback.json"
