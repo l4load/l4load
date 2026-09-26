@@ -40,6 +40,9 @@ if printf '%s\n' '[["10.0.0.2", "198.18.0.1"], ["bad", "198.18.0.1"]]' | snapsho
 fi
 probe 10.0.0.3 drop
 probe 10.0.0.2 pass
+printf '%s\n' '[["10.0.0.2", "198.18.0.1"], ["10.0.0.2", "198.18.0.1"]]' | snapshot
+probe 10.0.0.3 pass
+probe 10.0.0.2 drop
 printf '%s\n' '[]' | snapshot
 probe 10.0.0.3 pass
 probe 10.0.0.2 pass
