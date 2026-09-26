@@ -10,7 +10,7 @@ vip = os.environ.get('L4LOAD_VIP', '198.18.0.1')
 client = os.environ.get('L4LOAD_CLIENT', '10.0.0.2')
 sessions = {}
 for _ in range(8):
-    sock = socket.create_connection((vip, 8080), timeout=3)
+    sock = socket.create_connection((vip, 8080), timeout=float(os.environ.get('L4LOAD_SESSION_TIMEOUT', '3')))
     stream = sock.makefile('rb')
     sock.sendall(b'initial\n')
     backend, source, payload = stream.readline().decode().split(' ', 2)

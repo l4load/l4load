@@ -15,13 +15,13 @@ sync_handoff() {
     for attempt in $(seq 1 100); do
         ip netns exec "$sender" ipvsadm -Lnc > "$out/sync-source-$stage.txt"
         ip netns exec "$receiver" ipvsadm -Lnc > "$out/sync-target-$stage.txt"
-        if python3 - "$out/sync-source-$stage.txt" "$out/sync-target-$stage.txt" <<'PY'
+        if python3 - "$out/sync-source-$stage.txt" "$out/sync-target-$stage.txt" "${sync_minimum:-4}" <<'PY'
 import sys
 def connections(path):
     return {tuple(r[3:6]) for line in open(path) if len(r := line.split()) >= 6
             and r[0] == 'TCP' and r[2] == 'ESTABLISHED'}
-source, target = map(connections, sys.argv[1:])
-sys.exit(not (len(source) >= 4 and source <= target))
+source, target = map(connections, sys.argv[1:3])
+sys.exit(not (len(source) >= int(sys.argv[3]) and source <= target))
 PY
         then ready=true; break; fi
         sleep 0.1

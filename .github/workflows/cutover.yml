@@ -19,6 +19,9 @@ jobs:
           - sync: 0
             loss: 0
             fault: 1
+          - sync: 1
+            loss: 0
+            fault: 1
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

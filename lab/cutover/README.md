@@ -38,3 +38,9 @@ director, checks new flows, removes the fault and verifies return to the first.
 `failure-timing.json` includes probe timeouts and verification overhead. This
 qualifies an orchestrated recovery experiment, not an autonomous failure detector,
 retained-session recovery or a production failover-time guarantee.
+
+Combine the fault flag with `L4LOAD_SYNC=1` to keep one TCP connection per backend
+exchanging throughout the fault and recovery, with a 10-second socket timeout.
+The experiment verifies replication before injection and prepares sync roles;
+it does not model a stale replica or autonomous failover. No reconnect is allowed.
+`failure-sessions.jsonl` records exchanges and maximum RTT per connection.
