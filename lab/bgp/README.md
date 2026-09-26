@@ -49,3 +49,9 @@ Set `L4LOAD_BGP_TRAFFIC=8` for the [installed pair trial](results/2026-09-26-ins
 Both directors use installed Keepalived/IPVS and BIRD units. The trial covers
 failover, retained TCP state, unit restarts, a backend drain and configuration
 rollback. It remains a short virtual-network result.
+
+Set `L4LOAD_BGP_LOAD=1` alongside mode 8 for the
+[denied-load trial](results/2026-09-26-attack-pair.json). Both directors run the
+installed nftables filter while fresh TCP/UDP traffic crosses a routed failure.
+The recorded 30-second run is a functional stress observation, not a capacity
+or comparative ranking.

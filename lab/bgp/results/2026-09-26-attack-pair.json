@@ -1,0 +1,11 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36247135133/job/108418300985",
+  "head": "078c61d29e7a0b77ceeac711e1bc53ef8339f68e",
+  "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36247135133/artifacts/10907414116",
+  "artifact_sha256": "ab0cc1690ad04a5fe4c62c76842500685361e4f82d34c34ae95c20ba320284d0",
+  "environment": "Ubuntu 24.04 virtual runner; two installed IPVS/BIRD directors and nftables ingress filters in network namespaces",
+  "denied_udp": {"requested_mps": 100000, "actual_mps": 100002.533, "duration_seconds": 30, "sent": 3000076, "director_counters": [2555904, 444174]},
+  "useful_tcp": {"actual_starts_per_second": "approximately 100", "baseline": "201/201", "forwarding_fault": "10/265", "standby": "292/292", "return": "149/149", "restored": "206/206", "standby_p99_success_rtt_ms": 0.722},
+  "useful_udp": {"actual_starts_per_second": "approximately 100", "baseline": "201/201", "forwarding_fault": "10/265", "standby": "292/292", "return": "149/149", "restored": "206/206", "standby_p99_success_rtt_ms": 0.636},
+  "limit": "One short shared virtual-host run. The denied rate is the generator's whole-run average, not an exact ingress rate in each useful phase. Process snapshots include an unrelated host BIRD service and omit kernel dataplane cost; they are not engine resource totals. No paired YANET ranking, physical capacity or production SLO claim."
+}
