@@ -71,6 +71,12 @@ for that interval. Results include achieved rates, drops, p99 and raw CSVs.
 pass. Shared CPU/generator contention, fixed engine order and short duration
 limit interpretation.
 
+The manual `steady_comparison` workflow runs 300 seconds of the same permitted
+and denied UDP workload for IPVS and YANET in both engine orders on one CI host.
+It records actual rates, losses, p99, raw samples and aggregate host CPU.
+The host CPU includes generators and backends; virtual AF_PACKET/veth traffic
+cannot establish physical-NIC capacity or a production SLO.
+
 [The corrected run completed](https://github.com/l4load/l4load/actions/runs/36177713642).
 All twelve trials reported zero allowed-message loss; denied generators averaged
 100,003–100,007 messages/s. Ranges below are the three per-run p99 RTT values,

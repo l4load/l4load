@@ -8,6 +8,10 @@ on:
         description: Repeat the three-engine CPU-placement experiment
         type: boolean
         default: false
+      steady_comparison:
+        description: Repeat paired five-minute IPVS/YANET denied-load trial
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -108,6 +112,22 @@ jobs:
               esac
             done
           done
+      - name: Compare steady denied load
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.steady_comparison }}
+        timeout-minutes: 28
+        run: |
+          export L4LOAD_FILTER=1 L4LOAD_FILTER_LOAD=1 L4LOAD_FILTER_LOAD_SECONDS=300
+          export L4LOAD_FILTER_LOAD_REPEATS=1 L4LOAD_FILTER_LOAD_RATES=100000
+          index=0
+          for engine in ipvs yanet yanet ipvs; do
+            index=$((index + 1))
+            export L4LOAD_TRIAL="paired-$index"
+            printf '%s %s %s\n' "$(date -u +%FT%TZ)" "$L4LOAD_TRIAL" "$engine" >> lab/results/steady-order.txt
+            case "$engine" in
+              ipvs) bash lab/ipvs/run.sh ;;
+              yanet) unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet ;;
+            esac
+          done
       - name: Exercise public balancer cases
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         timeout-minutes: 5
@@ -163,6 +183,11 @@ jobs:
                   print('EVIDENCE ' + json.dumps({'file': str(path.relative_to('lab/results')), 'content': path.read_text()}))
               elif path.suffix == '.csv' and (path.parent.name == 'filter-load' or path.name == 'snapshot-traffic.csv'):
                   raw = path.read_bytes()
+                  if len(raw) > 2000000:
+                      print('SAMPLES_META ' + json.dumps({'file': str(path.relative_to('lab/results')),
+                            'sha256': hashlib.sha256(raw).hexdigest(), 'bytes': len(raw),
+                            'artifact_only': True}))
+                      continue
                   data = base64.b64encode(gzip.compress(raw, mtime=0)).decode()
                   chunks = [data[i:i+32000] for i in range(0, len(data), 32000)]
                   for part, content in enumerate(chunks):
