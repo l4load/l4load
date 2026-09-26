@@ -187,6 +187,13 @@ Loss after state has already replicated remains untested.</p>
 kept both native IPVS sync roles active on each director. One TCP socket survived
 routed failover and failback without changing sync roles; its slowest reply took
 3.32 seconds. State-table scale and sync traffic remain unqualified.</p>
+<p>An <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-routed-unit.json">installed routed-unit trial</a>
+started with the VIP withdrawn, then advertised it after forwarding and BFD
+checks. It withdrew the route on a forwarding fault and on service stop; service
+restart restored the route and fresh TCP/UDP traffic. One TCP socket survived
+failover and failback, with a 3.32-second maximum reply. This one-node systemd
+trial used a lab-prepared IPVS base; two-node installation, rollback, sustained
+load and physical-network behavior remain unqualified.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
