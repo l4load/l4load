@@ -1,7 +1,7 @@
 [Unit]
 Description=L4Load routed director %i
-BindsTo=l4load-ipvs.service
-After=l4load-ipvs.service network-online.target
+BindsTo=l4load-ipvs@%i.service
+After=l4load-ipvs@%i.service network-online.target
 
 [Service]
 Type=simple

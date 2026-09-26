@@ -8,7 +8,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-instance, candidate, check = sys.argv[1:]
+instance, candidate, check, ipvs_candidate = sys.argv[1:]
 assert os.geteuid() == 0 and re.fullmatch(r'[a-z0-9-]+', instance)
 config = json.loads(Path(candidate).read_text())
 assert set(config) == {'vip', 'local_ip', 'local_as', 'peer_ip', 'peer_as', 'sync_interface', 'sync_id'}
@@ -19,9 +19,11 @@ for key, limit in (('local_as', 4294967295), ('peer_as', 4294967295), ('sync_id'
 assert re.fullmatch(r'[a-zA-Z0-9_.-]{1,15}', config['sync_interface'])
 assert Path(check).is_file() and os.access(check, os.X_OK)
 base = Path('/etc/l4load')
-assert (Path('/etc/systemd/system') / 'l4load-ipvs.service').exists()
-assert not list(base.glob('routed-*.json'))
+assert not any((base / f'{prefix}-{instance}.{suffix}').exists() for prefix, suffix in (('routed', 'json'), ('bird', 'conf'), ('ipvs', 'conf')))
+assert not (base / 'ipvs.conf').exists() and not list(base.glob('ha-*.conf'))
 assert subprocess.run(['systemctl', 'is-active', '--quiet', 'bird.service']).returncode != 0
+assert subprocess.run(['systemctl', 'is-active', '--quiet', 'keepalived.service']).returncode != 0
+subprocess.run(['/usr/sbin/keepalived', '-t', '-f', ipvs_candidate], check=True)
 bird = f'''log stderr all;
 router id {config['local_ip']};
 protocol device {{}}
@@ -47,7 +49,10 @@ with tempfile.NamedTemporaryFile(mode='w', suffix='.conf') as stage:
     stage.flush()
     subprocess.run(['/usr/sbin/bird', '-p', '-c', stage.name], check=True)
 subprocess.run(['systemctl', 'mask', 'bird.service'], check=True)
+subprocess.run(['systemctl', 'mask', 'keepalived.service'], check=True)
 base.mkdir(exist_ok=True)
+(base / f'ipvs-{instance}.conf').write_bytes(Path(ipvs_candidate).read_bytes())
+os.chmod(base / f'ipvs-{instance}.conf', 0o600)
 (base / f'bird-{instance}.conf').write_text(bird)
 os.chmod(base / f'bird-{instance}.conf', 0o600)
 (base / f'routed-{instance}.json').write_text(json.dumps(config) + '\n')
@@ -58,5 +63,7 @@ profile = Path(__file__).resolve().parent
 Path('/usr/local/libexec').mkdir(parents=True, exist_ok=True)
 for name in ('route-gate.py', 'routed-run.py'):
     shutil.copy2(profile / name, Path('/usr/local/libexec') / f'l4load-{name}')
+shutil.copy2(profile / 'gate.py', '/usr/local/libexec/l4load-ipvs-gate.py')
+shutil.copy2(profile / 'l4load-ipvs@.service', '/etc/systemd/system/l4load-ipvs@.service')
 shutil.copy2(profile / 'l4load-routed@.service', '/etc/systemd/system/l4load-routed@.service')
 subprocess.run(['systemctl', 'daemon-reload'], check=True)

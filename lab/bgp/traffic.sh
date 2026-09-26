@@ -60,9 +60,8 @@ ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
     source lab/bgp/sync.sh
     systemctl stop bird.service || true
-    install -m 644 profiles/ipvs/l4load-ipvs.service /etc/systemd/system/l4load-ipvs.service
-    mkdir -p /run/systemd/system/l4load-ipvs.service.d
-    cat > /run/systemd/system/l4load-ipvs.service.d/lab.conf <<'UNIT'
+    mkdir -p /run/systemd/system/l4load-ipvs@d1.service.d
+    cat > /run/systemd/system/l4load-ipvs@d1.service.d/lab.conf <<'UNIT'
 [Service]
 ExecStartPre=
 ExecStart=
@@ -78,7 +77,7 @@ JSON
 exec ip netns exec l4-p1 python3 "$PWD/lab/filter/probe.py" 10.2.1.2 pass >/dev/null
 EOF
     chmod 700 "$out/check-d1"
-    python3 profiles/ipvs/install-routed.py d1 "$out/routed-d1.json" "$out/check-d1"
+    python3 profiles/ipvs/install-routed.py d1 "$out/routed-d1.json" "$out/check-d1" profiles/ipvs/keepalived.conf
     cp /etc/l4load/bird-d1.conf "$out/installed-bird.conf"
     chmod 644 "$out/installed-bird.conf" "$out/check-d1"
     mkdir -p /run/systemd/system/l4load-routed@d1.service.d
@@ -91,7 +90,7 @@ UNIT
     systemctl show l4load-routed@d1.service -p BindsTo -p Requires -p After -p FragmentPath -p DropInPaths > "$out/installed-dependencies.txt"
     if ! systemctl start l4load-routed@d1.service; then
         systemctl status -l --no-pager l4load-routed@d1.service > "$out/installed-status.txt" 2>&1 || true
-        journalctl -b --no-pager -u l4load-routed@d1.service -u l4load-ipvs.service -n 100 > "$out/installed-journal.txt" 2>&1 || true
+        journalctl -b --no-pager -u l4load-routed@d1.service -u l4load-ipvs@d1.service -n 100 > "$out/installed-journal.txt" 2>&1 || true
         exit 1
     fi
     systemctl show l4load-routed@d1.service -p ActiveState -p MainPID -p NRestarts -p BindsTo > "$out/installed-service.txt"

@@ -153,8 +153,8 @@ the fault; this short virtual run is not a capacity or loss-rate qualification.
 ## Routed pair trial
 
 The separate [BGP lab](../../lab/bgp/README.md) tests two BIRD/IPVS directors.
-For a dedicated IPv4 director with one VIP, first install the non-VRRP
-`l4load-ipvs` service above. Prepare a link to the other director for IPVS
+For a dedicated IPv4 director with one VIP, prepare a reviewed non-VRRP
+Keepalived config with TCP/UDP services. Prepare a link to the other director for IPVS
 state sync and an executable probe that sends real TCP/UDP traffic through
 this director's forwarding path. A loopback-only check is insufficient.
 
@@ -163,13 +163,14 @@ Create a JSON file with `vip`, `local_ip`, `local_as`, `peer_ip`, `peer_as`,
 neighbor. Install without starting or enabling the unit:
 
 ```sh
-sudo python3 profiles/ipvs/install-routed.py director candidate.json check-forwarding
+sudo python3 profiles/ipvs/install-routed.py director candidate.json check-forwarding candidate-ipvs.conf
 sudo systemctl start l4load-routed@director
 ```
 
-The installer rejects another routed profile on the host, validates addresses
-and BIRD syntax, generates a disabled VIP static route and masks the packaged
-BIRD service. The unit depends on `l4load-ipvs.service`; its supervisor runs
+The installer rejects an existing profile for this instance, validates addresses,
+Keepalived and BIRD syntax, generates a disabled VIP static route and masks the
+packaged BIRD and Keepalived services. The unit starts its matching
+`l4load-ipvs@director.service`; its supervisor runs
 BIRD, both native IPVS sync roles and the forwarding/BFD route gate. The gate
 advertises only after two healthy probes. Check route state, both sync daemons,
 backend health and real traffic on both directors before enabling startup.

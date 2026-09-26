@@ -1,7 +1,7 @@
 name: Routed profile install
 on:
   pull_request:
-    paths: ['profiles/ipvs/install-routed.py', 'profiles/ipvs/routed-run.py', 'profiles/ipvs/route-gate.py', 'profiles/ipvs/l4load-routed@.service', '.github/workflows/routed-profile.yml']
+    paths: ['profiles/ipvs/install-routed.py', 'profiles/ipvs/routed-run.py', 'profiles/ipvs/route-gate.py', 'profiles/ipvs/l4load-routed@.service', 'profiles/ipvs/l4load-ipvs@.service', '.github/workflows/routed-profile.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -13,13 +13,14 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bird2 ipvsadm keepalived
       - run: |
           sudo systemctl stop bird.service || true
-          sudo install -m 644 profiles/ipvs/l4load-ipvs.service /etc/systemd/system/l4load-ipvs.service
-          sudo install -D -m 644 profiles/ipvs/gate.py /usr/local/libexec/l4load-ipvs-gate.py
           printf '%s\n' '{"vip":"198.18.0.1","local_ip":"10.1.1.2","local_as":65001,"peer_ip":"10.1.1.1","peer_as":65000,"sync_interface":"sync0","sync_id":42}' > /tmp/routed.json
-          sudo python3 profiles/ipvs/install-routed.py d1 /tmp/routed.json /bin/true
+          sudo python3 profiles/ipvs/install-routed.py d1 /tmp/routed.json /bin/true profiles/ipvs/keepalived.conf
           sudo systemd-analyze verify /etc/systemd/system/l4load-routed@.service
+          sudo systemd-analyze verify /etc/systemd/system/l4load-ipvs@.service
           sudo bird -p -c /etc/l4load/bird-d1.conf
           sudo test "$(systemctl is-enabled bird.service)" = masked
+          sudo test "$(systemctl is-enabled keepalived.service)" = masked
+          sudo test -f /etc/l4load/ipvs-d1.conf
           sudo test -x /etc/l4load/check-d1
           sudo grep -q 'disabled;' /etc/l4load/bird-d1.conf
       - run: |
