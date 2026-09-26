@@ -80,7 +80,7 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 4 ]; then
     pids+=("$session_pid")
     for attempt in $(seq 1 100); do test -e "$out/session-baseline" && break; sleep 0.1; done
     test -e "$out/session-baseline"
-    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then sync_ready l4-d1 l4-d2 failover; fi
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 5 ]; then sync_ready l4-d1 l4-d2 failover; fi
 fi
 traffic_script=lab/cutover/useful.py
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 2 ]; then traffic_script=lab/bgp/offered.py; fi
@@ -110,8 +110,8 @@ fi
 wait_route 10.1.2.2 health-withdrawn
 if [ "$fault_ns" = l4-r ]; then birdc -s "$out/router.ctl" 'show bfd sessions' > "$out/bfd-withdrawn.txt"; fi
 phase failover
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then
-    sync_swap l4-d1 l4-d2
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 6 ]; then
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then sync_swap l4-d1 l4-d2; fi
     for attempt in $(seq 1 100); do test -e "$out/session-failover" && break; sleep 0.1; done
     test -e "$out/session-failover"
     sync_ready l4-d2 l4-d1 return
@@ -142,7 +142,7 @@ wait "$useful_tcp"
 wait "$useful_udp"
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 4 ]; then
     wait "$session_pid"
-    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then test -s "$out/session.json"; fi
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 5 ]; then test -s "$out/session.json"; fi
 fi
 ps -C bird -o pid,rss,vsz,time > "$out/bird-restored.txt"
 for protocol in tcp udp; do
