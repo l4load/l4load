@@ -1,7 +1,7 @@
 name: BGP route trial
 on:
   pull_request:
-    paths: ['lab/bgp/**', 'profiles/ipvs/install-routed.py', 'profiles/ipvs/routed-run.py', 'profiles/ipvs/l4load-routed@.service', 'profiles/ipvs/l4load-ipvs@.service', 'profiles/ipvs/route-gate.py', '.github/workflows/bgp.yml']
+    paths: ['lab/bgp/**', 'profiles/ipvs/install-routed.py', 'profiles/ipvs/routed-run.py', 'profiles/ipvs/l4load-routed@.service', 'profiles/ipvs/l4load-ipvs@.service', 'profiles/ipvs/route-gate.py', 'profiles/ipvs/update.sh', '.github/workflows/bgp.yml']
   workflow_dispatch:
 permissions:
   contents: read

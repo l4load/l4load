@@ -243,6 +243,31 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; the
         ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-base-restarted.json"
         systemctl show l4load-routed@d2.service l4load-ipvs@d2.service -p ActiveState -p MainPID -p NRestarts > "$out/installed-final-d2.txt"
         ! grep -q Traceback "$out/health2.jsonl"
+        echo invalid-keepalived-config > "$out/ipvs-invalid.conf"
+        if bash profiles/ipvs/update.sh "$out/ipvs-invalid.conf" d2; then exit 1; fi
+        cmp "$out/ipvs.conf" /etc/l4load/ipvs-d2.conf
+        sed 's/weight 1/weight 0/g' "$out/ipvs.conf" > "$out/ipvs-drain.conf"
+        before=$(grep -c '"action": "disable"' "$out/health2.jsonl" || true)
+        bash profiles/ipvs/update.sh "$out/ipvs-drain.conf" d2
+        for attempt in $(seq 1 100); do
+            ip netns exec l4-d2 ipvsadm -Sn > "$out/ipvs-drained.txt"
+            after=$(grep -c '"action": "disable"' "$out/health2.jsonl" || true)
+            if [ "$(grep -c -- '-w 0' "$out/ipvs-drained.txt")" -ge 2 ] && [ "$after" -gt "$before" ]; then break; fi
+            sleep 0.1
+        done
+        test "$(grep -c -- '-w 0' "$out/ipvs-drained.txt")" -ge 2 && test "$after" -gt "$before"
+        before=$(grep -c '"action": "enable"' "$out/health2.jsonl" || true)
+        bash profiles/ipvs/update.sh "$out/ipvs.conf" d2
+        for attempt in $(seq 1 100); do
+            ip netns exec l4-d2 ipvsadm -Sn > "$out/ipvs-rollback.txt"
+            after=$(grep -c '"action": "enable"' "$out/health2.jsonl" || true)
+            if [ "$(grep -c -- '-w 1' "$out/ipvs-rollback.txt")" -ge 2 ] && [ "$after" -gt "$before" ]; then break; fi
+            sleep 0.1
+        done
+        test "$(grep -c -- '-w 1' "$out/ipvs-rollback.txt")" -ge 2 && test "$after" -gt "$before"
+        cmp "$out/ipvs.conf" /etc/l4load/ipvs-d2.conf
+        ip netns exec l4-p2 python3 lab/filter/probe.py 10.2.2.2 pass > "$out/probe-rollback.jsonl"
+        ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-rollback.json"
     fi
 fi
 echo BGP_HEALTH_TRAFFIC_PASS

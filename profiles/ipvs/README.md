@@ -174,5 +174,8 @@ packaged BIRD and Keepalived services. The unit starts its matching
 BIRD, both native IPVS sync roles and the forwarding/BFD route gate. The gate
 advertises only after two healthy probes. Check route state, both sync daemons,
 backend health and real traffic on both directors before enabling startup.
-This installation path still needs a full two-node service/restart and rollback
-trial; the lab results alone do not qualify it for production.
+Update or restore the IPVS config with
+`sudo bash profiles/ipvs/update.sh candidate-ipvs.conf director`, then check
+both routes, kernel weights and real traffic. A failed reload restores the
+previous file; operator validation of runtime state is still required.
+The virtual pair trial does not qualify physical links, capacity or a production SLO.
