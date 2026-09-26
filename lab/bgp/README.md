@@ -28,3 +28,7 @@ Set `L4LOAD_BGP_TRAFFIC=4` for [established-session handoff](results/2026-09-26-
 IPVS replicates connection state over a dedicated link. One TCP socket survived
 route failover and failback, but an exchange paused for up to 3.35 s in this
 virtual run. This does not qualify sync-link failure or session retention at scale.
+
+Set `L4LOAD_BGP_TRAFFIC=5` for [sync-link loss before session setup](results/2026-09-26-sync-loss.json).
+The older TCP socket reset after routed failover; new TCP/UDP flows passed on
+standby. Loss after a session has already replicated remains untested.

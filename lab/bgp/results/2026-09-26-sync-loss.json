@@ -1,0 +1,12 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36241555501/job/108402919003",
+  "head": "8f4c73725fd8b8c3acc24c2f565fdda2eeeae14a",
+  "environment": "Ubuntu 24.04 virtual runner, Linux 6.17.0-1022-azure, BIRD 2.14, IPVS 1.31",
+  "faults": ["disable both IPVS sync links before opening the TCP socket", "drop primary VIP ingress while BGP remains up"],
+  "route": ["primary", "standby", "primary"],
+  "old_tcp_socket": "43 baseline exchanges, then ConnectionResetError after route moved to standby",
+  "fresh_tcp_on_standby": "279/279",
+  "fresh_udp_on_standby": "279/279",
+  "actual_fresh_starts_per_second_per_protocol": "approximately 100",
+  "limit": "One virtual negative control. The sync link failed before the TCP session opened. This does not characterize failure after a session was already replicated, physical link faults, or capacity."
+}
