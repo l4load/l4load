@@ -35,6 +35,16 @@ Duplicates collapse; `[]` removes all bans. These entries do not expire.
 Use one writer: concurrent snapshots have last-applied-wins semantics, with no
 version ordering or reconnect transport supplied by this helper.
 
+`sudo bash pull.sh https://policy.example/pairs.json` fetches one authoritative
+snapshot and applies it only after a successful complete download and validation.
+It requires curl, Python and nft, an installed table, and a trusted HTTPS source.
+Certificate verification stays enabled; redirects are not followed. Fetches are
+bounded to 10 seconds and 16 MiB. A transport or validation failure keeps the
+last applied set; a valid empty list removes all bans. Retry explicitly after
+recovery. This is a one-shot pull, not a daemon: use one writer and supply source
+freshness, authorization and scheduling externally. Old rules can persist during
+an outage; choose this behaviour deliberately. Reboot persistence is unchanged.
+
 This adds no IPv6 policy or automatic persistence. Reboot, prefixes, tenant
 isolation, fragments and overload capacity remain unqualified. Other firewall
 chains can still drop traffic allowed here. This is not a complete DDoS product.
