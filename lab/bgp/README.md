@@ -50,6 +50,13 @@ Both directors use installed Keepalived/IPVS and BIRD units. The trial covers
 failover, retained TCP state, unit restarts, a backend drain and configuration
 rollback. It remains a short virtual-network result.
 
+`L4LOAD_BGP_SYNC_LOSS=1` with mode 8 tests the installed pair after the primary
+sync link fails. [The virtual result](results/2026-09-26-installed-sync-loss.json)
+shows that the standby still advertised without the new TCP connection state.
+After primary loss, that connection reset; 32 fresh TCP and 32 UDP flows passed.
+Monitor sync health and agree on session-loss versus fresh-availability behavior
+before deployment. The current profile does not enforce a sync-loss policy.
+
 Set `L4LOAD_BGP_LOAD=1` alongside mode 8 for the
 [denied-load trial](results/2026-09-26-attack-pair.json). Both directors run the
 installed nftables filter while fresh TCP/UDP traffic crosses a routed failure.
