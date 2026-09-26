@@ -57,9 +57,29 @@ for n in 1 2; do
     grep -q '"status": "pass"' "$out/probe$n.jsonl"
 done
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-baseline.json"
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
+    source lab/bgp/sync.sh
+    systemctl stop bird.service || true
+    install -m 644 profiles/ipvs/l4load-ipvs.service /etc/systemd/system/l4load-ipvs.service
+    cat > "$out/routed-d1.json" <<'JSON'
+{"vip":"198.18.0.1","local_ip":"10.1.1.2","local_as":65001,"peer_ip":"10.1.1.1","peer_as":65000,"sync_interface":"sync0","sync_id":42}
+JSON
+    cat > "$out/check-d1" <<EOF
+#!/bin/sh
+exec ip netns exec l4-p1 python3 "$PWD/lab/filter/probe.py" 10.2.1.2 pass >/dev/null
+EOF
+    chmod 700 "$out/check-d1"
+    python3 profiles/ipvs/install-routed.py d1 "$out/routed-d1.json" "$out/check-d1"
+    cp /etc/l4load/bird-d1.conf "$out/installed-bird.conf"
+    mkdir -p /run/l4load-routed-d1
+    ip netns exec l4-d1 python3 -u /usr/local/libexec/l4load-routed-run.py d1 > "$out/health1.jsonl" 2>&1 &
+    pids+=("$!")
+    ln -s /run/l4load-routed-d1/bird.ctl "$out/d1.ctl"
+fi
 for n in 1 2; do
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] && [ "$n" = 1 ]; then continue; fi
     peer=-
-    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 3 ]; then peer="10.1.$n.1"; fi
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 3 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then peer="10.1.$n.1"; fi
     python3 -u profiles/ipvs/route-gate.py "$out/d$n.ctl" "vip$n" "$peer" -- ip netns exec "l4-p$n" python3 lab/filter/probe.py "10.2.$n.2" pass > "$out/health$n.jsonl" 2>&1 &
     pids+=("$!")
 done
@@ -74,7 +94,7 @@ phase() {
 }
 phase baseline
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 4 ]; then
-    source lab/bgp/sync.sh
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 7 ]; then source lab/bgp/sync.sh; fi
     if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 5 ]; then
         for n in 1 2; do ip -n "l4-d$n" link set sync0 down; done
     fi
@@ -113,7 +133,7 @@ fi
 wait_route 10.1.2.2 health-withdrawn
 if [ "$fault_ns" = l4-r ]; then birdc -s "$out/router.ctl" 'show bfd sessions' > "$out/bfd-withdrawn.txt"; fi
 phase failover
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 6 ]; then
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 6 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
     if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then sync_swap l4-d1 l4-d2; fi
     for attempt in $(seq 1 100); do test -e "$out/session-failover" && break; sleep 0.1; done
     test -e "$out/session-failover"

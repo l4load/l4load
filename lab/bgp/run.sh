@@ -24,7 +24,7 @@ for ns in l4-r l4-d1 l4-d2; do
 done
 bfd_clause=
 retry_clause=
-if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ]; then
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ] || [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ]; then
     bfd_clause='bfd yes;'
     retry_clause='error wait time 1, 5; connect delay time 1;'
 fi
@@ -83,6 +83,7 @@ EOF
 fi
 for pair in 'l4-r router' 'l4-d1 d1' 'l4-d2 d2'; do
     set -- $pair
+    if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ] && [ "$1" = l4-d1 ]; then continue; fi
     ip netns exec "$1" bird -f -c "$out/$2.conf" -s "$out/$2.ctl" -P "$out/$2.pid" > "$out/$2.log" 2>&1 &
     pids+=("$!")
 done
@@ -101,7 +102,9 @@ wait_route() {
     for name in router d1 d2; do cat "$out/$name.log"; done
     return 1
 }
-for peer in primary standby; do
+peers='primary standby'
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ]; then peers=standby; fi
+for peer in $peers; do
     for attempt in $(seq 1 100); do
         birdc -s "$out/router.ctl" 'show protocols' > "$out/router-ready.txt" 2>&1 || true
         if grep -E "^$peer +BGP +.*Established" "$out/router-ready.txt"; then break; fi
@@ -109,6 +112,11 @@ for peer in primary standby; do
     done
     grep -Eq "^$peer +BGP +.*Established" "$out/router-ready.txt"
 done
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ]; then
+    wait_route 10.1.2.2 preinstalled-standby
+    source lab/bgp/traffic.sh
+    exit 0
+fi
 wait_route 10.1.1.2 baseline
 for name in router d1 d2; do birdc -s "$out/$name.ctl" 'show protocols' > "$out/$name-protocols.txt"; done
 if [ -n "$bfd_clause" ]; then

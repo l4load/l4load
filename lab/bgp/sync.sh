@@ -5,9 +5,11 @@ for n in 1 2; do
     ip netns exec "l4-d$n" sysctl -qw 'net.ipv4.vs.sync_threshold=0 1'
 done
 ip netns exec l4-d2 ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42
-ip netns exec l4-d1 ipvsadm --start-daemon master --mcast-interface sync0 --syncid 42
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 6 ]; then
-    ip netns exec l4-d1 ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 7 ]; then
+    ip netns exec l4-d1 ipvsadm --start-daemon master --mcast-interface sync0 --syncid 42
+fi
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 6 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 6 ]; then ip netns exec l4-d1 ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42; fi
     ip netns exec l4-d2 ipvsadm --start-daemon master --mcast-interface sync0 --syncid 42
     for n in 1 2; do ip netns exec "l4-d$n" ipvsadm -Ln --daemon > "$out/sync-daemons$n.txt"; done
 fi
