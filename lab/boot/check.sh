@@ -6,6 +6,31 @@ date -u +%FT%TZ
 uname -a
 dpkg-query -W keepalived ipvsadm
 test "$(systemctl is-enabled keepalived.service)" = masked
+if [ "${1:-normal}" = reject ]; then
+    systemctl is-failed --quiet l4load-filter
+    test "$(systemctl show l4load-ipvs -p ActiveState --value)" = inactive
+    test "$(systemctl show l4load-ipvs -p MainPID --value)" = 0
+    test -z "$(ip netns exec l4-lb ipvsadm -Sn)"
+    ip netns exec l4-client python3 - <<'PY'
+import socket
+for source in ('10.0.0.2', '10.0.0.3'):
+    for kind in (socket.SOCK_STREAM, socket.SOCK_DGRAM):
+        with socket.socket(socket.AF_INET, kind) as sock:
+            sock.settimeout(1)
+            sock.bind((source, 0))
+            try:
+                sock.connect(('198.18.0.1', 8080))
+                sock.sendall(b'probe')
+                sock.recv(4096)
+            except (TimeoutError, ConnectionRefusedError):
+                continue
+            raise AssertionError('VIP served traffic after rejected filter startup')
+PY
+    mv /etc/l4load/filter-boot-good.nft /etc/l4load/filter.nft
+    systemctl reset-failed l4load-filter l4load-ipvs
+    systemctl start l4load-ipvs
+    echo FILTER_STARTUP_REJECTION_PASS
+fi
 systemctl is-active --quiet l4load-ipvs
 systemctl is-active --quiet l4load-filter
 ready=false

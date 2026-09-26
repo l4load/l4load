@@ -38,7 +38,13 @@ done
 remote sudo cloud-init status --wait
 git archive HEAD | remote 'sudo mkdir -p /opt/l4load && sudo tar -x -C /opt/l4load'
 remote sudo bash /opt/l4load/lab/boot/install.sh
-for cycle in 1 2; do
+for cycle in 1 2 3; do
+    check=normal
+    if [ "$cycle" = 3 ]; then
+        remote sudo cp /etc/l4load/filter.nft /etc/l4load/filter-boot-good.nft
+        remote 'echo invalid-nft-input | sudo tee /etc/l4load/filter.nft >/dev/null'
+        check=reject
+    fi
     before=$(remote cat /proc/sys/kernel/random/boot_id)
     echo "$before" > "$out/before-$cycle.txt"
     remote sudo systemctl reboot || true
@@ -52,7 +58,7 @@ for cycle in 1 2; do
     test "$changed" = true
     remote sudo systemctl is-system-running --wait || true
     result=0
-    remote sudo bash /opt/l4load/lab/boot/check.sh | tee "$out/boot-$cycle.txt" || result=$?
+    remote sudo bash /opt/l4load/lab/boot/check.sh "$check" | tee "$out/boot-$cycle.txt" || result=$?
     remote sudo journalctl -b -u l4load-ipvs -u l4load-filter -u l4load-lab-network --no-pager > "$out/journal-$cycle.txt"
     test "$result" = 0
 done
