@@ -37,3 +37,10 @@ Set `L4LOAD_BGP_TRAFFIC=6` for [bidirectional native sync](results/2026-09-26-du
 Both IPVS sync roles ran on each director. One TCP socket survived routed
 failover and failback without a sync-role swap; a reply paused for 3.32 s.
 State-table scale and sync traffic remain unqualified.
+
+Set `L4LOAD_BGP_TRAFFIC=7` for the [routed supervisor trial](results/2026-09-26-routed-supervisor.json).
+The installed BIRD config starts with VIP withdrawal; the profile supervisor
+then controls BFD, forwarding health and both native sync roles. One retained
+TCP socket survived failover/failback in the virtual run. The lab still prepares
+IPVS services and starts the supervisor directly; installed two-node systemd
+lifecycle and rollback remain unqualified.

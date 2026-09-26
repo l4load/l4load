@@ -89,6 +89,13 @@ for n in 1 2; do
     grep -q '"action": "enable"' "$out/health$n.jsonl"
 done
 wait_route 10.1.1.2 health-ready
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
+    ip netns exec l4-d1 ipvsadm -Ln --daemon > "$out/installed-sync-daemons.txt"
+    grep -q 'master sync daemon' "$out/installed-sync-daemons.txt"
+    grep -q 'backup sync daemon' "$out/installed-sync-daemons.txt"
+    birdc -s "$out/d1.ctl" 'show bfd sessions' > "$out/installed-bfd.txt"
+    grep -q 'Up' "$out/installed-bfd.txt"
+fi
 phase() {
     printf '%s\n' "$1" > "$out/useful-phase.next"
     mv "$out/useful-phase.next" "$out/useful-phase"

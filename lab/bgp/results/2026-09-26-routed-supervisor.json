@@ -1,0 +1,16 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36243411970/job/108408067758",
+  "head": "294c51071236f3acdfc601b1ab02dcf7dfca884d",
+  "environment": "Ubuntu 24.04 virtual runner, BIRD 2.14, IPVS 1.31, one upstream router, two directors",
+  "scope": "install-routed.py generated primary BIRD config and installed routed-run.py; the supervisor ran directly in one director namespace. The other director and both IPVS virtual services were prepared by the lab, not installed with systemd.",
+  "primary_vip_at_start": "disabled in generated BIRD config",
+  "route": ["standby before primary supervisor", "primary after healthy forwarding/BFD", "standby after primary VIP ingress blackhole", "primary after recovery"],
+  "primary_gate": ["enable", "disable", "enable"],
+  "one_tcp_socket_exchanges": {"baseline": 49, "fault": 1, "failover": 43, "return": 30, "restored": 41},
+  "socket_reset": false,
+  "maximum_exchange_rtt_ms": 3315.084,
+  "fresh_tcp_on_standby": "290/290",
+  "fresh_udp_on_standby": "290/290",
+  "actual_fresh_starts_per_second_per_protocol": "approximately 100",
+  "limit": "One short virtual run. No installed two-node systemd lifecycle, restart, update/rollback, physical network, sustained capacity, or production SLO qualification."
+}
