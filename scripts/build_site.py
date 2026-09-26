@@ -79,17 +79,27 @@ also expired without a controller; YANET removal was explicit.
 Overload protection, filtering throughput and feature parity are not established.
 <a href="https://github.com/l4load/l4load/tree/main/lab/filter">Reproduce the filter trial ↗</a></p>
 <p>Full nftables snapshots now replace the deny set atomically, including empty
-snapshots that clear old bans. A low-rate trial applied 65,536 pairs in 0.699 seconds
-with 134 probes during that update and no observed loss;
-<a href="https://github.com/l4load/l4load/tree/main/lab/filter/results/2026-09-26">raw samples and limits</a>
-are preserved. This is not a capacity or comparative performance result.
-The Linux trial checks malformed input, replacement
-and duplicate entries. This helper supplies neither transport nor version ordering.</p>
+snapshots that clear old bans. In one matched virtual trial, applying 65,536 pairs
+took 0.910 seconds for nftables and 44.466 seconds for YANET's native firewall
+reload. The respective 174 and 8,407 probes sent during application all succeeded;
+RTT p99 was 0.163 and 1.067 ms.
+<a href="https://github.com/l4load/l4load/tree/main/lab/filter/results/2026-09-26-comparison">Raw samples and limits</a>
+are preserved. This compares these update paths at low sequential traffic rates,
+with no concurrent attack, not optimal tuning or forwarding capacity.</p>
+<p>The <a href="https://github.com/l4load/l4load/tree/main/profiles/nftables">HTTPS snapshot helper</a>
+keeps applied rules when the source disconnects, returns a truncated body or
+malformed JSON, or fails certificate verification. A valid empty list clears bans.
+It is a one-shot pull; scheduling, source freshness and version ordering remain
+external responsibilities.</p>
 <p>An <a href="https://github.com/l4load/l4load/actions/runs/36224483206">injected forwarding failure</a>
 left Keepalived alive while TCP/UDP probes timed out. The lab harness redirected
 new flows through a second director and verified recovery in 2.06 seconds,
 including probe timeouts. This is orchestrated recovery, not autonomous HA or a
-retained-session guarantee.</p>
+retained-session guarantee. A separate
+<a href="https://github.com/l4load/l4load/actions/runs/36225087250">pre-synchronized TCP trial</a>
+retained two sockets without reconnecting through the injected failure; one
+exchange paused for 3.309 seconds. Its sequential client does not measure
+independent per-flow stalls or establish uninterrupted service.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
