@@ -61,17 +61,45 @@ for n in 1 2; do
     python3 -u lab/bgp/health.py "l4-p$n" "10.2.$n.2" "$out/d$n.ctl" "vip$n" > "$out/health$n.jsonl" 2>&1 &
     pids+=("$!")
 done
-sleep 1
+echo baseline > "$out/useful-phase"
+for protocol in tcp udp; do
+    ip netns exec l4-client python3 -u lab/cutover/useful.py "$out" "$protocol" > "$out/useful-$protocol.log" 2>&1 &
+    pids+=("$!")
+    if [ "$protocol" = tcp ]; then useful_tcp=$!; else useful_udp=$!; fi
+done
+sleep 2
+ps -C bird -o pid,rss,vsz,time > "$out/bird-baseline.txt"
 ip netns exec l4-d1 nft add table inet fault
 ip netns exec l4-d1 nft add chain inet fault ingress '{ type filter hook prerouting priority -300; policy accept; }'
 python3 -c 'import time; print(time.monotonic())' > "$out/traffic-fault-start.txt"
+echo fault > "$out/useful-phase"
 ip netns exec l4-d1 nft add rule inet fault ingress ip daddr 198.18.0.1 counter drop
 wait_route 10.1.2.2 health-withdrawn
+echo failover > "$out/useful-phase"
+python3 -c 'import time; print(time.monotonic())' > "$out/traffic-route-standby.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-failover.json"
+sleep 2
 ip netns exec l4-d1 nft -a list table inet fault > "$out/fault-counters.txt"
+echo return > "$out/useful-phase"
 ip netns exec l4-d1 nft delete table inet fault
 wait_route 10.1.1.2 health-restored
+echo restored > "$out/useful-phase"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-restored.json"
+sleep 2
+echo done > "$out/useful-phase"
+wait "$useful_tcp"
+wait "$useful_udp"
+ps -C bird -o pid,rss,vsz,time > "$out/bird-restored.txt"
+for protocol in tcp udp; do
+    python3 - "$out/useful-$protocol.json" <<'PY'
+import json,sys
+phases=json.load(open(sys.argv[1]))
+assert phases['baseline']['passed'] > 0
+assert phases['fault']['errors'] > 0
+assert phases['failover']['passed'] > 0
+assert phases['restored']['passed'] > 0
+PY
+done
 grep -q '"action": "disable"' "$out/health1.jsonl"
 grep -q '"action": "enable"' "$out/health1.jsonl"
 for n in 1 2; do ip netns exec "l4-d$n" ipvsadm -Sn > "$out/ipvs$n-final.txt"; done
