@@ -160,6 +160,10 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 4 ]; then
 fi
 traffic_script=lab/cutover/useful.py
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 2 ]; then traffic_script=lab/bgp/offered.py; fi
+if [ "${L4LOAD_BGP_HIGH_RATE:-0}" = 1 ]; then
+    test "${L4LOAD_BGP_TRAFFIC:-1}" = 8 && test "${L4LOAD_BGP_LOAD:-0}" = 1
+    export L4LOAD_BGP_USEFUL_MPS=1000 L4LOAD_BGP_USEFUL_TIMEOUT=0.05
+fi
 for protocol in tcp udp; do
     ip netns exec l4-client python3 -u "$traffic_script" "$out" "$protocol" > "$out/useful-$protocol.log" 2>&1 &
     pids+=("$!")

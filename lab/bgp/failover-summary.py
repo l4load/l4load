@@ -22,10 +22,20 @@ for protocol in ('tcp', 'udp'):
         rows = list(csv.DictReader(file))
     errors = [i for i, row in enumerate(rows) if row['status'] != 'pass' and float(row['started_monotonic']) >= fault_before]
     assert errors and errors[0] > 0 and errors[-1] + 1 < len(rows)
-    before, after = rows[errors[0] - 1], rows[errors[-1] + 1]
+    bursts = []
+    start = previous = errors[0]
+    for i in errors[1:]:
+        if i != previous + 1:
+            bursts.append((start, previous))
+            start = i
+        previous = i
+    bursts.append((start, previous))
+    first, last = max(bursts, key=lambda pair: pair[1] - pair[0])
+    before, after = rows[first - 1], rows[last + 1]
     assert before['status'] == after['status'] == 'pass'
     result[protocol] = {
         'errors': len(errors),
+        'longest_error_burst': last - first + 1,
         'last_success_to_next_success_seconds': float(after['started_monotonic']) - float(before['started_monotonic']),
         'first_error_after_fault_applied_seconds': float(rows[errors[0]]['started_monotonic']) - fault_after,
         'first_success_after_route_observed_seconds': float(after['started_monotonic']) - route_at,

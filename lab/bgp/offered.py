@@ -1,5 +1,6 @@
 import csv
 import json
+import os
 import socket
 import sys
 import time
@@ -9,6 +10,9 @@ from pathlib import Path
 
 out, protocol = Path(sys.argv[1]), sys.argv[2]
 kind = socket.SOCK_STREAM if protocol == 'tcp' else socket.SOCK_DGRAM
+rate = int(os.environ.get('L4LOAD_BGP_USEFUL_MPS', '100'))
+timeout = float(os.environ.get('L4LOAD_BGP_USEFUL_TIMEOUT', '0.25'))
+assert 1 <= rate <= 1000 and 0 < timeout <= 1
 
 
 def exchange(scheduled, phase, sequence):
@@ -17,7 +21,7 @@ def exchange(scheduled, phase, sequence):
     status = 'error'
     try:
         with socket.socket(socket.AF_INET, kind) as sock:
-            sock.settimeout(0.25)
+            sock.settimeout(timeout)
             sock.bind(('10.0.0.2', 0))
             sock.connect(('198.18.0.1', 8080))
             sock.sendall(payload)
@@ -31,7 +35,7 @@ def exchange(scheduled, phase, sequence):
 
 
 futures = []
-with ThreadPoolExecutor(max_workers=64) as pool:
+with ThreadPoolExecutor(max_workers=max(64, int(rate * timeout * 2))) as pool:
     next_at = time.monotonic()
     deadline = next_at + 120
     while time.monotonic() < deadline:
@@ -45,7 +49,7 @@ with ThreadPoolExecutor(max_workers=64) as pool:
             time.sleep(min(next_at - now, 0.002))
             continue
         futures.append(pool.submit(exchange, next_at, phase, len(futures)))
-        next_at += 0.01
+        next_at += 1 / rate
     else:
         raise TimeoutError('offered traffic phase did not finish')
 
@@ -65,6 +69,8 @@ for scheduled, started, finished, phase, status in rows:
     if status == 'pass':
         item['rtt'].append((finished - started) * 1000)
 for item in summary.values():
+    item['requested_mps'] = rate
+    item['timeout_ms'] = timeout * 1000
     starts = sorted(item.pop('starts'))
     rtt = sorted(item.pop('rtt'))
     lag = sorted(item.pop('lag'))
@@ -72,4 +78,8 @@ for item in summary.values():
     item['p99_success_rtt_ms'] = rtt[min(len(rtt) - 1, int(len(rtt) * 0.99))] if rtt else None
     item['p99_start_lag_ms'] = lag[min(len(lag) - 1, int(len(lag) * 0.99))]
 (out / f'useful-{protocol}.json').write_text(json.dumps(dict(summary), indent=2) + '\n')
+if rate == 1000:
+    for phase in ('baseline', 'fault', 'failover'):
+        assert 900 <= summary[phase]['actual_starts_per_second'] <= 1100, (protocol, phase, summary[phase])
+        assert summary[phase]['p99_start_lag_ms'] < 50, (protocol, phase, summary[phase])
 print(protocol, json.dumps(dict(summary)), flush=True)
