@@ -1,0 +1,38 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36256904872",
+  "source": "9af1b4ba16627629717ec52cca96704ddf29840c",
+  "environment": "one disposable Ubuntu 24.04 runner per trial, virtual namespaces, two routed IPVS directors",
+  "isolated_miss": {
+    "artifact": "https://github.com/l4load/l4load/actions/runs/36256904872/artifacts/10910717145",
+    "artifact_sha256": "7fce2b51b8d261f73800f01b6b3185947433983bd056eecce02035db782ec838",
+    "single_miss_route": "primary",
+    "persistent_miss_route": "standby",
+    "recovered_route": "primary"
+  },
+  "high_rate": [
+    {
+      "probe_timeout_ms": 50,
+      "artifact": "https://github.com/l4load/l4load/actions/runs/36256904872/artifacts/10910986928",
+      "artifact_sha256": "2a55da6b7e951d1025feacb1a38c4a11cc37bea7de1e290aa3610cdc0fb0853a",
+      "requested_useful_starts_per_second_per_protocol": 1000,
+      "approximate_denied_packets_per_second": 100000,
+      "fault_tcp_errors": 420,
+      "fault_udp_errors": 418,
+      "tcp_success_gap_seconds": 0.419977002,
+      "udp_success_gap_seconds": 0.41901879,
+      "route_observed_after_fault_seconds": 0.461490389
+    },
+    {
+      "probe_timeout_ms": 200,
+      "artifact": "https://github.com/l4load/l4load/actions/runs/36256904872/artifacts/10911221698",
+      "artifact_sha256": "3019b55ee078435974f6b7928712cf0157dd85062178f68f97bd04c7d8af8a1d",
+      "requested_useful_starts_per_second_per_protocol": 1000,
+      "approximate_denied_packets_per_second": 100000,
+      "fault_tcp_errors": 623,
+      "fault_udp_errors": 623,
+      "tcp_success_gap_seconds": 0.624002581,
+      "udp_success_gap_seconds": 0.624000108,
+      "route_observed_after_fault_seconds": 0.653160571
+    }
+  ]
+}

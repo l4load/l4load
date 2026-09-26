@@ -81,6 +81,13 @@ installed check is supplied by the operator and must be calibrated there.
 check while forwarding remains healthy, then a persistent failure. It requires
 no route change for the isolated miss and a standby cutover plus recovery for
 the persistent failure. It does not quantify real false-positive frequency.
+[The installed-pair run](results/2026-09-26-confirmation.json) passed those
+conditions. With 1,000 requested TCP and UDP starts/s each, a 50 ms probe timeout
+had 420/418 fault-phase errors and about a 0.42 s success gap; 200 ms had
+623/623 and about a 0.62 s gap. Both ran with about 100,000 denied packets/s.
+These are single trials on separate virtual runners, not a statistical timeout
+comparison or a safe production setting. The earlier first-bad-check results
+describe the prior gate and should not be attributed to this revision.
 
 [A higher-rate failover trial](results/2026-09-26-high-rate-failover.json)
 kept about 1000 scheduled TCP and UDP starts/s each through the fault while
