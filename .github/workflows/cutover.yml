@@ -1,7 +1,7 @@
 name: VIP cutover
 on:
   pull_request:
-    paths: ['lab/cutover/**', '.github/workflows/cutover.yml']
+    paths: ['lab/cutover/**', '!lab/cutover/**/*.md', 'lab/ipvs/sessions.py', 'lab/filter/probe.py', '.github/workflows/cutover.yml']
   workflow_dispatch:
 permissions:
   contents: read
