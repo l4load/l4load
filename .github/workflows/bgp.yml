@@ -1,7 +1,7 @@
 name: BGP route trial
 on:
   pull_request:
-    paths: ['lab/bgp/**', '.github/workflows/bgp.yml']
+    paths: ['lab/bgp/**', 'profiles/ipvs/route-gate.py', '.github/workflows/bgp.yml']
   workflow_dispatch:
 permissions:
   contents: read

@@ -58,13 +58,16 @@ for n in 1 2; do
 done
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-baseline.json"
 for n in 1 2; do
-    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 3 ]; then
-        python3 -u lab/bgp/health.py bfd "10.1.$n.1" "$out/d$n.ctl" "vip$n" > "$out/health$n.jsonl" 2>&1 &
-    else
-        python3 -u lab/bgp/health.py "l4-p$n" "10.2.$n.2" "$out/d$n.ctl" "vip$n" > "$out/health$n.jsonl" 2>&1 &
-    fi
+    peer=-
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 3 ]; then peer="10.1.$n.1"; fi
+    python3 -u profiles/ipvs/route-gate.py "$out/d$n.ctl" "vip$n" "$peer" -- ip netns exec "l4-p$n" python3 lab/filter/probe.py "10.2.$n.2" pass > "$out/health$n.jsonl" 2>&1 &
     pids+=("$!")
 done
+for n in 1 2; do
+    for attempt in $(seq 1 100); do grep -q '"action": "enable"' "$out/health$n.jsonl" && break; sleep 0.1; done
+    grep -q '"action": "enable"' "$out/health$n.jsonl"
+done
+wait_route 10.1.1.2 health-ready
 phase() {
     printf '%s\n' "$1" > "$out/useful-phase.next"
     mv "$out/useful-phase.next" "$out/useful-phase"
