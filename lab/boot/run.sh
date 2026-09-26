@@ -53,7 +53,7 @@ for cycle in 1 2; do
     remote sudo systemctl is-system-running --wait || true
     result=0
     remote sudo bash /opt/l4load/lab/boot/check.sh | tee "$out/boot-$cycle.txt" || result=$?
-    remote sudo journalctl -b -u l4load-ipvs -u l4load-lab-network --no-pager > "$out/journal-$cycle.txt"
+    remote sudo journalctl -b -u l4load-ipvs -u l4load-filter -u l4load-lab-network --no-pager > "$out/journal-$cycle.txt"
     test "$result" = 0
 done
 echo HOST_REBOOT_PASS
