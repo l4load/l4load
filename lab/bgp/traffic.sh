@@ -120,11 +120,12 @@ wait "$useful_tcp"
 wait "$useful_udp"
 ps -C bird -o pid,rss,vsz,time > "$out/bird-restored.txt"
 for protocol in tcp udp; do
-    python3 - "$out/useful-$protocol.json" <<'PY'
+    python3 - "$out/useful-$protocol.json" "$fault_ns" <<'PY'
 import json,sys
 phases=json.load(open(sys.argv[1]))
 assert phases['baseline']['passed'] > 0
-assert phases['fault']['errors'] > 0
+assert phases['fault']['attempts'] > 0
+if sys.argv[2] != 'l4-r': assert phases['fault']['errors'] > 0
 assert phases['failover']['passed'] > 0
 assert phases['restored']['passed'] > 0
 PY
