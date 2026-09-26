@@ -1,0 +1,94 @@
+{
+  "source_commit": "a8016508aa201999876bbac74f1f05718bea584f",
+  "run_url": "https://github.com/l4load/l4load/actions/runs/36233326327/job/108380474273",
+  "scenario": "Standby runs Keepalived backend checker; backend b1 health fails before primary ingress blackhole",
+  "failure_to_verified_recovery_seconds": 3.174598121999999,
+  "dropped_fault_packets": 3,
+  "b1_tcp_udp_weights": {
+    "backend-down": {
+      "l4-lb": [
+        0,
+        0
+      ],
+      "l4-alt": [
+        0,
+        0
+      ]
+    },
+    "failover": {
+      "l4-alt": [
+        0,
+        0
+      ]
+    },
+    "restored": {
+      "l4-lb": [
+        0,
+        0
+      ]
+    },
+    "healthy": {
+      "l4-lb": [
+        1,
+        1
+      ],
+      "l4-alt": [
+        1,
+        1
+      ]
+    }
+  },
+  "client_probes": {
+    "baseline": {
+      "status": "pass",
+      "flows": {
+        "tcp": {
+          "b2": 32
+        },
+        "udp": {
+          "b2": 32
+        }
+      },
+      "client_ip_preserved": true
+    },
+    "failover": {
+      "status": "pass",
+      "flows": {
+        "tcp": {
+          "b2": 32
+        },
+        "udp": {
+          "b2": 32
+        }
+      },
+      "client_ip_preserved": true
+    },
+    "restored": {
+      "status": "pass",
+      "flows": {
+        "tcp": {
+          "b2": 32
+        },
+        "udp": {
+          "b2": 32
+        }
+      },
+      "client_ip_preserved": true
+    },
+    "healthy": {
+      "status": "pass",
+      "flows": {
+        "tcp": {
+          "b1": 16,
+          "b2": 16
+        },
+        "udp": {
+          "b1": 16,
+          "b2": 16
+        }
+      },
+      "client_ip_preserved": true
+    }
+  },
+  "limits": "Synthetic same-L2, short fresh-flow trial. Retained sessions, independent monitor path, physical NIC and production SLO unqualified."
+}

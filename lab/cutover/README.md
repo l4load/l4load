@@ -65,3 +65,11 @@ observed four dropped probe packets and 3.590 seconds from injection to verified
 TCP/UDP recovery; [phase data](results/2026-09-26-vrrp.json) preserve address
 ownership and traffic results. Retained sessions, independent path failures,
 physical L2 behavior and a production failover SLO remain unqualified.
+
+The [standby-health trial](results/2026-09-26-standby-health.json) runs the same
+Keepalived backend checker on both directors. With one backend unhealthy,
+both IPVS tables held its TCP/UDP weight at zero; 64 fresh flows used only the
+healthy backend before failure, after failover and after failback. Restoring
+health returned both weights to one and traffic to both backends. The virtual
+failover took 3.175 seconds including verification; existing connections and
+production behavior remain unqualified.
