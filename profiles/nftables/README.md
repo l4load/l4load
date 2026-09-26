@@ -44,6 +44,24 @@ recovery. This is a one-shot pull, not a daemon: use one writer and supply sourc
 freshness, authorization and scheduling externally. Old rules can persist during
 an outage; choose this behaviour deliberately. Reboot persistence is unchanged.
 
-This adds no IPv6 policy or automatic persistence. Reboot, prefixes, tenant
+For explicit boot persistence of reviewed **nonexpiring** rules, run
+`sudo bash profiles/nftables/save.sh` after applying and checking the policy.
+It validates and atomically saves this table to `/etc/l4load/filter.nft`, installs
+`l4load-filter.service`, and rejects expiring elements rather than renewing their
+lifetimes at every boot. Keep one writer during saving. Later pulls change only
+runtime state: save explicitly to change the boot policy. A saved empty set
+restores an empty set. Preserve the previous file for rollback.
+
+Run `sudo systemctl start l4load-filter` and check allowed/denied traffic before
+`sudo systemctl enable l4load-filter`. Reload restores the saved table in one nft
+transaction; invalid input leaves live rules unchanged. Stopping the unit retains
+rules. For withdrawal, disable it before deleting the table. The interface must
+exist at startup; `network-online.target` alone does not prove this on every host.
+When pairing with Balance, add `Requires=l4load-filter.service` and
+`After=l4load-filter.service` in its unit's `[Unit]` drop-in so a failed filter
+startup prevents Balance startup. This does not monitor later filter changes or
+stop already-running forwarding. The combined VM boot test is pending qualification.
+
+This adds no IPv6 policy. Physical-host boot ordering, prefixes, tenant
 isolation, fragments and overload capacity remain unqualified. Other firewall
 chains can still drop traffic allowed here. This is not a complete DDoS product.

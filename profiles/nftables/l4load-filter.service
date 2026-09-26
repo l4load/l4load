@@ -1,0 +1,14 @@
+[Unit]
+Description=L4Load saved filter
+Wants=network-online.target
+After=network-online.target
+Before=l4load-ipvs.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/nft -f /etc/l4load/filter.nft
+ExecReload=/usr/sbin/nft -f /etc/l4load/filter.nft
+
+[Install]
+WantedBy=multi-user.target

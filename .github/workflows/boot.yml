@@ -1,7 +1,7 @@
 name: Host boot
 on:
   pull_request:
-    paths: ['lab/boot/**', 'profiles/ipvs/**', '.github/workflows/boot.yml']
+    paths: ['lab/boot/**', 'profiles/ipvs/**', 'profiles/nftables/**', 'lab/filter/probe.py', '.github/workflows/boot.yml']
   workflow_dispatch:
 permissions:
   contents: read

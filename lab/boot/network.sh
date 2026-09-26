@@ -19,6 +19,7 @@ for ns in client lb b1 b2; do
     ip -n "l4-$ns" route add default via "10.0.$subnet.1"
     subnet=$((subnet + 1))
 done
+ip -n l4-client addr add 10.0.0.3/24 dev eth0
 ip netns exec l4-router sysctl -qw net.ipv4.ip_forward=1
 ip -n l4-router route add 198.18.0.1/32 via 10.0.1.2
 ip -n l4-lb addr add 198.18.0.1/32 dev lo
