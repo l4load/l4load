@@ -170,6 +170,25 @@ if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
     wait_session baseline
     sync_minimum=2 stage=prepared
     sync_handoff
+    if [ "${L4LOAD_HA_USEFUL_LOAD:-0}" = 1 ]; then
+        test "${L4LOAD_HA_PROFILE:-0}" = 1
+        echo baseline > "$out/useful-phase"
+        for protocol in tcp udp; do
+            ip netns exec l4-client python3 -u lab/cutover/useful.py "$out" "$protocol" > "$out/useful-$protocol.log" 2>&1 &
+            pids+=("$!")
+            if [ "$protocol" = tcp ]; then useful_tcp=$!; else useful_udp=$!; fi
+        done
+        sample_useful() {
+            local phase=$1
+            ps -C keepalived -o pid,ppid,rss,vsz,time > "$out/useful-process-$phase.txt"
+            for ns in l4-lb l4-alt; do
+                ip netns exec "$ns" ipvsadm -Ln --stats > "$out/useful-ipvs-$phase-$ns.txt"
+                ip -n "$ns" -j -s link show dev ha0 > "$out/useful-link-$phase-$ns.json"
+            done
+        }
+        sleep 2
+        sample_useful baseline
+    fi
     if [ "${L4LOAD_HA_SYNC_LOSS:-0}" = 1 ]; then
         test "${L4LOAD_HA_PROFILE:-0}" = 1
         source lab/cutover/sync-loss.sh
@@ -190,8 +209,13 @@ table netdev fault {
     }
 }
 NFT
+if [ "${L4LOAD_HA_USEFUL_LOAD:-0}" = 1 ]; then echo fault > "$out/useful-phase"; fi
 python3 -c 'import time; print(time.monotonic())' > "$out/vrrp-fault-start.txt"
 wait_vip l4-alt l4-lb
+if [ "${L4LOAD_HA_USEFUL_LOAD:-0}" = 1 ]; then
+    echo failover > "$out/useful-phase"
+    sample_useful failover
+fi
 check_sync_roles failover l4-alt l4-lb
 kill -0 "$controller"
 kill -0 "$alt_controller"
@@ -216,6 +240,10 @@ if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
 fi
 ip netns exec l4-lb nft delete table netdev fault
 wait_vip l4-lb l4-alt
+if [ "${L4LOAD_HA_USEFUL_LOAD:-0}" = 1 ]; then
+    echo restored > "$out/useful-phase"
+    sample_useful restored
+fi
 check_sync_roles restored l4-lb l4-alt
 wait_real l4-lb 0 restored
 record_vip restored
@@ -229,6 +257,12 @@ echo healthy > "$out/health1/health"
 wait_real l4-lb 1 healthy
 wait_real l4-alt 1 healthy
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 13000 > "$out/vrrp-healthy-backend.json"
+if [ "${L4LOAD_HA_USEFUL_LOAD:-0}" = 1 ]; then
+    echo done > "$out/useful-phase"
+    wait "$useful_tcp" "$useful_udp"
+    cat "$out/useful-tcp.json" "$out/useful-udp.json"
+    echo HA_USEFUL_LOAD_OBSERVED
+fi
 kill -0 "$controller"
 kill -0 "$alt_controller"
 if [ "${L4LOAD_HA_PROFILE:-0}" = 1 ]; then
