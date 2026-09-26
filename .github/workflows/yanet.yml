@@ -40,7 +40,7 @@ jobs:
           path: /tmp/l4load-ccache
           key: yanet-6b30c2f-builder-e379330-v1-${{ github.sha }}
           restore-keys: yanet-6b30c2f-builder-e379330-v1-
-      - run: apt-get update && apt-get install -y cmake ccache iproute2 kmod tcpdump ethtool sockperf keepalived ipvsadm prometheus-node-exporter nftables clang llvm libbpf-dev linux-tools-common linux-tools-generic
+      - run: apt-get update && apt-get install -y cmake ccache iproute2 kmod tcpdump ethtool sockperf keepalived ipvsadm prometheus-node-exporter nftables curl openssl clang llvm libbpf-dev linux-tools-common linux-tools-generic
       - run: ccache --max-size=2G
       - name: Record environment
         run: |

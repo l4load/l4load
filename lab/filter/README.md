@@ -15,6 +15,13 @@ with a JSON list of `[source IPv4, VIP IPv4]` pairs on stdin; it submits one nft
 transaction against the installed profile. Snapshot entries have no expiry.
 This tests state replacement, not a controller transport or reconnect protocol.
 
+The HTTPS reconnect trial uses a disposable certificate and local server. It
+checks application, untrusted TLS, a truncated response containing valid JSON,
+server loss, malformed JSON after reconnection and a valid
+empty snapshot, probing both denied and permitted traffic after each step.
+`FILTER_RECONNECT_PASS` qualifies that sequence, not multi-writer ordering,
+source freshness, automatic retries or a production policy service.
+
 `L4LOAD_FILTER_SNAPSHOTS=1` additionally replaces 1,024, 16,384 and 65,536
 synthetic pairs, then clears them while a sequential UDP echo probe runs.
 `snapshot-updates.json` records application intervals; `snapshot-traffic.csv`
