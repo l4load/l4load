@@ -29,6 +29,7 @@ UNIT
 systemd-analyze verify "$unitfile"
 systemctl daemon-reload
 systemctl start "$unit"
+test "$(ip netns exec l4-lb sysctl -n net.ipv4.vs.expire_quiescent_template)" = 1
 wait_weight 1
 wait_weight 1 10.0.3.2:8080
 kill "$first_health"
