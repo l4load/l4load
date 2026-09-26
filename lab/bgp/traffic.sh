@@ -102,6 +102,24 @@ UNIT
     ln -s /run/l4load-routed-d1/bird.ctl "$out/d1.ctl"
 fi
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then source lab/bgp/pair.sh; probe_directors; fi
+if [ "${L4LOAD_BGP_LOAD:-0}" = 1 ]; then
+    test "${L4LOAD_BGP_TRAFFIC:-1}" = 8
+    ip -n l4-client addr add 10.0.0.3/24 dev eth0
+    for n in 1 2; do
+        ip netns exec "l4-d$n" bash profiles/nftables/install.sh eth0
+        ip netns exec "l4-d$n" nft 'add element netdev l4load blocked { 10.0.0.3 . 198.18.0.1 }'
+    done
+    ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.3 drop > "$out/denied-probe.jsonl"
+    ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/allowed-probe.jsonl"
+    lscpu > "$out/cpu.txt"
+    cat /proc/stat > "$out/proc-stat-before.txt"
+    ps -C bird,keepalived -o pid,rss,vsz,time > "$out/process-before.txt"
+    ip netns exec l4-client sockperf throughput -i 198.18.0.1 -p 8080 --client_ip 10.0.0.3 -m 64 -t 30 --mps 100000 > "$out/denied-load.txt" 2>&1 &
+    denied_pid=$!
+    pids+=("$denied_pid")
+    sleep 2
+    kill -0 "$denied_pid"
+fi
 for n in 1 2; do
     if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ] || { [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] && [ "$n" = 1 ]; }; then continue; fi
     peer=-
@@ -197,6 +215,24 @@ sleep 2
 phase done
 wait "$useful_tcp"
 wait "$useful_udp"
+if [ "${L4LOAD_BGP_LOAD:-0}" = 1 ]; then
+    wait "$denied_pid"
+    python3 - "$out/denied-load.txt" "$out/denied-load.json" <<'PY'
+import json,re,sys
+text=open(sys.argv[1]).read()
+sent,elapsed=re.search(r'Total of (\d+) messages sent in ([\d.]+) sec',text).groups()
+record={'requested_mps':100000,'sent':int(sent),'elapsed_seconds':float(elapsed),'actual_mps':int(sent)/float(elapsed)}
+assert record['actual_mps'] > 0
+open(sys.argv[2],'w').write(json.dumps(record)+'\n')
+PY
+    cat /proc/stat > "$out/proc-stat-after.txt"
+    ps -C bird,keepalived -o pid,rss,vsz,time > "$out/process-after.txt"
+    for n in 1 2; do
+        ip netns exec "l4-d$n" nft -a list table netdev l4load > "$out/filter-d$n.txt"
+        grep -Eq 'counter packets [1-9]' "$out/filter-d$n.txt"
+        ip netns exec "l4-d$n" ipvsadm -Ln --stats > "$out/ipvs-stats-d$n.txt"
+    done
+fi
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 4 ]; then
     wait "$session_pid"
     if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 5 ]; then test -s "$out/session.json"; fi
