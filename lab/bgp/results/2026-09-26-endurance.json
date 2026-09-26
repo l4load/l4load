@@ -20,5 +20,14 @@
     }
   },
   "earlier_fault_at_100_starts_per_second_per_protocol": {"tcp_errors": 30, "udp_errors": 29, "tcp_success_gap_seconds": 0.310, "udp_success_gap_seconds": 0.300},
-  "limit": "One five-minute shared virtual-runner result. Zero steady-state loss and no route actions do not establish a production false-failover rate or hardware capacity. The 1000-mps interval starts after failover and recovery. Filter counter differences are not NIC ingress. Control cgroups exclude kernel IPVS/nftables dataplane CPU and workload generators; memory figures are endpoints, not peaks."
+  "repeat": {
+    "run": "https://github.com/l4load/l4load/actions/runs/36251552399/job/108430410437",
+    "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36251552399/artifacts/10910070070",
+    "artifact_sha256": "85d6816ee8403a9532e669ba8451130dfc0a2584a91810713f884e40f106d979",
+    "tcp": {"sent": 299548, "received": 299548, "dropped": 0, "p99_rtt_us": 1247.784},
+    "udp": {"sent": 299547, "received": 299547, "dropped": 0, "p99_rtt_us": 1107.038},
+    "filter_denied_pps": 100000.439,
+    "route_actions": {"primary": [], "standby": []}
+  },
+  "limit": "Two five-minute shared virtual-runner results. Zero steady-state loss and no route actions do not establish a production false-failover rate or hardware capacity. The 1000-mps interval starts after failover and recovery. Filter counter differences are not NIC ingress. Control cgroups exclude kernel IPVS/nftables dataplane CPU and workload generators; memory figures are endpoints, not peaks."
 }

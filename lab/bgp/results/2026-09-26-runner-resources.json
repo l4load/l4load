@@ -1,0 +1,24 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36251918068/job/108431423109",
+  "head": "cacab2e6ca9eb9c04af2d4249a431126274d716e",
+  "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36251918068/artifacts/10909127073",
+  "artifact_sha256": "4c6c8e58c8ceb7eb770d173bb5860859b5be62ac0f30cf3c3e033352bfcfd0da",
+  "environment": "Ubuntu 24.04 shared virtual runner; installed two-director IPVS/BIRD pair with nftables filters; synthetic 200 ms forwarding check",
+  "denied_generator": {"seconds": 329.996, "sent": 32999946, "actual_mps": 100001.048},
+  "steady_state": {
+    "seconds": 302.714,
+    "filter_denied_packets": 30271256,
+    "filter_denied_pps": 99999.637,
+    "tcp": {"sent": 299556, "received": 299556, "dropped": 0, "actual_mps": 1000.003, "p99_rtt_us": 974.032},
+    "udp": {"sent": 299554, "received": 299554, "dropped": 0, "actual_mps": 1000.003, "p99_rtt_us": 1060.995},
+    "route_actions": {"primary": [], "standby": []},
+    "runner": {"busy_cpu_seconds": 1010.67, "busy_percent": 84.006, "softirq_percent_of_total": 7.009},
+    "control_cgroups": {
+      "primary_routed": {"cpu_seconds": 47.986, "memory_end_bytes": 14454784, "memory_peak_since_start_bytes": 30248960},
+      "standby_routed": {"cpu_seconds": 48.057, "memory_end_bytes": 14622720, "memory_peak_since_start_bytes": 30703616},
+      "primary_ipvs": {"cpu_seconds": 0.276, "memory_end_bytes": 2392064, "memory_peak_since_start_bytes": 5627904},
+      "standby_ipvs": {"cpu_seconds": 0.289, "memory_end_bytes": 2678784, "memory_peak_since_start_bytes": 5763072}
+    }
+  },
+  "limit": "One shared virtual-runner resource sample. Runner CPU from /proc/stat includes generators, backends and other work; the softirq share is of total runner CPU time, not attributable to IPVS/nftables. Cgroup CPU covers control services only. Cgroup memory peaks are since unit start, not limited to the steady interval. Filter counter differences are not NIC ingress. No hardware capacity or production SLO."
+}

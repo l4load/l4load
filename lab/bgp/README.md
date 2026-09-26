@@ -89,3 +89,6 @@ Set `L4LOAD_BGP_SOAK_SECONDS=300` with the soak mode for the
 run delivered all 299,547 TCP and 299,547 UDP messages under about 100,000
 denied packets/s with no route actions during the steady interval. One run
 does not establish a production false-failover rate or full host resource cost.
+The [runner resource trial](results/2026-09-26-runner-resources.json) adds
+aggregate CPU and service memory peaks. Runner CPU includes generators and
+other work; it cannot isolate kernel dataplane cost.
