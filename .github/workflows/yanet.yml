@@ -156,7 +156,7 @@ jobs:
           for path in sorted(Path('lab/results').glob('**/*')):
               if path.suffix in ('.txt', '.conf', '.json'):
                   print('EVIDENCE ' + json.dumps({'file': str(path.relative_to('lab/results')), 'content': path.read_text()}))
-              elif path.suffix == '.csv' and path.parent.name == 'filter-load':
+              elif path.suffix == '.csv' and (path.parent.name == 'filter-load' or path.name == 'snapshot-traffic.csv'):
                   raw = path.read_bytes()
                   data = base64.b64encode(gzip.compress(raw, mtime=0)).decode()
                   chunks = [data[i:i+32000] for i in range(0, len(data), 32000)]

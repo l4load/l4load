@@ -74,7 +74,13 @@ else:
             set_phase(str(count))
             before = resource.getrusage(resource.RUSAGE_CHILDREN)
             started = time.monotonic()
-            subprocess.run(command, input=json.dumps(pairs), text=True, check=True, timeout=60)
+            try:
+                subprocess.run(command, input=json.dumps(pairs), text=True, check=True, timeout=60)
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+                (out / 'snapshot-failure.json').write_text(json.dumps({
+                    'elements': count, 'started_monotonic': started,
+                    'failed_monotonic': time.monotonic(), 'error': str(error)}) + '\n')
+                raise
             finished = time.monotonic()
             after = resource.getrusage(resource.RUSAGE_CHILDREN)
             measurements.append({'elements': count, 'started_monotonic': started, 'finished_monotonic': finished,
