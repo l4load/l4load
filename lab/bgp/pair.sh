@@ -70,13 +70,14 @@ CONF
     done
 fi
 systemctl stop bird.service keepalived.service || true
+probe_timeout=${L4LOAD_BGP_PROBE_TIMEOUT:-0.2}
 for n in 1 2; do
     cat > "$out/routed-d$n.json" <<JSON
 {"vip":"198.18.0.1","local_ip":"10.1.$n.2","local_as":6500$n,"peer_ip":"10.1.$n.1","peer_as":65000,"sync_interface":"sync0","sync_id":42}
 JSON
     cat > "$out/check-d$n" <<EOF
 #!/bin/sh
-exec env L4LOAD_PROBE_TIMEOUT=0.2 ip netns exec l4-p$n python3 "$PWD/lab/filter/probe.py" 10.2.$n.2 pass >/dev/null
+exec env L4LOAD_PROBE_TIMEOUT=$probe_timeout ip netns exec l4-p$n python3 "$PWD/lab/filter/probe.py" 10.2.$n.2 pass >/dev/null
 EOF
     chmod 700 "$out/check-d$n"
     python3 profiles/ipvs/install-routed.py "d$n" "$out/routed-d$n.json" "$out/check-d$n" "$out/ipvs.conf"

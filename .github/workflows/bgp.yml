@@ -79,10 +79,14 @@ jobs:
   high-rate-failover:
     runs-on: ubuntu-24.04
     timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        probe_timeout: ['0.2', '0.05']
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bird2 ipvsadm nftables keepalived sockperf
-      - run: sudo env L4LOAD_BGP_TRAFFIC=8 L4LOAD_BGP_LOAD=1 L4LOAD_BGP_HIGH_RATE=1 bash lab/bgp/run.sh
+      - run: sudo env L4LOAD_BGP_TRAFFIC=8 L4LOAD_BGP_LOAD=1 L4LOAD_BGP_HIGH_RATE=1 L4LOAD_BGP_PROBE_TIMEOUT=${{ matrix.probe_timeout }} bash lab/bgp/run.sh
       - if: always()
         run: |
           python3 - <<'PY'
@@ -95,7 +99,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bgp-high-rate-failover
+          name: bgp-high-rate-${{ matrix.probe_timeout }}
           path: lab/results/bgp
   false-miss:
     runs-on: ubuntu-24.04
