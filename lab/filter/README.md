@@ -29,6 +29,11 @@ The bulk marker requires zero observed permitted-packet loss and deny/allow
 checks after each update. It does not prove no transient policy gap, reconnect
 ordering, retained TCP sessions or hardware performance.
 
+[The bulk trial passed](results/2026-09-26/): 65,536 pairs applied in 0.699 seconds,
+with 134 probes sent during that interval and no observed losses. Raw samples,
+per-update summaries and environment versions are preserved; this single low-rate
+observation does not establish capacity or superiority over another engine.
+
 [The nftables trial passed](https://github.com/l4load/l4load/actions/runs/36172967453).
 [YANET passed the same deny/allow probes](https://github.com/l4load/l4load/actions/runs/36174467560),
 including rejected reload and explicit rollback. Only nftables expiry was tested;

@@ -38,3 +38,8 @@ director, checks new flows, removes the fault and verifies return to the first.
 `failure-timing.json` includes probe timeouts and verification overhead. This
 qualifies an orchestrated recovery experiment, not an autonomous failure detector,
 retained-session recovery or a production failover-time guarantee.
+
+[The forwarding-failure trial passed](https://github.com/l4load/l4load/actions/runs/36224483206):
+new TCP/UDP probes recovered after route replacement while the original controller
+remained alive. Detection plus recovery verification took 2.06 seconds, including
+two one-second probe timeouts. This is one synthetic observation, not an HA SLO.

@@ -78,6 +78,18 @@ working, reject an invalid update and restore forwarding. The nftables rule
 also expired without a controller; YANET removal was explicit.
 Overload protection, filtering throughput and feature parity are not established.
 <a href="https://github.com/l4load/l4load/tree/main/lab/filter">Reproduce the filter trial ↗</a></p>
+<p>Full nftables snapshots now replace the deny set atomically, including empty
+snapshots that clear old bans. A low-rate trial applied 65,536 pairs in 0.699 seconds
+with 134 probes during that update and no observed loss;
+<a href="https://github.com/l4load/l4load/tree/main/lab/filter/results/2026-09-26">raw samples and limits</a>
+are preserved. This is not a capacity or comparative performance result.
+The Linux trial checks malformed input, replacement
+and duplicate entries. This helper supplies neither transport nor version ordering.</p>
+<p>An <a href="https://github.com/l4load/l4load/actions/runs/36224483206">injected forwarding failure</a>
+left Keepalived alive while TCP/UDP probes timed out. The lab harness redirected
+new flows through a second director and verified recovery in 2.06 seconds,
+including probe timeouts. This is orchestrated recovery, not autonomous HA or a
+retained-session guarantee.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
