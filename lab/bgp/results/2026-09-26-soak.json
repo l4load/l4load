@@ -1,0 +1,22 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36248181591/job/108421161962",
+  "head": "1474802cbd9b67c0d0bd6ca9755a87f7108e7859",
+  "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36248181591/artifacts/10907714642",
+  "artifact_sha256": "9acd8365a4153dc9f708b6dd4c7a8f5dc0932153bae2a12cf713912960ca2472",
+  "environment": "Ubuntu 24.04 shared virtual runner; two installed IPVS/BIRD directors and nftables filters in namespaces",
+  "denied_generator": {"seconds": 90, "sent": 9000174, "actual_mps": 100001.933},
+  "steady_state": {
+    "seconds": 62.366,
+    "filter_denied_packets": 6236683,
+    "filter_denied_pps": 100001.669,
+    "tcp": {"requested_mps": 1000, "actual_mps": 1000.017, "sent": 59550, "received": 59550, "dropped": 0, "p99_rtt_us": 1157.75},
+    "udp": {"requested_mps": 1000, "actual_mps": 1000.017, "sent": 59549, "received": 59549, "dropped": 0, "p99_rtt_us": 858.705}
+  },
+  "route_failover_under_denied_load": {
+    "tcp": {"fault": "12/262", "failover": "299/299"},
+    "udp": {"fault": "13/262", "failover": "298/298"},
+    "requested_useful_starts_per_second_per_protocol": 100
+  },
+  "resource_scope": "Per-unit cgroup snapshots are in the raw artifact. They exclude kernel IPVS/nftables dataplane CPU and total host cost.",
+  "limit": "One shared virtual-runner result. The one-minute 1000-mps TCP/UDP trial starts after failover and recovery; it does not establish useful-traffic continuity at that rate across failover. Filter counter differences are not NIC ingress. No physical capacity or paired YANET ranking."
+}

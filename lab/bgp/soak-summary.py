@@ -13,6 +13,6 @@ for protocol in ('tcp', 'udp'):
     dropped = int(re.search(r'# dropped messages = (\d+)', text)[1])
     p99 = float(re.search(r'percentile 99\.000 =\s*([\d.]+)', text)[1])
     samples = (out / f'{name}.csv').read_bytes()
-    assert float(duration) >= 59 and int(sent) > 0 and int(received) > 0 and samples
+    assert float(duration) >= 59 and int(sent) > 0 and int(received) == int(sent) and dropped == 0 and samples
     summary[protocol] = {'requested_mps': 1000, 'actual_mps': int(sent) / float(duration), 'sent': int(sent), 'received': int(received), 'dropped': dropped, 'p99_rtt_us': p99, 'samples_sha256': hashlib.sha256(samples).hexdigest()}
 print(json.dumps(summary, indent=2))

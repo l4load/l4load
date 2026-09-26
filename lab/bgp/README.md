@@ -58,3 +58,10 @@ or comparative ranking.
 [Per-phase filter counters and service cgroups](results/2026-09-26-attack-phases.json)
 show the denied rate during failover and where packets were dropped. Kernel
 dataplane CPU remains outside the service accounting.
+
+Set `L4LOAD_BGP_SOAK=1` with mode 8 and `L4LOAD_BGP_LOAD=1` for the
+[routed soak trial](results/2026-09-26-soak.json). After failover and recovery,
+it runs about one minute of TCP and UDP requests at 1000 messages/s each while
+the filter denies about 100,000 packets/s. The recorded virtual run lost no
+steady-state messages. It does not measure useful traffic at that rate during
+the failover, physical throughput, or total host CPU.
