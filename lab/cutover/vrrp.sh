@@ -128,6 +128,10 @@ wait_vip() {
         if has_vip "$1" && ! has_vip "$2"; then return; fi
         sleep 0.5
     done
+    record_vip timeout
+    for ns in l4-lb l4-alt; do
+        ip netns exec "$ns" ipvsadm -Ln --daemon > "$out/vrrp-timeout-$ns-daemon.txt"
+    done
     cat "$out"/vrrp-*.log
     return 1
 }
