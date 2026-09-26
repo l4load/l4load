@@ -77,6 +77,11 @@ It records actual rates, losses, p99, raw samples and aggregate host CPU.
 The host CPU includes generators and backends; virtual AF_PACKET/veth traffic
 cannot establish physical-NIC capacity or a production SLO.
 
+[The paired five-minute trial](results/2026-09-26-paired-steady/) observed zero
+useful loss in both orders. IPVS had lower p99 RTT and aggregate host busy time
+in this one virtual configuration. A separate 65,536-pair update under load
+failed YANET's continuity gate; the raw measurements and caveats are linked.
+
 [The corrected run completed](https://github.com/l4load/l4load/actions/runs/36177713642).
 All twelve trials reported zero allowed-message loss; denied generators averaged
 100,003–100,007 messages/s. Ranges below are the three per-run p99 RTT values,

@@ -237,6 +237,14 @@ the respective ranges were 42–44 µs and 92–1003 µs. YANET baseline variabi
 shared CPU contention, fixed order and short intervals prevent a capacity or
 production-superiority claim. All twelve raw CSVs are
 <a href="https://github.com/l4load/l4load/tree/main/lab/filter/results/2026-09-25">preserved with hashes</a>.</p>
+<p>In a <a href="https://github.com/l4load/l4load/tree/main/lab/filter/results/2026-09-26-paired-steady">paired five-minute virtual trial</a>,
+both engines delivered all observed useful UDP probes at 1,000/s while denying
+about 100,000 messages/s. IPVS p99 RTT was 65–68 µs and whole-runner busy time
+about 50%; YANET AF_PACKET p99 was 845–979 µs and busy time 78–79%.
+A separate 65,536-pair update under load lost 0/173 useful probes with nftables
+and 1/8,242 with YANET. These are two trials per engine on one shared host;
+the update methods differ, and neither result is a hardware capacity or general
+performance claim.</p>
 <p>In an isolated Katran test, freezing a kernel map caused a backend update to return success
 while the kernel ring stayed unchanged. This artificial permanent-write failure does not establish
 production incidence; it shows why an API acknowledgement alone is insufficient.</p>

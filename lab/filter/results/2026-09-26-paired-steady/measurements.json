@@ -1,0 +1,157 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36252980697",
+  "artifact": "https://github.com/l4load/l4load/actions/runs/36252980697/artifacts/10911010042",
+  "artifact_sha256": "a7075defe5eefe0c35c6bb99ff7cfcb040821a3b59f3412ee5fa4c2720da82c7",
+  "trials": [
+    {
+      "name": "ipvs-paired-1",
+      "repeat": 1,
+      "denied_requested_mps": 100000,
+      "denied_generator_mps": 100001.07491856678,
+      "allowed_requested_mps": 1000,
+      "allowed_sent": 299549,
+      "allowed_received": 299549,
+      "allowed_actual_mps": 1000.0033383631338,
+      "dropped": 0,
+      "p99_rtt_us": 65.509,
+      "runner_busy_percent": 50.346249449243075,
+      "runner_softirq_percent": 4.733599913541554,
+      "samples_bytes": 13160412,
+      "samples_sha256": "f9ca5745a62e1623d79906edf8ce4b3b14f9db4811ee039efa274b2fcca07c1f"
+    },
+    {
+      "name": "yanet-dsr-native-paired-2",
+      "repeat": 1,
+      "denied_requested_mps": 100000,
+      "denied_generator_mps": 100001.11400651466,
+      "allowed_requested_mps": 1000,
+      "allowed_sent": 299550,
+      "allowed_received": 299550,
+      "allowed_actual_mps": 1000.0033383519892,
+      "dropped": 0,
+      "p99_rtt_us": 979.115,
+      "runner_busy_percent": 78.58456198233495,
+      "runner_softirq_percent": 8.163212702340447,
+      "samples_bytes": 13169784,
+      "samples_sha256": "62d5d8381c432a63c172f22ca8a878528c2aa525ccfbf8561eb33c16ac344c18"
+    },
+    {
+      "name": "yanet-dsr-native-paired-3",
+      "repeat": 1,
+      "denied_requested_mps": 100000,
+      "denied_generator_mps": 100001.61890305474,
+      "allowed_requested_mps": 1000,
+      "allowed_sent": 299548,
+      "allowed_received": 299548,
+      "allowed_actual_mps": 1000.0033383742784,
+      "dropped": 0,
+      "p99_rtt_us": 844.812,
+      "runner_busy_percent": 78.24958980130062,
+      "runner_softirq_percent": 7.375845095226232,
+      "samples_bytes": 13169570,
+      "samples_sha256": "89f2ae477fd70bca81fa3243bdf4f98b7b059ee051f4f1fb3b9779aecad90934"
+    },
+    {
+      "name": "ipvs-paired-4",
+      "repeat": 1,
+      "denied_requested_mps": 100000,
+      "denied_generator_mps": 100001.02280130293,
+      "allowed_requested_mps": 1000,
+      "allowed_sent": 299547,
+      "allowed_received": 299547,
+      "allowed_actual_mps": 1000.0033383854233,
+      "dropped": 0,
+      "p99_rtt_us": 67.964,
+      "runner_busy_percent": 50.41185067091803,
+      "runner_softirq_percent": 5.261890527434569,
+      "samples_bytes": 13160365,
+      "samples_sha256": "e2696914e27f9760d55c7080ff44e68800f7a83553c9283a8a3abae79daf69cf"
+    }
+  ],
+  "update_load": {
+    "ipvs-snapshots-load": [
+      {
+        "elements": 1024,
+        "started_monotonic": 576.843702118,
+        "finished_monotonic": 576.908167101,
+        "child_cpu_seconds": 0.03807999999999999,
+        "children_peak_rss_kib": 11736,
+        "sent_during_update": 13,
+        "lost_during_update": 0,
+        "p99_rtt_ms": 0.11724899991349957
+      },
+      {
+        "elements": 16384,
+        "started_monotonic": 598.291467874,
+        "finished_monotonic": 598.532424732,
+        "child_cpu_seconds": 0.22330900000000042,
+        "children_peak_rss_kib": 20176,
+        "sent_during_update": 46,
+        "lost_during_update": 0,
+        "p99_rtt_ms": 0.11225999992348079
+      },
+      {
+        "elements": 65536,
+        "started_monotonic": 628.942390123,
+        "finished_monotonic": 629.849823316,
+        "child_cpu_seconds": 0.8433850000000014,
+        "children_peak_rss_kib": 62096,
+        "sent_during_update": 173,
+        "lost_during_update": 0,
+        "p99_rtt_ms": 0.1203849999455997
+      },
+      {
+        "elements": 0,
+        "started_monotonic": 721.339297904,
+        "finished_monotonic": 721.453421168,
+        "child_cpu_seconds": 0.050512999999995145,
+        "children_peak_rss_kib": 62096,
+        "sent_during_update": 22,
+        "lost_during_update": 0,
+        "p99_rtt_ms": 0.1325480000105017
+      }
+    ],
+    "yanet-dsr-native-snapshots-load": [
+      {
+        "elements": 1024,
+        "started_monotonic": 737.953415447,
+        "finished_monotonic": 738.469227888,
+        "child_cpu_seconds": 0.039519000000000006,
+        "children_peak_rss_kib": 14708,
+        "sent_during_update": 98,
+        "lost_during_update": 0,
+        "p99_rtt_ms": 0.9914800000387913
+      },
+      {
+        "elements": 16384,
+        "started_monotonic": 759.448512453,
+        "finished_monotonic": 762.35762838,
+        "child_cpu_seconds": 0.05888199999999877,
+        "children_peak_rss_kib": 19292,
+        "sent_during_update": 550,
+        "lost_during_update": 0,
+        "p99_rtt_ms": 1.1993629999551558
+      },
+      {
+        "elements": 65536,
+        "started_monotonic": 790.296989546,
+        "finished_monotonic": 834.344812757,
+        "child_cpu_seconds": 0.0969860000000029,
+        "children_peak_rss_kib": 41300,
+        "sent_during_update": 8242,
+        "lost_during_update": 1,
+        "p99_rtt_ms": 2.462520999984008
+      },
+      {
+        "elements": 0,
+        "started_monotonic": 882.771942719,
+        "finished_monotonic": 883.387160093,
+        "child_cpu_seconds": 0.0408909999999878,
+        "children_peak_rss_kib": 41300,
+        "sent_during_update": 117,
+        "lost_during_update": 0,
+        "p99_rtt_ms": 0.20802899996397173
+      }
+    ]
+  }
+}
