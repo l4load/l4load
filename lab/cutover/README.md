@@ -43,3 +43,9 @@ retained-session recovery or a production failover-time guarantee.
 new TCP/UDP probes recovered after route replacement while the original controller
 remained alive. Detection plus recovery verification took 2.06 seconds, including
 two one-second probe timeouts. This is one synthetic observation, not an HA SLO.
+
+Combine the fault flag with `L4LOAD_SYNC=1` to keep one TCP connection per backend
+exchanging throughout the fault and recovery, with a 10-second socket timeout.
+The experiment verifies replication before injection and prepares sync roles;
+it does not model a stale replica or autonomous failover. No reconnect is allowed.
+`failure-sessions.jsonl` records exchanges and maximum RTT per connection.
