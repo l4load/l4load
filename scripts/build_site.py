@@ -24,16 +24,21 @@ footer{border-top:1px solid #31415b;margin-top:40px;padding-top:20px;font-size:1
 <p>Tools for teams that need to handle traffic without building a networking platform.</p>
 <a href="https://github.com/l4load/l4load">Source &amp; quickstart ↗</a></header>
 <main><h2>Start with a working dataplane.</h2>
-<p>Balance experiments reuse existing engines before adding new code.
-Our Katran lab sends TCP and UDP through one IPv4 VIP to two IPIP backends,
-checks replies and preserves the original client address without DPDK.</p>
+<p><a href="https://github.com/l4load/l4load/tree/main/profiles/ipvs">Balance</a>
+packages Linux IPVS and Keepalived into an installable IPv4 DSR profile with
+backend health, drain, rollback and a tested two-node virtual HA recipe.
+<a href="https://github.com/l4load/l4load/tree/main/profiles/nftables">Shield</a>
+uses nftables for source/VIP filtering and atomic policy snapshots. Both reuse
+packaged engines; neither is qualified for unrestricted production traffic.</p>
+<p>Our separate Katran lab sends TCP and UDP through one IPv4 VIP to two IPIP
+backends, checks replies and preserves the original client address without DPDK.</p>
 <p><a href="https://github.com/l4load/l4load/tree/main/lab/katran">Run the Katran scenario ↗</a> ·
 <a href="https://github.com/l4load/l4load/actions/workflows/katran.yml">Execution logs &amp; artifacts ↗</a></p>
 <p>This is a functional Linux namespace test using generic XDP and static maps.
 It is not a production deployment or a throughput result.</p>
 <div class="grid">
-<article><h3>Balance</h3><small>Katran DSR lab</small><p>Test and tune existing dataplanes.</p></article>
-<article><h3>Shield</h3><small>Planned</small><p>Traffic filtering and protection.</p></article>
+<article><h3>Balance</h3><small>IPVS profile</small><p>Healthy forwarding, controlled changes and virtual HA.</p></article>
+<article><h3>Shield</h3><small>nftables profile</small><p>Source/VIP policy with atomic snapshots.</p></article>
 <article><h3>Pulse</h3><small>Planned</small><p>Traffic and failure analysis.</p></article>
 <article><h3>Fabric</h3><small>Planned</small><p>Configuration and multi-site operation.</p></article>
 </div>
