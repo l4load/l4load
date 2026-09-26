@@ -54,8 +54,8 @@ rollback. It remains a short virtual-network result.
 sync link fails. [The virtual result](results/2026-09-26-installed-sync-loss.json)
 shows that the standby still advertised without the new TCP connection state.
 After primary loss, that connection reset; 32 fresh TCP and 32 UDP flows passed.
-Monitor sync health and agree on session-loss versus fresh-availability behavior
-before deployment. The current profile does not enforce a sync-loss policy.
+The routed unit logs the sync-link carrier change; this does not prove replica
+freshness. Agree on session loss versus fresh availability before deployment.
 
 Set `L4LOAD_BGP_LOAD=1` alongside mode 8 for the
 [denied-load trial](results/2026-09-26-attack-pair.json). Both directors run the

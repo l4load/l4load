@@ -1,5 +1,11 @@
 echo baseline > "$out/useful-phase"
+grep -q '"sync_carrier": "up"' "$out/l4load-routed-d1.log"
 ip -n l4-d1 link set sync0 down
+for attempt in $(seq 1 100); do
+    if grep -q '"sync_carrier": "down"' "$out/l4load-routed-d1.log"; then break; fi
+    sleep 0.1
+done
+grep -q '"sync_carrier": "down"' "$out/l4load-routed-d1.log"
 ip netns exec l4-client env L4LOAD_SESSION_EXPECT_RESET=1 python3 -u lab/bgp/session.py "$out" > "$out/session.log" 2>&1 &
 session_pid=$!
 pids+=("$session_pid")

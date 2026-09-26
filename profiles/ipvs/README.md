@@ -192,6 +192,6 @@ qualify physical links, capacity or a production SLO.
 The [installed sync-loss trial](../../lab/bgp/results/2026-09-26-installed-sync-loss.json)
 shows that the standby can remain advertised without current connection state:
 one established TCP connection reset after primary loss, while fresh TCP/UDP
-flows passed. The unit checks sync carrier only at startup; its route gate does
-not monitor ongoing sync health. Require external sync monitoring and an explicit
-session-loss policy for this profile.
+flows passed. The unit logs sync-link carrier transitions to its service output;
+this is not proof of connection-state freshness. Monitor those events and agree
+on session loss versus fresh availability before using the routed profile.
