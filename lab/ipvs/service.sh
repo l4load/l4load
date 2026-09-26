@@ -84,8 +84,10 @@ fi
 systemctl is-active --quiet "$unit"
 wait_weight 1
 wait_weight 1 10.0.3.2:8080
+ip netns exec l4-lb sysctl -qw net.ipv4.vs.expire_quiescent_template=0
 for candidate in drain original; do
     bash profiles/ipvs/update.sh "$out/$candidate.conf"
+    test "$(ip netns exec l4-lb sysctl -n net.ipv4.vs.expire_quiescent_template)" = 1
     if [ "$candidate" = drain ]; then
         wait_weight 0
         phase service-drained
