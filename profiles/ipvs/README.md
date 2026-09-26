@@ -138,3 +138,9 @@ must still verify runtime state. Stop the primary service for planned handoff;
 confirm the standby owns the next-hop and serves traffic before maintenance.
 Physical L2, network startup, sync-loss policy, sustained load and operator
 acceptance remain unqualified.
+
+[A sync-loss trial](../../lab/cutover/results/2026-09-26-sync-loss.json) cut both
+sync links before opening a TCP connection, then failed primary forwarding.
+The backup took the VIP and fresh TCP/UDP recovered in 3.58 seconds, but that
+unsynced connection reset. Treat sync-link health and retained-session loss as
+an explicit pilot risk; VRRP failover alone cannot preserve state it never received.

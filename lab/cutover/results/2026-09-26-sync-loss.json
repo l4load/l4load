@@ -1,0 +1,15 @@
+{
+  "source": "d0bc19d513910126ae2def60b93c2a8d1b571c69",
+  "run": "https://github.com/l4load/l4load/actions/runs/36235705199/job/108386953329",
+  "environment": "Ubuntu 24.04 virtual runner, Linux 6.17.0-1022-azure, Keepalived 1:2.2.8-1build2, IPVS 1:1.31-1ubuntu0.1",
+  "fault": "both native IPVS sync links down before a new TCP session, then primary ingress blackhole",
+  "observed": {
+    "primary_connection_present_on_backup_before_failover": false,
+    "vip_owner_after_failover": "backup only",
+    "fresh_tcp_udp_after_failover": "pass",
+    "fault_to_verified_fresh_flow_seconds": 3.583288371,
+    "unsynced_tcp_session": "reset without reconnect after failover",
+    "backup_sync_daemon_after_failover": "absent while sync link down"
+  },
+  "limit": "One virtual namespace run. The pair continued accepting fresh flows, but an unsynced established connection was lost. No physical link, sustained load or production loss bound was tested."
+}
