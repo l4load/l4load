@@ -20,6 +20,14 @@ start_source
 pull_snapshot
 probe 10.0.0.3 drop
 probe 10.0.0.2 pass
+if ip netns exec l4-lb env -u CURL_CA_BUNDLE -u SSL_CERT_FILE -u SSL_CERT_DIR NO_PROXY='*' bash profiles/nftables/pull.sh https://10.0.0.2:9443/pairs.json; then
+    echo 'untrusted certificate accepted'; exit 1
+fi
+if ip netns exec l4-lb env NO_PROXY='*' CURL_CA_BUNDLE="$out/source/cert.pem" bash profiles/nftables/pull.sh https://10.0.0.2:9443/partial; then
+    echo 'truncated response accepted'; exit 1
+fi
+probe 10.0.0.3 drop
+probe 10.0.0.2 pass
 kill "$source_pid"
 wait "$source_pid" || true
 if pull_snapshot; then echo 'disconnected source accepted'; exit 1; fi
