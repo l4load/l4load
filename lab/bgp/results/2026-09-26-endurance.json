@@ -1,0 +1,24 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36251114724/job/108429202699",
+  "head": "7862683df1487072120bb64a2a208fe0da7ae2e3",
+  "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36251114724/artifacts/10909645954",
+  "artifact_sha256": "ac541f14e227ffc74c13e9c5d76c7d08bac2f62430a25a040758a8618807b0a6",
+  "environment": "Ubuntu 24.04 shared virtual runner; installed two-director IPVS/BIRD pair and nftables filters in namespaces; synthetic forwarding check uses 200 ms timeout",
+  "denied_generator": {"seconds": 330, "sent": 33000867, "actual_mps": 100002.627},
+  "steady_state": {
+    "seconds": 302.459,
+    "filter_denied_packets": 30246592,
+    "filter_denied_pps": 100002.399,
+    "tcp": {"sent": 299547, "received": 299547, "dropped": 0, "actual_mps": 1000.003, "p99_rtt_us": 974.417},
+    "udp": {"sent": 299547, "received": 299547, "dropped": 0, "actual_mps": 1000.003, "p99_rtt_us": 854.295},
+    "route_actions": {"primary": [], "standby": []},
+    "control_cgroups": {
+      "primary_routed": {"cpu_seconds": 33.396, "memory_end_bytes": 14823424},
+      "standby_routed": {"cpu_seconds": 33.546, "memory_end_bytes": 15249408},
+      "primary_ipvs": {"cpu_seconds": 0.200, "memory_end_bytes": 2695168},
+      "standby_ipvs": {"cpu_seconds": 0.216, "memory_end_bytes": 2629632}
+    }
+  },
+  "earlier_fault_at_100_starts_per_second_per_protocol": {"tcp_errors": 30, "udp_errors": 29, "tcp_success_gap_seconds": 0.310, "udp_success_gap_seconds": 0.300},
+  "limit": "One five-minute shared virtual-runner result. Zero steady-state loss and no route actions do not establish a production false-failover rate or hardware capacity. The 1000-mps interval starts after failover and recovery. Filter counter differences are not NIC ingress. Control cgroups exclude kernel IPVS/nftables dataplane CPU and workload generators; memory figures are endpoints, not peaks."
+}

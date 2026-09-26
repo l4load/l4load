@@ -83,3 +83,9 @@ the filter denied about 100,000 packets/s. Two short virtual runs lost 375–472
 requests per protocol in 0.376–0.473 s gaps, then passed all measured standby
 requests. The client used a 50 ms timeout; these are observed loss samples,
 not a production SLO or forwarding-capacity limit.
+
+Set `L4LOAD_BGP_SOAK_SECONDS=300` with the soak mode for the
+[five-minute endurance result](results/2026-09-26-endurance.json). The virtual
+run delivered all 299,547 TCP and 299,547 UDP messages under about 100,000
+denied packets/s with no route actions during the steady interval. One run
+does not establish a production false-failover rate or full host resource cost.
