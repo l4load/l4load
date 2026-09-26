@@ -49,3 +49,8 @@ exchanging throughout the fault and recovery, with a 10-second socket timeout.
 The experiment verifies replication before injection and prepares sync roles;
 it does not model a stale replica or autonomous failover. No reconnect is allowed.
 `failure-sessions.jsonl` records exchanges and maximum RTT per connection.
+
+[The retained-session trial passed](https://github.com/l4load/l4load/actions/runs/36225087250/job/108357440531):
+both sockets completed 16 exchanges without reconnecting; one exchange took
+3.309 seconds. Sockets are serviced sequentially, so this does not measure each
+flow's stall independently. Connection survival is not uninterrupted delivery.

@@ -34,6 +34,11 @@ with 134 probes sent during that interval and no observed losses. Raw samples,
 per-update summaries and environment versions are preserved; this single low-rate
 observation does not establish capacity or superiority over another engine.
 
+[A matched native-update observation](results/2026-09-26-comparison/) applied
+65,536 pairs in 0.910 s with nftables and 44.466 s with YANET firewall reload.
+Both preserved the observed low-rate UDP exchanges. This measures those update
+paths in one virtual run; it does not rank forwarding capacity or optimal tuning.
+
 [The nftables trial passed](https://github.com/l4load/l4load/actions/runs/36172967453).
 [YANET passed the same deny/allow probes](https://github.com/l4load/l4load/actions/runs/36174467560),
 including rejected reload and explicit rollback. Only nftables expiry was tested;

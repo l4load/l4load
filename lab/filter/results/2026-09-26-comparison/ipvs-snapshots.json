@@ -1,0 +1,42 @@
+[
+  {
+    "elements": 1024,
+    "started_monotonic": 364.533759583,
+    "finished_monotonic": 364.598340973,
+    "child_cpu_seconds": 0.038606,
+    "children_peak_rss_kib": 11948,
+    "sent_during_update": 13,
+    "lost_during_update": 0,
+    "p99_rtt_ms": 0.12601499997799692
+  },
+  {
+    "elements": 16384,
+    "started_monotonic": 367.679098843,
+    "finished_monotonic": 367.971468517,
+    "child_cpu_seconds": 0.232602,
+    "children_peak_rss_kib": 20504,
+    "sent_during_update": 56,
+    "lost_during_update": 0,
+    "p99_rtt_ms": 0.3163699999504388
+  },
+  {
+    "elements": 65536,
+    "started_monotonic": 371.225789388,
+    "finished_monotonic": 372.135558936,
+    "child_cpu_seconds": 0.8401849999999998,
+    "children_peak_rss_kib": 61588,
+    "sent_during_update": 174,
+    "lost_during_update": 0,
+    "p99_rtt_ms": 0.16338399996129738
+  },
+  {
+    "elements": 0,
+    "started_monotonic": 375.164657827,
+    "finished_monotonic": 375.278832797,
+    "child_cpu_seconds": 0.05281200000000005,
+    "children_peak_rss_kib": 61588,
+    "sent_during_update": 22,
+    "lost_during_update": 0,
+    "p99_rtt_ms": 0.10778099999697588
+  }
+]
