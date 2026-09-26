@@ -29,7 +29,7 @@ try:
     for role in ('backup', 'master'):
         subprocess.run(['/usr/sbin/ipvsadm', '--start-daemon', role, '--mcast-interface', config['sync_interface'], '--syncid', str(config['sync_id'])], check=True)
         started.append(role)
-    gate = subprocess.Popen(['/usr/bin/python3', '/usr/local/libexec/l4load-route-gate.py', str(control), 'vip', config['peer_ip'], '--', f'/etc/l4load/check-{instance}'])
+    gate = subprocess.Popen(['/usr/bin/python3', '/usr/local/libexec/l4load-route-gate.py', str(control), 'vip', config['peer_ip'], '--ipvs', '--', f'/etc/l4load/check-{instance}'])
     while bird.poll() is None and gate.poll() is None:
         time.sleep(0.2)
     raise RuntimeError(f'BIRD={bird.poll()} route gate={gate.poll()}')
