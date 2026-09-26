@@ -48,6 +48,9 @@ probe 10.0.0.3 pass
 probe 10.0.0.2 pass
 nftlb -j list table netdev l4load > "$out/filter-empty-snapshot.json"
 echo FILTER_SNAPSHOT_PASS
+if [ "${L4LOAD_FILTER_SNAPSHOTS:-0}" = 1 ]; then
+    python3 lab/filter/snapshots.py "$out"
+fi
 nftlb delete table netdev l4load
 probe 10.0.0.3 pass
 echo FILTER_LIFECYCLE_PASS

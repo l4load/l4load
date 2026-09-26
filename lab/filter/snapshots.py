@@ -1,0 +1,77 @@
+import csv
+import ipaddress
+import json
+import socket
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+
+out = Path(sys.argv[1])
+phase = out / 'snapshot-phase.txt'
+if len(sys.argv) == 3:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock, (out / 'snapshot-traffic.csv').open('w') as file:
+        sock.bind(('10.0.0.2', 0))
+        sock.settimeout(0.2)
+        writer = csv.writer(file)
+        writer.writerow(['sent_monotonic', 'phase', 'rtt_ms', 'status'])
+        (out / 'snapshot-ready').touch()
+        for sequence in range(30000):
+            current = phase.read_text().strip()
+            if current == 'done':
+                break
+            payload = str(sequence).encode()
+            sent = time.monotonic()
+            sock.sendto(payload, ('198.18.0.1', 8080))
+            status = 'timeout'
+            deadline = sent + 0.2
+            while time.monotonic() < deadline:
+                sock.settimeout(max(0.001, deadline - time.monotonic()))
+                try:
+                    reply = sock.recv(4096).decode().split(' ', 2)
+                except TimeoutError:
+                    break
+                if len(reply) == 3 and reply[0] in ('b1', 'b2') and reply[1] == '10.0.0.2' and reply[2] == str(sequence):
+                    status = 'pass'
+                    break
+            writer.writerow([sent, current, (time.monotonic() - sent) * 1000, status])
+            file.flush()
+            time.sleep(0.005)
+        else:
+            raise TimeoutError('snapshot experiment did not finish')
+else:
+    phase.write_text('baseline')
+    client = subprocess.Popen(['ip', 'netns', 'exec', 'l4-client', sys.executable, __file__, str(out), 'probe'])
+    measurements = []
+    try:
+        for _ in range(100):
+            assert client.poll() is None, 'traffic probe exited'
+            if (out / 'snapshot-ready').exists():
+                break
+            time.sleep(0.05)
+        else:
+            raise TimeoutError('traffic probe not ready')
+        time.sleep(1)
+        for count in (1024, 16384, 65536, 0):
+            pairs = [[str(ipaddress.IPv4Address(int(ipaddress.IPv4Address('198.19.0.0')) + i)), '198.18.0.1'] for i in range(max(0, count - 1))]
+            if count:
+                pairs.append(['10.0.0.3', '198.18.0.1'])
+            phase.write_text(str(count))
+            started = time.monotonic()
+            subprocess.run(['ip', 'netns', 'exec', 'l4-lb', sys.executable, 'profiles/nftables/snapshot.py'], input=json.dumps(pairs), text=True, check=True, timeout=60)
+            measurements.append({'elements': count, 'started_monotonic': started, 'finished_monotonic': time.monotonic()})
+            subprocess.run(['ip', 'netns', 'exec', 'l4-client', sys.executable, 'lab/filter/probe.py', '10.0.0.3', 'drop' if count else 'pass'], check=True)
+            time.sleep(1)
+        phase.write_text('done')
+        client.wait(timeout=5)
+        assert client.returncode == 0
+    finally:
+        if client.poll() is None:
+            client.terminate()
+            client.wait(timeout=5)
+        (out / 'snapshot-updates.json').write_text(json.dumps(measurements, indent=2) + '\n')
+    with (out / 'snapshot-traffic.csv').open() as file:
+        rows = list(csv.DictReader(file))
+    assert rows and all(row['status'] == 'pass' for row in rows), 'permitted traffic lost; inspect CSV'
+    print('FILTER_BULK_SNAPSHOT_PASS', json.dumps({'exchanges': len(rows), 'max_rtt_ms': max(float(row['rtt_ms']) for row in rows)}))
