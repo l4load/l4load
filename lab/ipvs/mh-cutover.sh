@@ -17,13 +17,17 @@ for i in $(seq 2 9); do
     if [ "$i" != 2 ]; then ip -n l4-client addr add "$client/24" dev eth0; fi
     ip netns exec l4-client env L4LOAD_CLIENT="$client" python3 lab/katran/scenario.py check one "$((30000+i*100))" > "$out/mh-before-$i.json"
 done
-for attempt in $(seq 1 50); do
+ready=false
+for attempt in $(seq 1 100); do
     ip netns exec l4-alt ipvsadm -Lnc > "$out/mh-replica.txt"
-    ready=true
-    for i in $(seq 2 9); do
-        if ! grep -q "10.0.0.$i:" "$out/mh-replica.txt"; then ready=false; break; fi
-    done
-    if [ "$ready" = true ]; then break; fi
+    if python3 - "$out/mh-replica.txt" <<'PY'
+import sys
+rows = [line.split() for line in open(sys.argv[1])]
+found = {(row[0], row[3]) for row in rows if len(row) >= 4}
+expected = {(protocol, f'10.0.0.{i}:0') for protocol in ('TCP', 'UDP') for i in range(2, 10)}
+sys.exit(0 if expected <= found else 1)
+PY
+    then ready=true; break; fi
     sleep 0.1
 done
 test "$ready" = true
