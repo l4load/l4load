@@ -70,3 +70,9 @@ the failover, physical throughput, or total host CPU.
 the observed request gap to about 1.2 s in a later virtual run under denied
 load. The earlier result came from a separate run, so this is a directional
 comparison, not a controlled production improvement or a guaranteed bound.
+
+[A 200 ms probe-timeout trial](results/2026-09-26-short-probe.json) observed
+about a 0.52 s request gap under the same offered synthetic rates. Neither
+director changed its route during the later one-minute steady-state run. One
+virtual run cannot establish a safe timeout for a production network; the
+installed check is supplied by the operator and must be calibrated there.

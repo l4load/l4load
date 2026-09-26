@@ -1,0 +1,23 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36249405798/job/108424496304",
+  "head": "0bbdad611ceb525b74f9609affd3da8cb9d0f4b8",
+  "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36249405798/artifacts/10908687455",
+  "artifact_sha256": "1c65c4abd80cabb63a4b38085890749405cb0a6ad8e08ea69174df0280ea6ad7",
+  "environment": "Ubuntu 24.04 shared virtual runner; installed two-director IPVS/BIRD pair with nftables filters; 200 ms socket timeout in the synthetic forwarding check",
+  "fault": {
+    "withdraw_after_fault_applied_seconds": 0.497,
+    "route_observed_after_fault_applied_seconds": 0.550,
+    "tcp": {"errors": 51, "last_success_to_next_success_seconds": 0.520},
+    "udp": {"errors": 51, "last_success_to_next_success_seconds": 0.520},
+    "actual_useful_starts_per_second_per_protocol": 100
+  },
+  "steady_state_after_recovery": {
+    "seconds": 62.359,
+    "denied_filter_pps": 100001.641,
+    "tcp": {"sent": 59549, "received": 59549, "dropped": 0, "p99_rtt_us": 1003.444},
+    "udp": {"sent": 59548, "received": 59548, "dropped": 0, "p99_rtt_us": 1028.688},
+    "requested_useful_mps_per_protocol": 1000,
+    "route_actions": {"primary": [], "standby": []}
+  },
+  "limit": "One shared virtual-runner result. The shorter timeout applies only to the synthetic installed check, not an automatic production setting. Zero route actions for one minute does not establish a false-failover rate. The 1000-mps steady-state trial begins after failover and recovery. Filter counter differences are not NIC ingress; cgroups exclude kernel dataplane CPU. No physical capacity or production SLO."
+}
