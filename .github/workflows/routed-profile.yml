@@ -22,3 +22,23 @@ jobs:
           sudo test "$(systemctl is-enabled bird.service)" = masked
           sudo test -x /etc/l4load/check-d1
           sudo grep -q 'disabled;' /etc/l4load/bird-d1.conf
+      - run: |
+          sudo bash <<'SH'
+          set -euo pipefail
+          mkdir -p /run/l4load-routed-d1
+          bird -f -c /etc/l4load/bird-d1.conf -s /run/l4load-routed-d1/bird.ctl > /tmp/l4load-bird.log 2>&1 &
+          bird_pid=$!
+          trap 'kill "$bird_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 100); do test -S /run/l4load-routed-d1/bird.ctl && break; sleep 0.1; done
+          birdc -s /run/l4load-routed-d1/bird.ctl 'show route all' > /tmp/route-before.txt
+          ! grep -q '198.18.0.1/32' /tmp/route-before.txt
+          python3 /usr/local/libexec/l4load-route-gate.py /run/l4load-routed-d1/bird.ctl vip - -- /bin/true > /tmp/route-gate.log 2>&1 &
+          gate_pid=$!
+          for attempt in $(seq 1 100); do grep -q '"action": "enable"' /tmp/route-gate.log && break; sleep 0.1; done
+          grep -q '"action": "enable"' /tmp/route-gate.log
+          birdc -s /run/l4load-routed-d1/bird.ctl 'show route all' | grep -q '198.18.0.1/32'
+          kill "$gate_pid"
+          wait "$gate_pid"
+          birdc -s /run/l4load-routed-d1/bird.ctl 'show route all' > /tmp/route-after.txt
+          ! grep -q '198.18.0.1/32' /tmp/route-after.txt
+          SH

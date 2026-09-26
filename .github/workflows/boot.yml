@@ -1,7 +1,7 @@
 name: Host boot
 on:
   pull_request:
-    paths: ['lab/boot/**', '!lab/boot/**/*.md', 'profiles/ipvs/**', '!profiles/ipvs/**/*.md', 'profiles/nftables/**', '!profiles/nftables/**/*.md', 'lab/filter/probe.py', '.github/workflows/boot.yml']
+    paths: ['lab/boot/**', '!lab/boot/**/*.md', 'profiles/ipvs/install.sh', 'profiles/ipvs/keepalived.conf', 'profiles/ipvs/l4load-ipvs.service', 'profiles/ipvs/gate.py', 'profiles/nftables/**', '!profiles/nftables/**/*.md', 'lab/filter/probe.py', '.github/workflows/boot.yml']
   workflow_dispatch:
 permissions:
   contents: read
