@@ -101,7 +101,11 @@ UNIT
     systemctl show l4load-routed@d1.service -p ActiveState -p MainPID -p NRestarts -p BindsTo > "$out/installed-service.txt"
     ln -s /run/l4load-routed-d1/bird.ctl "$out/d1.ctl"
 fi
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then source lab/bgp/pair.sh; probe_directors; fi
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then
+    source lab/bgp/pair.sh
+    probe_directors
+    if [ "${L4LOAD_BGP_SYNC_LOSS:-0}" = 1 ]; then source lab/bgp/sync-loss.sh; exit; fi
+fi
 if [ "${L4LOAD_BGP_LOAD:-0}" = 1 ]; then
     test "${L4LOAD_BGP_TRAFFIC:-1}" = 8
     ip -n l4-client addr add 10.0.0.3/24 dev eth0

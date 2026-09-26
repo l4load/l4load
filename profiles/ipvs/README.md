@@ -189,3 +189,9 @@ previous file; operator validation of runtime state is still required.
 The [virtual pair trial](../../lab/bgp/results/2026-09-26-installed-pair.json)
 covers installation, failover, unit restarts, drain and rollback. It does not
 qualify physical links, capacity or a production SLO.
+The [installed sync-loss trial](../../lab/bgp/results/2026-09-26-installed-sync-loss.json)
+shows that the standby can remain advertised without current connection state:
+one established TCP connection reset after primary loss, while fresh TCP/UDP
+flows passed. The unit logs sync-link carrier transitions to its service output;
+this is not proof of connection-state freshness. Monitor those events and agree
+on session loss versus fresh availability before using the routed profile.

@@ -1,0 +1,14 @@
+{
+  "source": "04b34ccde881cd8ff9e93e7e985681696c679ece",
+  "started_utc": "2026-09-26T18:24:16Z",
+  "run": "https://github.com/l4load/l4load/actions/runs/36262398155/jobs/108460586470",
+  "artifact_sha256": "a1d61d9df31ad8ce0ce64258494333d78f09fd54954e3326a56026e7cb72fab5",
+  "platform": "Ubuntu 24.04 virtual runner, Linux 6.17.0-1022-azure, BIRD 2.14-1build2, ipvsadm 1:1.31-1ubuntu0.1",
+  "fault": "primary sync interface down before TCP session; primary routed unit stopped after 22 successful exchanges",
+  "standby_state_before_failover": "no entry for client 10.0.0.2:12000",
+  "route_before": "10.1.1.2",
+  "route_after": "10.1.2.2",
+  "retained_tcp": "ConnectionResetError",
+  "fresh_standby": {"tcp": 32, "udp": 32},
+  "scope": "One synthetic connection and 64 fresh flows; no production loss rate or sync-loss policy qualification"
+}

@@ -5,6 +5,10 @@ import sys
 import time
 
 control, route, peer, *probe = sys.argv[1:]
+sync_interface = None
+if probe[:1] == ['--sync-interface']:
+    sync_interface = probe[1]
+    del probe[:2]
 check_ipvs = probe[:1] == ['--ipvs']
 if check_ipvs:
     probe.pop(0)
@@ -38,9 +42,19 @@ def ipvs_ready():
 healthy = False
 streak = 0
 misses = 0
+sync_carrier = None
 bird(['disable', route])
 try:
     while True:
+        if sync_interface:
+            try:
+                link = json.loads(subprocess.check_output(['ip', '-j', 'link', 'show', 'dev', sync_interface], timeout=3))[0]
+                carrier = 'LOWER_UP' in link['flags']
+            except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired, IndexError, ValueError):
+                carrier = False
+            if carrier != sync_carrier:
+                print(json.dumps({'at': time.monotonic(), 'sync_carrier': 'up' if carrier else 'down'}), flush=True)
+                sync_carrier = carrier
         try:
             forwarding = subprocess.run(probe, capture_output=True, timeout=3).returncode == 0
         except subprocess.TimeoutExpired:

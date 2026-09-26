@@ -11,7 +11,7 @@ events = []
 for line in (out / 'health1.jsonl').read_text().splitlines():
     if line.startswith('{'):
         events.append(json.loads(line))
-withdraw = next(event['at'] for event in events if event['action'] == 'disable' and event['at'] >= fault_before)
+withdraw = next(event['at'] for event in events if event.get('action') == 'disable' and event['at'] >= fault_before)
 result = {
     'fault_command_bracket_seconds': fault_after - fault_before,
     'withdraw_after_fault_applied_seconds': withdraw - fault_after,

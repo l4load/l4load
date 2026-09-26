@@ -23,7 +23,7 @@ end = next(row['finished_at'] for row in snapshots if row['phase'] == 'soak-end'
 summary['route_actions_during_soak'] = {}
 for n in (1, 2):
     events = [json.loads(line) for line in (out / f'health{n}.jsonl').read_text().splitlines() if line.startswith('{')]
-    actions = [event['action'] for event in events if start <= event['at'] <= end]
+    actions = [event['action'] for event in events if 'action' in event and start <= event['at'] <= end]
     assert not actions, (n, actions)
     summary['route_actions_during_soak'][str(n)] = actions
 print(json.dumps(summary, indent=2))
