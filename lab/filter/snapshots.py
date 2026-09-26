@@ -8,7 +8,10 @@ import socket
 import subprocess
 import sys
 import time
+from contextlib import nullcontext
 from pathlib import Path
+
+from snapshot_load import denied_load
 
 
 out = Path(sys.argv[1])
@@ -28,7 +31,7 @@ if len(sys.argv) == 3:
         writer = csv.writer(file)
         writer.writerow(['sent_monotonic', 'phase', 'rtt_ms', 'status'])
         (out / 'snapshot-ready').touch()
-        for sequence in range(30000):
+        for sequence in range(120000):
             current = phase.read_text().strip()
             if current == 'done':
                 break
@@ -60,6 +63,10 @@ else:
     measurements = []
     probes = set()
     try:
+        loaded = os.environ.get('L4LOAD_SNAPSHOT_LOAD') == '1'
+        if loaded:
+            subprocess.run(command, input=json.dumps([['10.0.0.3', '198.18.0.1']]), text=True, check=True, timeout=60)
+            subprocess.run(['ip', 'netns', 'exec', 'l4-client', sys.executable, 'lab/filter/probe.py', '10.0.0.3', 'drop'], check=True)
         for _ in range(100):
             assert client.poll() is None, 'traffic probe exited'
             if (out / 'snapshot-ready').exists():
@@ -79,17 +86,19 @@ else:
                     subprocess.run(['ip', 'netns', 'exec', 'l4-client', sys.executable, 'lab/filter/probe.py', source, 'pass'], check=True)
                 probes.update(selected)
             set_phase(str(count))
-            before = resource.getrusage(resource.RUSAGE_CHILDREN)
-            started = time.monotonic()
             try:
-                subprocess.run(command, input=json.dumps(pairs), text=True, check=True, timeout=60)
+                with denied_load(out, count) if loaded else nullcontext(lambda: None) as check_load:
+                    before = resource.getrusage(resource.RUSAGE_CHILDREN)
+                    started = time.monotonic()
+                    subprocess.run(command, input=json.dumps(pairs), text=True, check=True, timeout=60)
+                    finished = time.monotonic()
+                    after = resource.getrusage(resource.RUSAGE_CHILDREN)
+                    check_load()
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
                 (out / 'snapshot-failure.json').write_text(json.dumps({
                     'elements': count, 'started_monotonic': started,
                     'failed_monotonic': time.monotonic(), 'error': str(error)}) + '\n')
                 raise
-            finished = time.monotonic()
-            after = resource.getrusage(resource.RUSAGE_CHILDREN)
             measurements.append({'elements': count, 'started_monotonic': started, 'finished_monotonic': finished,
                                  'child_cpu_seconds': after.ru_utime + after.ru_stime - before.ru_utime - before.ru_stime,
                                  'children_peak_rss_kib': after.ru_maxrss})
