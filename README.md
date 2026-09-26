@@ -2,6 +2,11 @@
 
 Independent L4 networking tools. Experimental; not production-ready.
 
+Start with the [paired Balance/filter profile](profiles/README.md): packaged
+Keepalived/IPVS plus nftables, explicit policy delivery and boot restoration,
+traffic checks and rollback. The recipe states network prerequisites and remaining
+qualification gaps. No custom dataplane or DPDK is required for this profile.
+
 Balance work starts with existing dataplanes: configure, test and tune before
 implementing an engine. The [Katran DSR scenario](lab/katran/README.md) exercises
 one IPv4 VIP and two backends over TCP/UDP without DPDK. Shield, Pulse and Fabric
