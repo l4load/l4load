@@ -130,6 +130,7 @@ if compgen -G "$out/keepalived_*.deb" > /dev/null; then
 fi
 if [ -f "$out/upgrade.deb" ]; then
     port=27000
+    client_index=3
     for stage in upgrade rollback; do
         package="$out/upgrade.deb"
         if [ "$stage" = rollback ]; then
@@ -157,8 +158,11 @@ if [ -f "$out/upgrade.deb" ]; then
         wait_weight 1
         wait_weight 1 10.0.3.2:8080
         phase "package-$stage-restarted"
-        ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 "$port" | tee "$out/$stage-flows.json"
+        client="10.0.0.$client_index"
+        ip -n l4-client addr add "$client/24" dev eth0
+        ip netns exec l4-client env L4LOAD_CLIENT="$client" python3 lab/katran/scenario.py check b1,b2 "$port" | tee "$out/$stage-flows.json"
         port=$((port + 1000))
+        client_index=$((client_index + 1))
     done
     dpkg-query -W keepalived > "$out/rollback-after.txt"
     cmp "$out/package-before.txt" "$out/rollback-after.txt"
