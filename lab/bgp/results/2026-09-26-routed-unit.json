@@ -1,0 +1,15 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36244212056/job/108410244530",
+  "head": "9967bc47c5e7c335a20018faec7f39e5080afb6c",
+  "environment": "Ubuntu 24.04 virtual runner, BIRD 2.14, IPVS 1.31, one router, two directors",
+  "scope": "Installed primary routed systemd unit in a network namespace; lab-prepared IPVS services and a stub base IPVS unit; secondary director started manually.",
+  "route": ["secondary before unit start", "primary after health gate", "secondary after primary ingress blackhole", "primary after recovery", "secondary after unit stop", "primary after unit restart"],
+  "one_tcp_socket_exchanges": {"baseline": 50, "fault": 1, "failover": 43, "return": 30, "restored": 40},
+  "socket_reset": false,
+  "maximum_exchange_rtt_ms": 3320.984,
+  "fresh_tcp_on_secondary": "291/291",
+  "fresh_udp_on_secondary": "291/291",
+  "actual_fresh_starts_per_second_per_protocol": "approximately 100",
+  "after_unit_restart": "32/32 TCP and 32/32 UDP checks passed; client IP preserved",
+  "limit": "One short virtual run. IPVS base install, full two-node systemd lifecycle, update/rollback, physical network, sustained capacity, and production SLOs remain unqualified."
+}
