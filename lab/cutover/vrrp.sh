@@ -57,6 +57,26 @@ EOF
     ip netns exec "$director" keepalived -n -l -P -f "$out/vrrp-$n.conf" -p "$out/vrrp-$n-parent.pid" -r "$out/vrrp-$n-child.pid" > "$out/vrrp-$n.log" 2>&1 &
     pids+=("$!")
 done
+ip netns exec l4-alt keepalived -n -l -C -I -f "$out/keepalived.conf" -p "$out/alt-check-parent.pid" -c "$out/alt-check-child.pid" > "$out/alt-checker.log" 2>&1 &
+alt_controller=$!
+pids+=("$alt_controller")
+wait_real() {
+    local ns=$1 weight=$2 phase=$3
+    for attempt in $(seq 1 15); do
+        ip netns exec "$ns" ipvsadm -Sn > "$out/vrrp-$phase-$ns-ipvs.txt"
+        if python3 - "$out/vrrp-$phase-$ns-ipvs.txt" "$weight" <<'PY'
+import sys
+rows=[x.split() for x in open(sys.argv[1]) if x.startswith('-a ')]
+matched=[x for x in rows if x[x.index('-r')+1]=='10.0.2.2:8080' and x[x.index('-w')+1]==sys.argv[2]]
+sys.exit(0 if len(matched)==2 else 1)
+PY
+        then return; fi
+        sleep 1
+    done
+    cat "$out/alt-checker.log"
+    return 1
+}
+wait_real l4-alt 1 initial
 ip -n l4-router route replace 198.18.0.1/32 via 10.0.5.100
 has_vip() { ip -n "$1" addr show dev ha0 | grep -q '10.0.5.100/24'; }
 record_vip() {
@@ -71,8 +91,12 @@ wait_vip() {
     return 1
 }
 wait_vip l4-lb l4-alt
+rm "$out/health1/health"
+wait_real l4-lb 0 backend-down
+wait_real l4-alt 0 backend-down
 record_vip baseline
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-baseline.jsonl"
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 10000 > "$out/vrrp-baseline-backend.json"
 ip netns exec l4-lb nft -f - <<'NFT'
 table netdev fault {
     chain ingress {
@@ -84,8 +108,11 @@ NFT
 python3 -c 'import time; print(time.monotonic())' > "$out/vrrp-fault-start.txt"
 wait_vip l4-alt l4-lb
 kill -0 "$controller"
+kill -0 "$alt_controller"
+wait_real l4-alt 0 failover
 record_vip failover
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-failover.jsonl"
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 11000 > "$out/vrrp-failover-backend.json"
 ip netns exec l4-lb nft -j list table netdev fault > "$out/vrrp-fault.json"
 python3 - "$out" <<'PY'
 import json, sys, time
@@ -97,7 +124,14 @@ p.joinpath('vrrp-failover-time.json').write_text(json.dumps({'failure_to_verifie
 PY
 ip netns exec l4-lb nft delete table netdev fault
 wait_vip l4-lb l4-alt
+wait_real l4-lb 0 restored
 record_vip restored
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-restored.jsonl"
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 12000 > "$out/vrrp-restored-backend.json"
+echo healthy > "$out/health1/health"
+wait_real l4-lb 1 healthy
+wait_real l4-alt 1 healthy
+ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 13000 > "$out/vrrp-healthy-backend.json"
 kill -0 "$controller"
-echo VRRP_FORWARDING_RECOVERY_PASS
+kill -0 "$alt_controller"
+echo VRRP_BACKUP_HEALTH_PASS

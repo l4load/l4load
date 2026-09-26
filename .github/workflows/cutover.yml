@@ -39,7 +39,7 @@ jobs:
           import json
           from pathlib import Path
           for p in sorted(Path('lab/results/ipvs').glob('*')):
-              if p.suffix in ('.txt', '.json', '.jsonl', '.conf') or p.name in ('vrrp-1.log', 'vrrp-2.log'):
+              if p.suffix in ('.txt', '.json', '.jsonl', '.conf') or p.name in ('vrrp-1.log', 'vrrp-2.log', 'alt-checker.log'):
                   print('EVIDENCE ' + json.dumps({'file': p.name, 'content': p.read_text()}))
           PY
       - if: always()
