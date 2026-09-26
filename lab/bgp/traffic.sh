@@ -246,7 +246,7 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; the
         echo invalid-keepalived-config > "$out/ipvs-invalid.conf"
         if bash profiles/ipvs/update.sh "$out/ipvs-invalid.conf" d2; then exit 1; fi
         cmp "$out/ipvs.conf" /etc/l4load/ipvs-d2.conf
-        sed 's/weight 1/weight 0/g' "$out/ipvs.conf" > "$out/ipvs-drain.conf"
+        sed 's@path /health@path /missing@g' "$out/ipvs.conf" > "$out/ipvs-drain.conf"
         before=$(grep -c '"action": "disable"' "$out/health2.jsonl" || true)
         bash profiles/ipvs/update.sh "$out/ipvs-drain.conf" d2
         for attempt in $(seq 1 100); do
