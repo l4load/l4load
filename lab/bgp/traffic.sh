@@ -241,6 +241,8 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; the
         systemctl start l4load-routed@d2.service
         systemctl is-active --quiet l4load-routed@d2.service l4load-ipvs@d2.service
         ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-base-restarted.json"
+        systemctl show l4load-routed@d2.service l4load-ipvs@d2.service -p ActiveState -p MainPID -p NRestarts > "$out/installed-final-d2.txt"
+        ! grep -q Traceback "$out/health2.jsonl"
     fi
 fi
 echo BGP_HEALTH_TRAFFIC_PASS

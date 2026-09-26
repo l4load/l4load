@@ -80,4 +80,6 @@ for n in 2 1; do
     done
     test "$(grep -c -- '-w 1' "$out/installed-ipvs-d$n.txt")" -ge 2
     systemctl show "l4load-routed@d$n.service" "l4load-ipvs@d$n.service" -p ActiveState -p MainPID -p BindsTo > "$out/installed-units-d$n.txt"
+    systemctl show "l4load-routed@d$n.service" -p NRestarts --value > "$out/installed-restarts-d$n.txt"
+    test "$(cat "$out/installed-restarts-d$n.txt")" = 0
 done
