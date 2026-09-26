@@ -1,0 +1,20 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36249869669/job/108425764581",
+  "head": "6c266c70a36922ccddbb417d0fd2e8d9b8633ec3",
+  "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36249869669/artifacts/10908915109",
+  "artifact_sha256": "6d2c80dca5863ea06eefca8ce5bb29c179a32817446e057bd132d702dfc29b7d",
+  "environment": "Ubuntu 24.04 shared virtual runner; installed two-director IPVS/BIRD pair and nftables; synthetic forwarding check has 200 ms timeout",
+  "denied_generator": {"seconds": 30, "actual_mps": 100001.2},
+  "fault": {
+    "withdraw_after_fault_applied_seconds": 0.461,
+    "route_observed_after_fault_applied_seconds": 0.538,
+    "tcp": {"attempts": 617, "passed": 145, "errors": 472, "actual_starts_per_second": 1000.474, "p99_start_lag_ms": 0.488, "longest_error_burst": 472, "last_success_to_next_success_seconds": 0.473},
+    "udp": {"attempts": 618, "passed": 146, "errors": 472, "actual_starts_per_second": 1001.485, "p99_start_lag_ms": 1.131, "longest_error_burst": 472, "last_success_to_next_success_seconds": 0.473}
+  },
+  "standby": {
+    "tcp": {"passed": 2468, "attempts": 2468, "actual_starts_per_second": 999.993},
+    "udp": {"passed": 2468, "attempts": 2468, "actual_starts_per_second": 1000.066}
+  },
+  "client_timeout_ms": 50,
+  "limit": "One short shared virtual-runner result, not a capacity or production SLO. The 50 ms client timeout differs from earlier 250 ms fresh-flow trials. Fault start is bracketed by the nft command, and the route timestamp is the first observation after the kernel change. Filter counters are not NIC ingress; cgroup snapshots exclude kernel dataplane CPU. No paired YANET or physical comparison."
+}

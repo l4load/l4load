@@ -76,3 +76,10 @@ about a 0.52 s request gap under the same offered synthetic rates. Neither
 director changed its route during the later one-minute steady-state run. One
 virtual run cannot establish a safe timeout for a production network; the
 installed check is supplied by the operator and must be calibrated there.
+
+[A higher-rate failover trial](results/2026-09-26-high-rate-failover.json)
+kept about 1000 scheduled TCP and UDP starts/s each through the fault while
+the filter denied about 100,000 packets/s. The short virtual run lost 472
+requests per protocol in a 0.473 s gap, then passed all measured standby
+requests. The client used a 50 ms timeout; this is an observed loss envelope,
+not a production SLO or forwarding-capacity limit.
