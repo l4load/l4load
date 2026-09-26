@@ -23,5 +23,13 @@ Two distinct boot IDs and service journals confirm saved denies restored before
 Balance startup. Allowed TCP/UDP traffic passed and denied traffic timed out.
 Clearing runtime policy followed by reload restored the saved deny; saving an
 expiring ban was rejected without changing the saved file. Invalid reload input
-left the live rules and expected traffic unchanged. This does not qualify service
-startup failure handling, arbitrary host ordering or continuity through reboot.
+left the live rules and expected traffic unchanged. This does not qualify
+arbitrary host ordering or continuity through reboot.
+
+[A third-boot rejection trial passed](https://github.com/l4load/l4load/actions/runs/36228365218):
+invalid saved policy failed the filter unit and prevented Balance startup. The
+test required inactive Balance, PID zero, an empty IPVS table and no TCP/UDP
+replies for either client source. Restoring the file recovered filtering and
+useful traffic. [Boot output and the dependency journal](../../docs/evidence/filter-startup-2026-09-26.json)
+preserve the observations. This qualifies cold-start rejection in this topology,
+not automatic detection of later runtime policy changes or autonomous failover.

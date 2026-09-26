@@ -93,7 +93,9 @@ It is a one-shot pull; scheduling, source freshness and version ordering remain
 external responsibilities. Explicitly saved nonexpiring policy also passed
 <a href="https://github.com/l4load/l4load/actions/runs/36227587895">two VM reboots with Balance</a>:
 filter restoration preceded Balance startup; rollback and invalid-reload
-retention passed. Physical-host ordering remains unqualified.</p>
+retention passed. A <a href="https://github.com/l4load/l4load/actions/runs/36228365218">third reboot with invalid policy</a>
+blocked Balance startup until the saved file was restored, after which traffic
+checks passed. Physical-host ordering and runtime failure detection remain unqualified.</p>
 <p>A <a href="https://github.com/l4load/l4load/tree/main/lab/filter/results/2026-09-26-load-updates">combined update/load trial</a>
 applied 65,536 pairs under about 100,000 denied UDP messages/s. Application took
 0.909 seconds for nftables and 37.224 seconds for YANET; useful-probe RTT p99

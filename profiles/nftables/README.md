@@ -64,6 +64,8 @@ stop already-running forwarding. The
 [combined VM test passed](https://github.com/l4load/l4load/actions/runs/36227587895):
 two reboots restored denies before Balance started; saved-policy rollback and
 rejection of expiring saves and invalid reloads preserved the expected traffic.
+A [third reboot with invalid saved policy](../../lab/boot/README.md) prevented
+Balance startup until the file was restored; recovery then passed traffic checks.
 
 This adds no IPv6 policy. Physical-host boot ordering, prefixes, tenant
 isolation, fragments and overload capacity remain unqualified. Other firewall
