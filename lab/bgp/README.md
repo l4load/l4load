@@ -77,6 +77,11 @@ director changed its route during the later one-minute steady-state run. One
 virtual run cannot establish a safe timeout for a production network; the
 installed check is supplied by the operator and must be calibrated there.
 
+`L4LOAD_BGP_FALSE_MISS=1` with mode 8 injects one failed installed health
+check while forwarding remains healthy, then a persistent failure. It requires
+no route change for the isolated miss and a standby cutover plus recovery for
+the persistent failure. It does not quantify real false-positive frequency.
+
 [A higher-rate failover trial](results/2026-09-26-high-rate-failover.json)
 kept about 1000 scheduled TCP and UDP starts/s each through the fault while
 the filter denied about 100,000 packets/s. Two short virtual runs lost 375–472

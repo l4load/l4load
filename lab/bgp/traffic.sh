@@ -137,6 +137,7 @@ for n in 1 2; do
 done
 wait_route 10.1.1.2 health-ready
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-baseline.json"; fi
+if [ "${L4LOAD_BGP_FALSE_MISS:-0}" = 1 ]; then source lab/bgp/false-miss.sh; exit; fi
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
     ip netns exec l4-d1 ipvsadm -Ln --daemon > "$out/installed-sync-daemons.txt"
     grep -q 'master sync daemon' "$out/installed-sync-daemons.txt"

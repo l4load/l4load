@@ -37,6 +37,7 @@ def ipvs_ready():
 
 healthy = False
 streak = 0
+misses = 0
 bird(['disable', route])
 try:
     while True:
@@ -53,11 +54,13 @@ try:
             )
         good = forwarding and bfd and (not check_ipvs or ipvs_ready())
         streak = streak + 1 if good and not healthy else 0
-        if (not good and healthy) or streak >= 2:
+        misses = misses + 1 if not good and healthy else 0
+        if misses >= 2 or streak >= 2:
             action = 'enable' if good else 'disable'
             bird([action, route])
             healthy = good
             streak = 0
+            misses = 0
             print(json.dumps({'at': time.monotonic(), 'action': action, 'route': route}), flush=True)
         time.sleep(0.2)
 finally:
