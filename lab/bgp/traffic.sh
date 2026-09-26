@@ -72,9 +72,17 @@ EOF
     python3 profiles/ipvs/install-routed.py d1 "$out/routed-d1.json" "$out/check-d1"
     cp /etc/l4load/bird-d1.conf "$out/installed-bird.conf"
     chmod 644 "$out/installed-bird.conf" "$out/check-d1"
-    mkdir -p /run/l4load-routed-d1
-    ip netns exec l4-d1 python3 -u /usr/local/libexec/l4load-routed-run.py d1 > "$out/health1.jsonl" 2>&1 &
-    pids+=("$!")
+    mkdir -p /run/systemd/system/l4load-routed@d1.service.d
+    cat > /run/systemd/system/l4load-routed@d1.service.d/lab.conf <<UNIT
+[Unit]
+BindsTo=
+[Service]
+NetworkNamespacePath=/run/netns/l4-d1
+StandardOutput=append:$out/health1.jsonl
+UNIT
+    systemctl daemon-reload
+    systemctl start l4load-routed@d1.service
+    systemctl show l4load-routed@d1.service -p ActiveState -p MainPID -p NRestarts -p BindsTo > "$out/installed-service.txt"
     ln -s /run/l4load-routed-d1/bird.ctl "$out/d1.ctl"
 fi
 for n in 1 2; do
@@ -196,4 +204,12 @@ fi
 grep -q '"action": "disable"' "$out/health1.jsonl"
 grep -q '"action": "enable"' "$out/health1.jsonl"
 for n in 1 2; do ip netns exec "l4-d$n" ipvsadm -Sn > "$out/ipvs$n-final.txt"; done
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
+    systemctl stop l4load-routed@d1.service
+    wait_route 10.1.2.2 installed-stopped
+    systemctl start l4load-routed@d1.service
+    wait_route 10.1.1.2 installed-restarted
+    systemctl show l4load-routed@d1.service -p ActiveState -p MainPID -p NRestarts > "$out/installed-restarted.txt"
+    ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-installed-restarted.json"
+fi
 echo BGP_HEALTH_TRAFFIC_PASS

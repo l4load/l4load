@@ -10,6 +10,7 @@ uname -a > "$out/kernel.txt"
 dpkg-query -W bird2 > "$out/packages.txt"
 pids=()
 cleanup() {
+    if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ]; then systemctl stop l4load-routed@d1.service 2>/dev/null || true; fi
     for ((i=${#pids[@]}-1; i>=0; i--)); do
         kill "${pids[i]}" 2>/dev/null || true
         wait "${pids[i]}" 2>/dev/null || true
