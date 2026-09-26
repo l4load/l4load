@@ -6,7 +6,7 @@ if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
     pids+=("$retained")
     wait_session() {
         for attempt in $(seq 1 150); do
-            test ! -f "$out/session-$1" || return
+            if [ -f "$out/session-$1" ]; then return 0; fi
             kill -0 "$retained" || { cat "$out/failure-sessions.jsonl"; return 1; }
             sleep 0.1
         done
