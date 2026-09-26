@@ -1,0 +1,33 @@
+{
+  "source": "b33c5e04e98cdb91921634aa9d35fadf9126875d",
+  "run": "https://github.com/l4load/l4load/actions/runs/36239936910/job/108398422681",
+  "topology": "virtual namespaces, BIRD 2.14, IPVS/IPIP, one upstream router, two directors",
+  "fault": "primary VIP ingress drop with live BGP session",
+  "attempts_per_second_per_protocol": 100,
+  "actual_starts_per_second": "99.998–100.102 across measured phases",
+  "p99_start_lag_ms": "0.247–1.251 across measured phases",
+  "command_to_standby_route_seconds": 2.537514,
+  "tcp": {
+    "baseline": "203/203",
+    "fault": "7/251",
+    "failover": "208/208",
+    "return": "96/96",
+    "restored": "205/205",
+    "consecutive_errors": 244,
+    "last_good_to_first_good_seconds": 2.450009,
+    "raw": "2026-09-26-fixed-tcp.csv.gz",
+    "raw_sha256": "a68be177b9921ba828268c2eeeab98f2b075286b8693c8a2bcdbdee38a8e5f1a"
+  },
+  "udp": {
+    "baseline": "203/203",
+    "fault": "7/251",
+    "failover": "208/208",
+    "return": "96/96",
+    "restored": "205/205",
+    "consecutive_errors": 244,
+    "last_good_to_first_good_seconds": 2.449998,
+    "raw": "2026-09-26-fixed-udp.csv.gz",
+    "raw_sha256": "d22da76fc6a61d8ba7051f0c230d62f3ec0acd48f6ddcd3b726359976bb15c9d"
+  },
+  "limit": "One short virtual run with 250 ms timeout and one client process per protocol. No retained-session, sustained capacity, resource ceiling, BFD, physical NIC, or production SLO qualification."
+}

@@ -14,3 +14,7 @@ measure handoff loss, session preservation, BFD or hardware capacity.
 attempts during withdrawal and recovery. It requests 100 attempts/s per protocol,
 but sequential 250 ms timeouts lower the actual fault-phase rate. It does not
 establish loss at a fixed offered rate or sustained capacity.
+
+Set `L4LOAD_BGP_TRAFFIC=2` for [independent scheduled attempts](results/2026-09-26-fixed.json).
+In one virtual run the generator held about 100 actual starts/s per protocol
+through the fault. This is a short functional envelope, not a capacity limit.
