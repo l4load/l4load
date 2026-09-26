@@ -91,6 +91,11 @@ jobs:
         run: |
           L4LOAD_FILTER=1 L4LOAD_FILTER_SNAPSHOTS=1 L4LOAD_SNAPSHOT_LOAD=1 L4LOAD_TRIAL=snapshots-load bash lab/ipvs/run.sh
           L4LOAD_FILTER=1 L4LOAD_FILTER_SNAPSHOTS=1 L4LOAD_SNAPSHOT_LOAD=1 L4LOAD_TRIAL=snapshots-load unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet
+      - name: Compare offered useful traffic during updates
+        timeout-minutes: 22
+        run: |
+          L4LOAD_FILTER=1 L4LOAD_FILTER_LOAD=1 L4LOAD_FILTER_UPDATE=1 L4LOAD_TRIAL=update-goodput bash lab/ipvs/run.sh
+          L4LOAD_FILTER=1 L4LOAD_FILTER_LOAD=1 L4LOAD_FILTER_UPDATE=1 L4LOAD_TRIAL=update-goodput unshare --ipc bash lab/yanet/run.sh upstream/yanet af-packet
       - name: Compare workload placement
         if: ${{ !cancelled() && steps.build.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.workload_placement }}
         timeout-minutes: 25

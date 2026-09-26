@@ -97,3 +97,12 @@ Logs retain its achieved whole-run rate, lifetime and update boundaries; these
 do not establish the exact rate within the update. Empty-policy withdrawal runs
 after generators exit. Useful traffic remains the sequential echo probe, not a
 capacity test. The YANET workflow retains a separate no-load bulk pass.
+
+`L4LOAD_FILTER_UPDATE=1` with `L4LOAD_FILTER_LOAD=1` uses sockperf's requested
+1,000 useful messages/s for 70 seconds while replacing 65,536 pairs. Three
+repetitions alternate no denied background and 100,000 requested denied messages/s.
+Each trial starts from the sentinel-only policy. Both generators must remain alive
+across the update; achieved useful rate, drops and RTT come from sockperf, with
+full CSVs and update timestamps retained. Whole-trial percentiles are not
+update-only percentiles; child CPU/RSS excludes daemon and kernel cost.
+This experiment is pending qualification and does not define a production SLO.
