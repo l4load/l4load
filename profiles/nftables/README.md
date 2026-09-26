@@ -4,13 +4,12 @@ An experimental nftables profile for temporary source/VIP bans before IPVS.
 The [lab](../../lab/filter) consumes this exact configuration. It uses a separate
 `netdev l4load` table and does not flush the host ruleset.
 
-On an independent Linux host with nftables, copy `filter.nft` and replace `eth0`
-with the ingress interface. The table must not already exist: loading the file
-again can append rules. Start with an empty set, validate, then apply:
+On an independent Linux host with nftables, iproute2 and Python, install the
+profile on the reviewed ingress interface. Installation refuses an existing
+table and validates the configuration before applying it. It starts empty:
 
 ```sh
-sudo nft -c -f filter.nft
-sudo nft -f filter.nft
+sudo bash install.sh eth0
 sudo nft list table netdev l4load
 ```
 

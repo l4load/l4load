@@ -2,11 +2,15 @@ ip -n l4-client addr add 10.0.0.3/24 dev eth0
 ip netns exec l4-lb nft --version > "$out/nft-version.txt"
 nftlb() { ip netns exec l4-lb nft "$@"; }
 probe() { ip netns exec l4-client python3 lab/filter/probe.py "$@"; }
-nftlb -c -f profiles/nftables/filter.nft
-nftlb -f profiles/nftables/filter.nft
+ip netns exec l4-lb bash profiles/nftables/install.sh eth0
 probe 10.0.0.2 pass
 probe 10.0.0.3 pass
 nftlb 'add element netdev l4load blocked { 10.0.0.3 . 198.18.0.1 timeout 15s }'
+probe 10.0.0.3 drop
+probe 10.0.0.2 pass
+if ip netns exec l4-lb bash profiles/nftables/install.sh eth0; then
+    echo 'duplicate filter installation accepted'; exit 1
+fi
 probe 10.0.0.3 drop
 probe 10.0.0.2 pass
 nftlb -j list table netdev l4load > "$out/filter-blocked.json"
