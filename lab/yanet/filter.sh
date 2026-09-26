@@ -38,5 +38,5 @@ if [ "${L4LOAD_FILTER_LOAD:-0}" = 1 ]; then
     cp "$out/filter-deny.conf" "$out/controlplane.conf"
     yanet-cli reload
     for pid in "${backend_pids[@]}"; do kill "$pid"; wait "$pid" || true; done
-    bash lab/filter/load.sh "$out/filter-load"
+    L4LOAD_SNAPSHOT_ENGINE=yanet L4LOAD_SNAPSHOT_OUT="$out" bash lab/filter/load.sh "$out/filter-load"
 fi
