@@ -1,0 +1,14 @@
+{
+  "head": "01e2f6ea6c8775874d1a5620f1033318fb92ad05",
+  "tested_merge": "e08470fc833152d3a0c327af37f1705c014abfd8",
+  "job": "https://github.com/l4load/l4load/actions/runs/36237891179/job/108392910350",
+  "environment": "Ubuntu 24.04 virtual runner, Linux 6.17.0-1022-azure, BIRD 2.14-1build2",
+  "topology": "two independent routed director namespaces with established eBGP sessions to one upstream router",
+  "observed": {
+    "baseline_next_hop": "10.1.1.2",
+    "after_primary_route_disable": "10.1.2.2",
+    "after_primary_route_enable": "10.1.1.2",
+    "disable_to_kernel_route_readback_seconds": 0.028552002
+  },
+  "limit": "One virtual control-plane trial. Route disable/enable was injected manually; no forwarding-health coupling, BFD, IPVS traffic, session preservation, physical router or production convergence target was tested."
+}
