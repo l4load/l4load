@@ -116,6 +116,12 @@ retained-session guarantee. A separate
 retained two sockets without reconnecting through the injected failure; one
 exchange paused for 3.309 seconds. Its sequential client does not measure
 independent per-flow stalls or establish uninterrupted service.</p>
+<p>In a <a href="https://github.com/l4load/l4load/blob/main/lab/cutover/results/2026-09-26-vrrp.json">same-L2 VRRP trial</a>,
+an external TCP/UDP probe detected an ingress blackhole while Keepalived's
+backend checker stayed alive. The floating next-hop moved to the backup and
+returned after recovery; fresh TCP/UDP checks passed. One virtual run took
+3.590 seconds from injection to verified recovery. Retained connections and
+physical failover remain unqualified.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
