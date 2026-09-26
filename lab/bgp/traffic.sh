@@ -231,15 +231,29 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; the
     ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-installed-restarted.json"
     ! grep -q Traceback "$out/health1.jsonl"
     if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then
+        before=$(grep -c '"action": "enable"' "$out/health2.jsonl" || true)
         systemctl stop l4load-routed@d2.service
         systemctl start l4load-routed@d2.service
         systemctl is-active --quiet l4load-routed@d2.service l4load-ipvs@d2.service
+        for attempt in $(seq 1 100); do
+            after=$(grep -c '"action": "enable"' "$out/health2.jsonl" || true)
+            if [ "$after" -gt "$before" ]; then break; fi
+            sleep 0.1
+        done
+        test "$after" -gt "$before"
         ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-secondary-restarted.json"
         ! grep -q Traceback "$out/health2.jsonl"
+        before=$(grep -c '"action": "enable"' "$out/health2.jsonl" || true)
         systemctl restart l4load-ipvs@d2.service
         ! systemctl is-active --quiet l4load-routed@d2.service
         systemctl start l4load-routed@d2.service
         systemctl is-active --quiet l4load-routed@d2.service l4load-ipvs@d2.service
+        for attempt in $(seq 1 100); do
+            after=$(grep -c '"action": "enable"' "$out/health2.jsonl" || true)
+            if [ "$after" -gt "$before" ]; then break; fi
+            sleep 0.1
+        done
+        test "$after" -gt "$before"
         ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-base-restarted.json"
         systemctl show l4load-routed@d2.service l4load-ipvs@d2.service -p ActiveState -p MainPID -p NRestarts > "$out/installed-final-d2.txt"
         ! grep -q Traceback "$out/health2.jsonl"
