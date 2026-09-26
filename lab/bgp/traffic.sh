@@ -282,6 +282,18 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; the
         cmp "$out/ipvs.conf" /etc/l4load/ipvs-d2.conf
         ip netns exec l4-p2 python3 lab/filter/probe.py 10.2.2.2 pass > "$out/probe-rollback.jsonl"
         ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-rollback.json"
+        cat > /run/systemd/system/l4load-ipvs@d2.service.d/reject.conf <<'UNIT'
+[Service]
+ExecReload=
+ExecReload=/bin/false
+UNIT
+        systemctl daemon-reload
+        if bash profiles/ipvs/update.sh "$out/ipvs-drain.conf" d2; then exit 1; fi
+        cmp "$out/ipvs.conf" /etc/l4load/ipvs-d2.conf
+        rm /run/systemd/system/l4load-ipvs@d2.service.d/reject.conf
+        systemctl daemon-reload
+        ip netns exec l4-p2 python3 lab/filter/probe.py 10.2.2.2 pass > "$out/probe-rejected-reload.jsonl"
+        ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-rejected-reload.json"
     fi
 fi
 echo BGP_HEALTH_TRAFFIC_PASS
