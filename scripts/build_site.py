@@ -201,6 +201,14 @@ counted 98,906–100,597 denied packets/s across the phases of a forwarding
 fault and routed failover. Each useful protocol had 259/273 errors during the
 fault and 289/289 successes on standby. Service cgroup figures exclude kernel
 dataplane CPU. This is not a capacity or comparative ranking.</p>
+<p>In a longer <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-soak.json">routed-pair trial</a>,
+both installed directors kept their filters active while about 100,000 packets/s
+were denied. After a routed failover and recovery, around one minute at 1,000
+useful messages/s each for TCP and UDP delivered all 59,550 and 59,549 messages;
+p99 RTT was 1.158 ms and 0.859 ms. A repeat also passed the zero-drop gate.
+The separate failover phase did lose useful requests during the fault. This
+shared virtual-runner result does not measure 1,000-mps continuity across
+failover or total dataplane CPU.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
