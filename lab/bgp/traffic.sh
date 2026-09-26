@@ -71,7 +71,10 @@ phase() {
 }
 phase baseline
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 4 ]; then
-    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then source lab/bgp/sync.sh; fi
+    source lab/bgp/sync.sh
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 5 ]; then
+        for n in 1 2; do ip -n "l4-d$n" link set sync0 down; done
+    fi
     ip netns exec l4-client env L4LOAD_SESSION_EXPECT_RESET="$([ "${L4LOAD_BGP_TRAFFIC:-1}" = 5 ] && echo 1 || echo 0)" python3 -u lab/bgp/session.py "$out" > "$out/session.log" 2>&1 &
     session_pid=$!
     pids+=("$session_pid")
