@@ -72,6 +72,14 @@ wait_route() {
     for name in router d1 d2; do cat "$out/$name.log"; done
     return 1
 }
+for peer in primary standby; do
+    for attempt in $(seq 1 100); do
+        birdc -s "$out/router.ctl" 'show protocols' > "$out/router-ready.txt"
+        if grep -E "^$peer +BGP +.*Established" "$out/router-ready.txt"; then break; fi
+        sleep 0.1
+    done
+    grep -Eq "^$peer +BGP +.*Established" "$out/router-ready.txt"
+done
 wait_route 10.1.1.2 baseline
 for name in router d1 d2; do birdc -s "$out/$name.ctl" 'show protocols' > "$out/$name-protocols.txt"; done
 python3 -c 'import time; print(time.monotonic())' > "$out/fault-start.txt"
