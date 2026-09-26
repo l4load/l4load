@@ -151,10 +151,12 @@ observed 13 failed attempts per protocol during the handoff and none in the
 baseline, post-failover or restored phases. The success gap was 3.269 seconds.
 Sequential 250 ms timeouts reduced the actual attempt rate during failure;
 this is not a sustained-load, capacity or production loss-rate result.</p>
-<p>A separate <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-route.json">BGP route trial</a>
-used two independently routed peers. A manually withdrawn primary /32 moved the
-upstream kernel next-hop to standby, then restoration moved it back. It did not
-couple forwarding health, BFD or IPVS traffic to route ownership.</p>
+<p>A <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-health-traffic.json">routed IPVS trial</a>
+used independent TCP/UDP forwarding probes to withdraw the primary /32 when VIP
+traffic was blocked while BGP stayed established. The upstream route moved to
+standby and returned after recovery; 32 fresh TCP and 32 UDP exchanges passed
+in each of the baseline, failover and restored phases. One virtual run did not
+measure continuous-flow loss, retained sessions, BFD or physical capacity.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
