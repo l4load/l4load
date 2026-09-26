@@ -146,6 +146,11 @@ showed the limit: after the state link went down, the backup took the VIP and
 fresh TCP/UDP recovered in 3.583 seconds, but an unsynced existing TCP socket
 reset. Physical network, sustained load and an operational loss target are not
 qualified.</p>
+<p>With ongoing fresh TCP/UDP probes, a <a href="https://github.com/l4load/l4load/blob/main/lab/cutover/results/2026-09-26-ha-useful.json">short virtual HA trial</a>
+observed 13 failed attempts per protocol during the handoff and none in the
+baseline, post-failover or restored phases. The success gap was 3.269 seconds.
+Sequential 250 ms timeouts reduced the actual attempt rate during failure;
+this is not a sustained-load, capacity or production loss-rate result.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
