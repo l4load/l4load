@@ -81,7 +81,12 @@ NetworkNamespacePath=/run/netns/l4-d1
 StandardOutput=append:$out/health1.jsonl
 UNIT
     systemctl daemon-reload
-    systemctl start l4load-routed@d1.service
+    systemctl show l4load-routed@d1.service -p BindsTo -p Requires -p After -p FragmentPath -p DropInPaths > "$out/installed-dependencies.txt"
+    if ! systemctl start l4load-routed@d1.service; then
+        systemctl status -l --no-pager l4load-routed@d1.service > "$out/installed-status.txt" 2>&1 || true
+        journalctl -b --no-pager -u l4load-routed@d1.service -u l4load-ipvs.service -n 100 > "$out/installed-journal.txt" 2>&1 || true
+        exit 1
+    fi
     systemctl show l4load-routed@d1.service -p ActiveState -p MainPID -p NRestarts -p BindsTo > "$out/installed-service.txt"
     ln -s /run/l4load-routed-d1/bird.ctl "$out/d1.ctl"
 fi
