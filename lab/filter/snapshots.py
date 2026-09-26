@@ -1,6 +1,8 @@
 import csv
 import ipaddress
 import json
+import math
+import resource
 import socket
 import subprocess
 import sys
@@ -10,6 +12,14 @@ from pathlib import Path
 
 out = Path(sys.argv[1])
 phase = out / 'snapshot-phase.txt'
+
+
+def set_phase(value):
+    staging = phase.with_suffix('.tmp')
+    staging.write_text(value)
+    staging.replace(phase)
+
+
 if len(sys.argv) == 3:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock, (out / 'snapshot-traffic.csv').open('w') as file:
         sock.bind(('10.0.0.2', 0))
@@ -41,7 +51,7 @@ if len(sys.argv) == 3:
         else:
             raise TimeoutError('snapshot experiment did not finish')
 else:
-    phase.write_text('baseline')
+    set_phase('baseline')
     client = subprocess.Popen(['ip', 'netns', 'exec', 'l4-client', sys.executable, __file__, str(out), 'probe'])
     measurements = []
     try:
@@ -57,13 +67,18 @@ else:
             pairs = [[str(ipaddress.IPv4Address(int(ipaddress.IPv4Address('198.19.0.0')) + i)), '198.18.0.1'] for i in range(max(0, count - 1))]
             if count:
                 pairs.append(['10.0.0.3', '198.18.0.1'])
-            phase.write_text(str(count))
+            set_phase(str(count))
+            before = resource.getrusage(resource.RUSAGE_CHILDREN)
             started = time.monotonic()
             subprocess.run(['ip', 'netns', 'exec', 'l4-lb', sys.executable, 'profiles/nftables/snapshot.py'], input=json.dumps(pairs), text=True, check=True, timeout=60)
-            measurements.append({'elements': count, 'started_monotonic': started, 'finished_monotonic': time.monotonic()})
+            finished = time.monotonic()
+            after = resource.getrusage(resource.RUSAGE_CHILDREN)
+            measurements.append({'elements': count, 'started_monotonic': started, 'finished_monotonic': finished,
+                                 'child_cpu_seconds': after.ru_utime + after.ru_stime - before.ru_utime - before.ru_stime,
+                                 'children_peak_rss_kib': after.ru_maxrss})
             subprocess.run(['ip', 'netns', 'exec', 'l4-client', sys.executable, 'lab/filter/probe.py', '10.0.0.3', 'drop' if count else 'pass'], check=True)
             time.sleep(1)
-        phase.write_text('done')
+        set_phase('done')
         client.wait(timeout=5)
         assert client.returncode == 0
     finally:
@@ -73,5 +88,14 @@ else:
         (out / 'snapshot-updates.json').write_text(json.dumps(measurements, indent=2) + '\n')
     with (out / 'snapshot-traffic.csv').open() as file:
         rows = list(csv.DictReader(file))
+    summary = []
+    for measurement in measurements:
+        observed = [row for row in rows if measurement['started_monotonic'] <= float(row['sent_monotonic']) <= measurement['finished_monotonic']]
+        delays = sorted(float(row['rtt_ms']) for row in observed if row['status'] == 'pass')
+        summary.append({**measurement, 'sent_during_update': len(observed),
+                        'lost_during_update': sum(row['status'] != 'pass' for row in observed),
+                        'p99_rtt_ms': delays[math.ceil(len(delays) * 0.99) - 1] if delays else None})
+    (out / 'snapshot-summary.json').write_text(json.dumps(summary, indent=2) + '\n')
+    assert all(row['sent_during_update'] for row in summary), 'update interval had no traffic samples'
     assert rows and all(row['status'] == 'pass' for row in rows), 'permitted traffic lost; inspect CSV'
     print('FILTER_BULK_SNAPSHOT_PASS', json.dumps({'exchanges': len(rows), 'max_rtt_ms': max(float(row['rtt_ms']) for row in rows)}))

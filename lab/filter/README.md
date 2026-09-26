@@ -18,8 +18,13 @@ This tests state replacement, not a controller transport or reconnect protocol.
 `L4LOAD_FILTER_SNAPSHOTS=1` additionally replaces 1,024, 16,384 and 65,536
 synthetic pairs, then clears them while a sequential UDP echo probe runs.
 `snapshot-updates.json` records application intervals; `snapshot-traffic.csv`
-records every exchange and timeout. The probe pauses 5 ms between exchanges and
-waits at most 200 ms per reply: it measures continuity, not offered-load capacity.
+records every exchange and timeout.
+`snapshot-summary.json` reports samples sent during each application interval,
+their losses and p99, plus child CPU time and cumulative child peak RSS on Linux.
+RSS is not isolated per update and excludes kernel set memory; CPU excludes the
+concurrently running probe. Intervals with no samples fail qualification.
+The probe pauses 5 ms between exchanges and waits at most 200 ms per reply:
+it measures continuity, not offered-load capacity.
 The bulk marker requires zero observed permitted-packet loss and deny/allow
 checks after each update. It does not prove no transient policy gap, reconnect
 ordering, retained TCP sessions or hardware performance.
