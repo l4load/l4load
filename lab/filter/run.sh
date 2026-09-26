@@ -30,6 +30,21 @@ sleep 16
 probe 10.0.0.3 pass
 probe 10.0.0.2 pass
 nftlb -j list table netdev l4load > "$out/filter-expired.json"
+snapshot() { ip netns exec l4-lb python3 profiles/nftables/snapshot.py; }
+printf '%s\n' '[["10.0.0.3", "198.18.0.1"]]' | snapshot
+probe 10.0.0.3 drop
+probe 10.0.0.2 pass
+if printf '%s\n' '[["10.0.0.2", "198.18.0.1"], ["bad", "198.18.0.1"]]' | snapshot; then
+    echo 'invalid snapshot accepted'
+    exit 1
+fi
+probe 10.0.0.3 drop
+probe 10.0.0.2 pass
+printf '%s\n' '[]' | snapshot
+probe 10.0.0.3 pass
+probe 10.0.0.2 pass
+nftlb -j list table netdev l4load > "$out/filter-empty-snapshot.json"
+echo FILTER_SNAPSHOT_PASS
 nftlb delete table netdev l4load
 probe 10.0.0.3 pass
 echo FILTER_LIFECYCLE_PASS

@@ -9,6 +9,12 @@ unaffected traffic from another source, rejection of an invalid transaction,
 expiry without a controller and table removal. `FILTER_LIFECYCLE_PASS` requires
 all checks; results are in `lab/results/ipvs`.
 
+The snapshot check replaces the complete deny set, rejects malformed input without
+changing it, and applies an empty snapshot to remove stale denies. Run the helper
+with a JSON list of `[source IPv4, VIP IPv4]` pairs on stdin; it submits one nft
+transaction against the installed profile. Snapshot entries have no expiry.
+This tests state replacement, not a controller transport or reconnect protocol.
+
 [The nftables trial passed](https://github.com/l4load/l4load/actions/runs/36172967453).
 [YANET passed the same deny/allow probes](https://github.com/l4load/l4load/actions/runs/36174467560),
 including rejected reload and explicit rollback. Only nftables expiry was tested;
