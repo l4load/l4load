@@ -163,6 +163,11 @@ failure; the last-to-first-success gap was 2.516 seconds. All measured attempts
 after failover and after return passed. Sequential 250 ms timeouts reduced the
 actual fault-phase attempt rate to about 4/s, so this is not a fixed-rate loss
 or capacity result. Raw attempt records are archived with the summary.</p>
+<p>A separate <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-fixed.json">fixed-offer virtual run</a>
+held about 100 actual fresh-flow starts/s per protocol through the failure.
+Each protocol had 244 consecutive errors and a 2.45-second gap between
+successful starts; 208/208 attempts passed after failover. This is one short
+software-network result, not a physical capacity or production SLO claim.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
