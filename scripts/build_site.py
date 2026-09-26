@@ -221,6 +221,12 @@ per run in 0.376–0.473 s bursts; all measured standby attempts passed. These a
 separate shared-runner observations with a 50 ms client timeout in the last trial.
 They do not establish a safe production probe timeout, physical capacity or
 an agreed loss target.</p>
+<p>In a separate <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-endurance.json">five-minute virtual endurance run</a>
+after failover and recovery, all 299,547 TCP and 299,547 UDP messages arrived
+at about 1,000/s each while filters denied about 100,000 packets/s. Neither
+director changed its route during that interval. Control-service cgroups
+exclude kernel dataplane CPU; one run does not establish a production
+false-failover rate or capacity.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
