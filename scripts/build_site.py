@@ -157,6 +157,12 @@ traffic was blocked while BGP stayed established. The upstream route moved to
 standby and returned after recovery; 32 fresh TCP and 32 UDP exchanges passed
 in each of the baseline, failover and restored phases. One virtual run did not
 measure continuous-flow loss, retained sessions, BFD or physical capacity.</p>
+<p>In a follow-up <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-useful.json">virtual traffic run</a>,
+continuous fresh TCP/UDP attempts saw 10 errors per protocol during primary
+failure; the last-to-first-success gap was 2.516 seconds. All measured attempts
+after failover and after return passed. Sequential 250 ms timeouts reduced the
+actual fault-phase attempt rate to about 4/s, so this is not a fixed-rate loss
+or capacity result. Raw attempt records are archived with the summary.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
