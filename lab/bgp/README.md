@@ -18,3 +18,8 @@ establish loss at a fixed offered rate or sustained capacity.
 Set `L4LOAD_BGP_TRAFFIC=2` for [independent scheduled attempts](results/2026-09-26-fixed.json).
 In one virtual run the generator held about 100 actual starts/s per protocol
 through the fault. This is a short functional envelope, not a capacity limit.
+
+Set `L4LOAD_BGP_TRAFFIC=3` for [single-hop BFD loss](results/2026-09-26-bfd.json).
+The director gates its VIP advertisement on its local BFD state. The trial drops
+BFD packets both ways while IPVS traffic remains reachable. It does not qualify
+multihop BFD or physical link failure.

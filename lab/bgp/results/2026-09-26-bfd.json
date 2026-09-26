@@ -1,0 +1,33 @@
+{
+  "source": "490e693ae85510b7bbd616d1a08b2f72265687e7",
+  "run": "https://github.com/l4load/l4load/actions/runs/36240701989/job/108400519478",
+  "topology": "virtual single-hop BFD/eBGP, BIRD 2.14, IPVS/IPIP, one upstream router, two directors",
+  "fault": "drop UDP 3784 in both directions for primary peer; IPVS path remained healthy",
+  "bfd_interval_ms": 100,
+  "bfd_timeout_ms": 300,
+  "router_bfd": ["both Up", "primary Down / standby Up", "both Up"],
+  "route": ["primary", "standby", "primary"],
+  "command_to_standby_route_seconds": 0.350971,
+  "primary_route_still_withdrawn_after_two_seconds": true,
+  "primary_vip_gate": ["disabled", "enabled"],
+  "actual_starts_per_second_per_protocol": "99.994–100.108 across measured phases",
+  "tcp": {
+    "baseline": "202/202",
+    "fault": "33/33",
+    "failover": "209/209",
+    "return": "66/66",
+    "restored": "206/206",
+    "raw": "2026-09-26-bfd-tcp.csv.gz",
+    "raw_sha256": "0da8e6a4a7d7addf991ba278f691052e187e81d3ac7b544f4f3eee42cecd0769"
+  },
+  "udp": {
+    "baseline": "202/202",
+    "fault": "33/33",
+    "failover": "209/209",
+    "return": "66/66",
+    "restored": "206/206",
+    "raw": "2026-09-26-bfd-udp.csv.gz",
+    "raw_sha256": "58ec5b31eed36e89ac30d0affc1a389493f14a83234be38e431f48e96c1a697b"
+  },
+  "limit": "One short virtual control-channel failure while forwarding stayed healthy. No physical link or multihop BFD, retained-session, capacity, resource ceiling, or production SLO qualification."
+}
