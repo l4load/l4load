@@ -62,8 +62,10 @@ for n in 1 2; do
     pids+=("$!")
 done
 echo baseline > "$out/useful-phase"
+traffic_script=lab/cutover/useful.py
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 2 ]; then traffic_script=lab/bgp/offered.py; fi
 for protocol in tcp udp; do
-    ip netns exec l4-client python3 -u lab/cutover/useful.py "$out" "$protocol" > "$out/useful-$protocol.log" 2>&1 &
+    ip netns exec l4-client python3 -u "$traffic_script" "$out" "$protocol" > "$out/useful-$protocol.log" 2>&1 &
     pids+=("$!")
     if [ "$protocol" = tcp ]; then useful_tcp=$!; else useful_udp=$!; fi
 done

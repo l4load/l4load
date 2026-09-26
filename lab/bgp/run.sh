@@ -98,4 +98,4 @@ birdc -s "$out/d1.ctl" 'enable vip1' > "$out/restore.txt"
 wait_route 10.1.1.2 restored
 for name in router d1 d2; do birdc -s "$out/$name.ctl" 'show protocols' > "$out/$name-final.txt"; done
 echo BGP_ROUTE_TRIAL_PASS
-if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 1 ]; then source lab/bgp/traffic.sh; fi
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" != 0 ]; then source lab/bgp/traffic.sh; fi
