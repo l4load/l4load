@@ -1,0 +1,24 @@
+{
+  "source": "7ece57edeb32471dafaabde5582f2085b89d51ec",
+  "run": "https://github.com/l4load/l4load/actions/runs/36233895819/job/108382057323",
+  "environment": "Ubuntu 24.04 GitHub virtual runner, Linux 6.17.0-1022-azure, Keepalived 1:2.2.8-1build2, IPVS 1:1.31-1ubuntu0.1",
+  "fault": "synthetic primary ingress drop while backend checkers remain alive",
+  "sync": "IPVS native synchronization; tested client TCP mappings verified on the receiver before transitions",
+  "new_flow_recovery_seconds": 3.6740498479999815,
+  "primary_drop_packets": 9,
+  "fresh_flows": {
+    "baseline": {"tcp_b2": 32, "udp_b2": 32},
+    "failover": {"tcp_b2": 32, "udp_b2": 32},
+    "failback": {"tcp_b2": 32, "udp_b2": 32},
+    "backend_recovered": {"tcp_b1": 16, "tcp_b2": 16, "udp_b1": 16, "udp_b2": 16}
+  },
+  "retained_tcp": {
+    "sockets": 2,
+    "exchanges_per_socket": 235,
+    "reconnects": 0,
+    "max_observed_exchange_ms": 6578.016808999991,
+    "duration_seconds": 18.422584126999993,
+    "phases": ["baseline", "failover", "failback", "done"]
+  },
+  "limits": "One virtual run. The sequential client does not measure independent per-flow stalls; application socket timeout was 10 seconds. Synchronization was preverified; loss of replication, physical L2, sustained load and a production SLO remain unqualified."
+}

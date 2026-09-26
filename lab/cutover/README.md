@@ -73,3 +73,10 @@ healthy backend before failure, after failover and after failback. Restoring
 health returned both weights to one and traffic to both backends. The virtual
 failover took 3.175 seconds including verification; existing connections and
 production behavior remain unqualified.
+
+With `L4LOAD_VRRP=1 L4LOAD_SYNC=1`, a [virtual retained-session trial](results/2026-09-26-vrrp-retained.json)
+preverified two native IPVS connection copies. Both TCP sockets completed 235
+exchanges each without reconnect through automatic failover and failback; fresh
+TCP/UDP recovered in 3.674 seconds. One existing exchange waited 6.578 seconds.
+The client services sockets sequentially, and replication loss, physical L2 and
+production failover targets remain unqualified.
