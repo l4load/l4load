@@ -195,6 +195,12 @@ starts/s per protocol. Draining the only backend withdrew the standby route;
 restoring it returned both IPVS weights and the route. Unit restarts and a
 rejected reload also preserved verified traffic. This was one short virtual
 run, not a physical-capacity or production SLO result.</p>
+<p>With the installed nftables filters on both directors, a
+<a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-attack-pair.json">separate 30-second virtual run</a>
+sent about 100,000 denied UDP messages/s while fresh TCP/UDP traffic crossed
+a forwarding fault. Each protocol had 255/265 errors during the fault and
+292/292 successes on standby. This measures one short scenario, not capacity
+or superiority over another balancer.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
