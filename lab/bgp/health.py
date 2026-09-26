@@ -16,7 +16,7 @@ while True:
     if streak >= 2:
         action = 'enable' if good else 'disable'
         result = subprocess.run(['birdc', '-s', control, action, route], capture_output=True, text=True)
-        if result.returncode or '0000' not in result.stdout:
+        if result.returncode or f'{route}: {"enabled" if good else "disabled"}' not in result.stdout:
             raise RuntimeError((action, result.stdout, result.stderr))
         healthy = good
         streak = 0

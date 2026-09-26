@@ -77,5 +77,7 @@ ip netns exec l4-d1 nft -a list table inet fault > "$out/fault-counters.txt"
 ip netns exec l4-d1 nft delete table inet fault
 wait_route 10.1.1.2 health-restored
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-restored.json"
+grep -q '"action": "disable"' "$out/health1.jsonl"
+grep -q '"action": "enable"' "$out/health1.jsonl"
 for n in 1 2; do ip netns exec "l4-d$n" ipvsadm -Sn > "$out/ipvs$n-final.txt"; done
 echo BGP_HEALTH_TRAFFIC_PASS
