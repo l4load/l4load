@@ -16,5 +16,13 @@
     "udp": {"passed": 2468, "attempts": 2468, "actual_starts_per_second": 1000.066}
   },
   "client_timeout_ms": 50,
-  "limit": "One short shared virtual-runner result, not a capacity or production SLO. The 50 ms client timeout differs from earlier 250 ms fresh-flow trials. Fault start is bracketed by the nft command, and the route timestamp is the first observation after the kernel change. Filter counters are not NIC ingress; cgroup snapshots exclude kernel dataplane CPU. No paired YANET or physical comparison."
+  "repeat": {
+    "run": "https://github.com/l4load/l4load/actions/runs/36249994662/job/108426106964",
+    "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36249994662/artifacts/10908568497",
+    "artifact_sha256": "e37835fe25ee542421ee3bc03dd8e39ad6c69918dbb4839cb8491dc7b0ec223e",
+    "denied_generator_mps": 100002.233,
+    "tcp": {"fault_errors": 375, "longest_error_burst": 375, "last_success_to_next_success_seconds": 0.376, "fault_actual_starts_per_second": 1000.052, "standby_passed": 2402, "standby_attempts": 2402},
+    "udp": {"fault_errors": 375, "longest_error_burst": 375, "last_success_to_next_success_seconds": 0.376, "fault_actual_starts_per_second": 999.827, "standby_passed": 2401, "standby_attempts": 2401}
+  },
+  "limit": "Two short shared virtual-runner results, not a capacity or production SLO. The 50 ms client timeout differs from earlier 250 ms fresh-flow trials. Fault start is bracketed by the nft command, and the route timestamp is the first observation after the kernel change. Filter counters are not NIC ingress; cgroup snapshots exclude kernel dataplane CPU. No paired YANET or physical comparison."
 }

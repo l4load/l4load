@@ -79,7 +79,7 @@ installed check is supplied by the operator and must be calibrated there.
 
 [A higher-rate failover trial](results/2026-09-26-high-rate-failover.json)
 kept about 1000 scheduled TCP and UDP starts/s each through the fault while
-the filter denied about 100,000 packets/s. The short virtual run lost 472
-requests per protocol in a 0.473 s gap, then passed all measured standby
-requests. The client used a 50 ms timeout; this is an observed loss envelope,
+the filter denied about 100,000 packets/s. Two short virtual runs lost 375–472
+requests per protocol in 0.376–0.473 s gaps, then passed all measured standby
+requests. The client used a 50 ms timeout; these are observed loss samples,
 not a production SLO or forwarding-capacity limit.
