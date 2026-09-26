@@ -59,11 +59,13 @@ jobs:
       - if: always()
         run: |
           python3 - <<'PY'
-          import json
+          import base64, gzip, json
           from pathlib import Path
           for p in sorted(Path('lab/results/ipvs').glob('*')):
               if p.suffix in ('.txt', '.json', '.jsonl', '.conf') or p.name in ('vrrp-1.log', 'vrrp-2.log', 'alt-checker.log'):
                   print('EVIDENCE ' + json.dumps({'file': p.name, 'content': p.read_text()}))
+              if p.name in ('useful-tcp.csv', 'useful-udp.csv'):
+                  print('CSV_GZIP ' + json.dumps({'file': p.name, 'data': base64.b64encode(gzip.compress(p.read_bytes())).decode()}))
           PY
       - if: always()
         uses: actions/upload-artifact@v4

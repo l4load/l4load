@@ -181,6 +181,9 @@ if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
         sample_useful() {
             local phase=$1
             ps -C keepalived -o pid,ppid,rss,vsz,time > "$out/useful-process-$phase.txt"
+            for pid in $(ps -C keepalived -o pid=); do
+                awk -v pid="$pid" '{print pid, $14, $15, $24}' "/proc/$pid/stat"
+            done > "$out/useful-process-$phase-ticks.txt"
             for ns in l4-lb l4-alt; do
                 ip netns exec "$ns" ipvsadm -Ln --stats > "$out/useful-ipvs-$phase-$ns.txt"
                 ip -n "$ns" -j -s link show dev ha0 > "$out/useful-link-$phase-$ns.json"

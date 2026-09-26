@@ -43,14 +43,18 @@ with (out / f'useful-{protocol}.csv').open('w') as file:
     else:
         raise TimeoutError('useful traffic phase did not finish')
 summary = defaultdict(lambda: {'attempts': 0, 'passed': 0, 'errors': 0, 'rtt_ms': []})
-for _, phase, rtt, status, _ in rows:
+for sent, phase, rtt, status, _ in rows:
     item = summary[phase]
     item['attempts'] += 1
     item['passed' if status == 'pass' else 'errors'] += 1
+    item['first_sent_monotonic'] = min(item.get('first_sent_monotonic', sent), sent)
+    item['last_sent_monotonic'] = max(item.get('last_sent_monotonic', sent), sent)
     if status == 'pass':
         item['rtt_ms'].append(rtt)
 for item in summary.values():
     values = sorted(item.pop('rtt_ms'))
     item['p99_success_rtt_ms'] = values[min(len(values) - 1, int(len(values) * 0.99))] if values else None
+    span = item['last_sent_monotonic'] - item['first_sent_monotonic']
+    item['observed_attempts_per_second'] = (item['attempts'] - 1) / span if span else None
 (out / f'useful-{protocol}.json').write_text(json.dumps(dict(summary), indent=2) + '\n')
 print(protocol, json.dumps(dict(summary)), flush=True)
