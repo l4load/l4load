@@ -149,3 +149,29 @@ an explicit pilot risk; VRRP failover alone cannot preserve state it never recei
 recorded 13 failed attempts per protocol during an automatic handoff and none
 before or after it. Sequential probe timeouts reduced the offered rate during
 the fault; this short virtual run is not a capacity or loss-rate qualification.
+
+## Routed pair trial
+
+The separate [BGP lab](../../lab/bgp/README.md) tests two BIRD/IPVS directors.
+For a dedicated IPv4 director with one VIP, first install the non-VRRP
+`l4load-ipvs` service above. Prepare a link to the other director for IPVS
+state sync and an executable probe that sends real TCP/UDP traffic through
+this director's forwarding path. A loopback-only check is insufficient.
+
+Create a JSON file with `vip`, `local_ip`, `local_as`, `peer_ip`, `peer_as`,
+`sync_interface` and `sync_id`; the peer must be a directly connected BFD/BGP
+neighbor. Install without starting or enabling the unit:
+
+```sh
+sudo python3 profiles/ipvs/install-routed.py director candidate.json check-forwarding
+sudo systemctl start l4load-routed@director
+```
+
+The installer rejects another routed profile on the host, validates addresses
+and BIRD syntax, generates a disabled VIP static route and masks the packaged
+BIRD service. The unit depends on `l4load-ipvs.service`; its supervisor runs
+BIRD, both native IPVS sync roles and the forwarding/BFD route gate. The gate
+advertises only after two healthy probes. Check route state, both sync daemons,
+backend health and real traffic on both directors before enabling startup.
+This installation path still needs a full two-node service/restart and rollback
+trial; the lab results alone do not qualify it for production.

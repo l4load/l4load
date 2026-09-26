@@ -1,0 +1,17 @@
+[Unit]
+Description=L4Load routed director %i
+BindsTo=l4load-ipvs.service
+After=l4load-ipvs.service network-online.target
+
+[Service]
+Type=simple
+RuntimeDirectory=l4load-routed-%i
+ExecStart=/usr/bin/python3 /usr/local/libexec/l4load-routed-run.py %i
+ExecStopPost=-/usr/sbin/ipvsadm --stop-daemon master
+ExecStopPost=-/usr/sbin/ipvsadm --stop-daemon backup
+Restart=on-failure
+RestartSec=1
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

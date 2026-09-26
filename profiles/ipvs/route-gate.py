@@ -12,7 +12,8 @@ signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
 
 def bird(command):
     result = subprocess.run(['birdc', '-s', control, *command], capture_output=True, text=True, timeout=3)
-    if result.returncode or f'{route}: {"enabled" if command[0] == "enable" else "disabled"}' not in result.stdout:
+    status = 'enabled' if command[0] == 'enable' else 'disabled'
+    if result.returncode or not any(f'{route}: {prefix}{status}' in result.stdout for prefix in ('', 'already ')):
         raise RuntimeError((command, result.stdout, result.stderr))
 
 
@@ -21,7 +22,10 @@ streak = 0
 bird(['disable', route])
 try:
     while True:
-        forwarding = subprocess.run(probe, capture_output=True, timeout=3).returncode == 0
+        try:
+            forwarding = subprocess.run(probe, capture_output=True, timeout=3).returncode == 0
+        except subprocess.TimeoutExpired:
+            forwarding = False
         bfd = True
         if peer != '-':
             result = subprocess.run(['birdc', '-s', control, 'show bfd sessions'], capture_output=True, text=True, timeout=3)
