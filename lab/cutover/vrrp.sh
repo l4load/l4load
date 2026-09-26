@@ -59,6 +59,9 @@ EOF
 done
 ip -n l4-router route replace 198.18.0.1/32 via 10.0.5.100
 has_vip() { ip -n "$1" addr show dev ha0 | grep -q '10.0.5.100/24'; }
+record_vip() {
+    for ns in l4-lb l4-alt; do ip -n "$ns" -j addr show dev ha0 > "$out/vrrp-$1-$ns.json"; done
+}
 wait_vip() {
     for attempt in $(seq 1 30); do
         if has_vip "$1" && ! has_vip "$2"; then return; fi
@@ -68,6 +71,7 @@ wait_vip() {
     return 1
 }
 wait_vip l4-lb l4-alt
+record_vip baseline
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-baseline.jsonl"
 ip netns exec l4-lb nft -f - <<'NFT'
 table netdev fault {
@@ -79,14 +83,21 @@ table netdev fault {
 NFT
 python3 -c 'import time; print(time.monotonic())' > "$out/vrrp-fault-start.txt"
 wait_vip l4-alt l4-lb
+kill -0 "$controller"
+record_vip failover
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-failover.jsonl"
+ip netns exec l4-lb nft -j list table netdev fault > "$out/vrrp-fault.json"
 python3 - "$out" <<'PY'
 import json, sys, time
 from pathlib import Path
-p=Path(sys.argv[1]); p.joinpath('vrrp-failover-time.json').write_text(json.dumps({'failure_to_verified_recovery_seconds':time.monotonic()-float(p.joinpath('vrrp-fault-start.txt').read_text())})+'\n')
+p=Path(sys.argv[1]); rules=json.loads(p.joinpath('vrrp-fault.json').read_text())['nftables']
+drops=sum(e['counter']['packets'] for r in rules if 'rule' in r for e in r['rule']['expr'] if 'counter' in e)
+assert drops >= 2, drops
+p.joinpath('vrrp-failover-time.json').write_text(json.dumps({'failure_to_verified_recovery_seconds':time.monotonic()-float(p.joinpath('vrrp-fault-start.txt').read_text()),'dropped_fault_packets':drops})+'\n')
 PY
 ip netns exec l4-lb nft delete table netdev fault
 wait_vip l4-lb l4-alt
+record_vip restored
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-restored.jsonl"
 kill -0 "$controller"
 echo VRRP_FORWARDING_RECOVERY_PASS
