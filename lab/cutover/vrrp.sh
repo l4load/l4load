@@ -92,6 +92,7 @@ wait_vip() {
 }
 wait_vip l4-lb l4-alt
 if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
+    sync_client=10.0.0.2
     source lab/cutover/sync.sh
     echo baseline > "$out/session-phase"
     ip netns exec l4-client env L4LOAD_SESSION_TIMEOUT=10 python3 -u lab/ipvs/sessions.py "$out" > "$out/vrrp-sessions.jsonl" 2>&1 &
