@@ -46,7 +46,7 @@ test "$new_pid" -gt 1 && test "$new_pid" != "$old_pid"
 wait_weight 0
 wait_weight 1 10.0.3.2:8080
 phase service-recovered
-ip netns exec l4-client python3 lab/katran/scenario.py check b2 32000 | tee "$out/service-recovered.json"
+ip netns exec l4-client python3 lab/katran/scenario.py check b2 15000 | tee "$out/service-recovered.json"
 systemctl show "$unit" -p ActiveState -p MainPID -p NRestarts > "$out/service-state.txt"
 test "$(systemctl show "$unit" -p NRestarts --value)" -ge 1
 cp "$unitfile" "$out/service.txt"
@@ -88,11 +88,11 @@ for candidate in drain original; do
     if [ "$candidate" = drain ]; then
         wait_weight 0
         phase service-drained
-        ip netns exec l4-client python3 lab/katran/scenario.py check b2 34000 | tee "$out/service-drained.json"
+        ip netns exec l4-client python3 lab/katran/scenario.py check b2 16000 | tee "$out/service-drained.json"
     else
         wait_weight 1
         phase service-restored
-        ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 35000 | tee "$out/service-restored.json"
+        ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 17000 | tee "$out/service-restored.json"
     fi
 done
 cmp "$out/original.conf" /etc/l4load/ipvs.conf
@@ -117,19 +117,19 @@ if compgen -G "$out/keepalived_*.deb" > /dev/null; then
     wait_weight 1
     wait_weight 1 10.0.3.2:8080
     phase package-reinstalled
-    ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 36000 | tee "$out/package-reinstalled.json"
+    ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 18000 | tee "$out/package-reinstalled.json"
     systemctl restart "$unit"
     after_pid=$(systemctl show "$unit" -p MainPID --value)
     test "$after_pid" -gt 1 && test "$after_pid" != "$before_pid"
     wait_weight 1
     wait_weight 1 10.0.3.2:8080
     phase package-restarted
-    ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 37000 | tee "$out/package-restarted.json"
+    ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 19000 | tee "$out/package-restarted.json"
     systemctl show "$unit" -p ActiveState -p MainPID > "$out/package-service.txt"
     echo PACKAGE_REINSTALL_PASS
 fi
 if [ -f "$out/upgrade.deb" ]; then
-    port=38000
+    port=27000
     for stage in upgrade rollback; do
         package="$out/upgrade.deb"
         if [ "$stage" = rollback ]; then
