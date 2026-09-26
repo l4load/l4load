@@ -39,6 +39,12 @@ observation does not establish capacity or superiority over another engine.
 Both preserved the observed low-rate UDP exchanges. This measures those update
 paths in one virtual run; it does not rank forwarding capacity or optimal tuning.
 
+The current bulk trial also probes addresses from the beginning, middle and end
+of each generated range. Each new source must forward before its first inclusion,
+be denied after application, and forward again after clearing. This catches some
+partial-application errors; it is sampled coverage, not exhaustive verification
+of all pairs or proof of transient policy atomicity.
+
 [The nftables trial passed](https://github.com/l4load/l4load/actions/runs/36172967453).
 [YANET passed the same deny/allow probes](https://github.com/l4load/l4load/actions/runs/36174467560),
 including rejected reload and explicit rollback. Only nftables expiry was tested;

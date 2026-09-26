@@ -58,6 +58,7 @@ else:
     set_phase('baseline')
     client = subprocess.Popen(['ip', 'netns', 'exec', 'l4-client', sys.executable, __file__, str(out), 'probe'])
     measurements = []
+    probes = set()
     try:
         for _ in range(100):
             assert client.poll() is None, 'traffic probe exited'
@@ -71,6 +72,12 @@ else:
             pairs = [[str(ipaddress.IPv4Address(int(ipaddress.IPv4Address('198.19.0.0')) + i)), '198.18.0.1'] for i in range(max(0, count - 1))]
             if count:
                 pairs.append(['10.0.0.3', '198.18.0.1'])
+                selected = {pairs[index][0] for index in (0, count // 2, count - 2)}
+                subprocess.run(['ip', '-n', 'l4-router', 'route', 'replace', '198.19.0.0/16', 'via', '10.0.0.2'], check=True)
+                for source in sorted(selected - probes):
+                    subprocess.run(['ip', '-n', 'l4-client', 'addr', 'add', source + '/32', 'dev', 'eth0'], check=True)
+                    subprocess.run(['ip', 'netns', 'exec', 'l4-client', sys.executable, 'lab/filter/probe.py', source, 'pass'], check=True)
+                probes.update(selected)
             set_phase(str(count))
             before = resource.getrusage(resource.RUSAGE_CHILDREN)
             started = time.monotonic()
@@ -87,6 +94,8 @@ else:
                                  'child_cpu_seconds': after.ru_utime + after.ru_stime - before.ru_utime - before.ru_stime,
                                  'children_peak_rss_kib': after.ru_maxrss})
             subprocess.run(['ip', 'netns', 'exec', 'l4-client', sys.executable, 'lab/filter/probe.py', '10.0.0.3', 'drop' if count else 'pass'], check=True)
+            for source in sorted(probes):
+                subprocess.run(['ip', 'netns', 'exec', 'l4-client', sys.executable, 'lab/filter/probe.py', source, 'drop' if count else 'pass'], check=True)
             time.sleep(1)
         set_phase('done')
         client.wait(timeout=5)
