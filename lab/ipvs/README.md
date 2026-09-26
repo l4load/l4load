@@ -48,6 +48,12 @@ flows stayed pinned after its health weight became zero. Setting it to `1`
 moved all 64 new flows to the survivor. The installed service now sets it on
 start and reload; [lifecycle CI](https://github.com/l4load/l4load/actions/runs/36259478057)
 checks the setting. This is one short virtual trial, not a capacity result.
+
+In a [planned two-director cutover](https://github.com/l4load/l4load/actions/runs/36261617603),
+the backup had all 16 persistent templates for eight synthetic clients and
+both protocols before the route moved. Their backend mappings matched across
+the cutover; 512 fresh TCP/UDP exchanges passed on each side. This does not
+qualify abrupt failover, replication loss, backend-set changes or an HA SLO.
 Health checks cannot protect traffic while the controller is stopped. The observed
 restart limitation is scoped to the recorded package/configuration.
 
