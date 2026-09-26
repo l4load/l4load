@@ -86,6 +86,11 @@ wait_route() {
         if grep -q "via $expected " "$out/route-$phase.txt"; then return; fi
         sleep 0.1
     done
+    if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ]; then
+        birdc -s "$out/router.ctl" 'show bfd sessions all' > "$out/bfd-timeout-$phase.txt" || true
+        birdc -s "$out/router.ctl" 'show protocols all' > "$out/protocol-timeout-$phase.txt" || true
+        ip netns exec l4-r nft -a list table inet fault > "$out/fault-timeout-$phase.txt" 2>&1 || true
+    fi
     for name in router d1 d2; do cat "$out/$name.log"; done
     return 1
 }
