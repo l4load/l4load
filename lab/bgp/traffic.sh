@@ -183,6 +183,7 @@ if [ "$fault_ns" = l4-r ]; then
 else
     ip netns exec l4-d1 nft add rule inet fault ingress ip daddr 198.18.0.1 counter drop
 fi
+python3 -c 'import time; print(time.monotonic())' > "$out/traffic-fault-applied.txt"
 wait_route 10.1.2.2 health-withdrawn
 if [ "$fault_ns" = l4-r ]; then birdc -s "$out/router.ctl" 'show bfd sessions' > "$out/bfd-withdrawn.txt"; fi
 phase failover
@@ -216,6 +217,7 @@ sleep 2
 phase done
 wait "$useful_tcp"
 wait "$useful_udp"
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then python3 lab/bgp/failover-summary.py "$out" > "$out/failover-summary.json"; fi
 if [ "${L4LOAD_BGP_SOAK:-0}" = 1 ]; then
     kill -0 "$denied_pid"
     python3 lab/bgp/phase-snapshot.py "$out" soak

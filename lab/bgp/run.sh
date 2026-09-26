@@ -98,7 +98,10 @@ wait_route() {
     local expected=$1 phase=$2
     for attempt in $(seq 1 100); do
         ip -n l4-r route get 198.18.0.1 > "$out/route-$phase.txt" 2>&1 || true
-        if grep -q "via $expected " "$out/route-$phase.txt"; then return; fi
+        if grep -q "via $expected " "$out/route-$phase.txt"; then
+            python3 -c 'import time; print(time.monotonic())' > "$out/route-$phase-at.txt"
+            return
+        fi
         sleep 0.1
     done
     if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ]; then

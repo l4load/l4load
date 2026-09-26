@@ -46,7 +46,7 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
-          for name in ('denied-load.json', 'useful-tcp.json', 'useful-udp.json', 'phase-summary.json', 'phase-snapshots.jsonl', 'denied-probe.jsonl', 'allowed-probe.jsonl', 'filter-d1.txt', 'filter-d2.txt'):
+          for name in ('denied-load.json', 'useful-tcp.json', 'useful-udp.json', 'failover-summary.json', 'phase-summary.json', 'phase-snapshots.jsonl', 'denied-probe.jsonl', 'allowed-probe.jsonl', 'filter-d1.txt', 'filter-d2.txt'):
               path=Path('lab/results/bgp')/name
               if path.exists(): print('EVIDENCE '+json.dumps({'file':name,'content':path.read_text()}))
           PY
@@ -67,7 +67,7 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
-          for name in ('denied-load.json', 'soak-summary.json', 'phase-summary.json', 'useful-tcp.json', 'useful-udp.json'):
+          for name in ('denied-load.json', 'soak-summary.json', 'phase-summary.json', 'failover-summary.json', 'useful-tcp.json', 'useful-udp.json'):
               path=Path('lab/results/bgp')/name
               if path.exists(): print('EVIDENCE '+json.dumps({'file':name,'content':path.read_text()}))
           PY

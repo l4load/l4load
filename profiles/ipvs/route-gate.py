@@ -52,8 +52,8 @@ try:
                 for line in result.stdout.splitlines()
             )
         good = forwarding and bfd and (not check_ipvs or ipvs_ready())
-        streak = streak + 1 if good != healthy else 0
-        if streak >= 2:
+        streak = streak + 1 if good and not healthy else 0
+        if (not good and healthy) or streak >= 2:
             action = 'enable' if good else 'disable'
             bird([action, route])
             healthy = good
