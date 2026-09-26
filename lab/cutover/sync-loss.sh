@@ -28,7 +28,10 @@ table netdev fault {
 NFT
 python3 -c 'import time; print(time.monotonic())' > "$out/stale-fault-start.txt"
 wait_vip l4-alt l4-lb
-check_sync_roles failover l4-alt l4-lb
+record_vip sync-loss-failover
+for ns in l4-lb l4-alt; do
+    ip netns exec "$ns" ipvsadm -Ln --daemon > "$out/sync-daemon-failover-$ns.txt"
+done
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/stale-fresh.jsonl"
 python3 - "$out" <<'PY'
 import json, sys, time
