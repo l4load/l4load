@@ -113,6 +113,18 @@ jobs:
         with:
           name: bgp-false-miss
           path: lab/results/bgp
+  sync-loss:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bird2 ipvsadm nftables keepalived
+      - run: sudo env L4LOAD_BGP_TRAFFIC=8 L4LOAD_BGP_SYNC_LOSS=1 bash lab/bgp/run.sh
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bgp-sync-loss
+          path: lab/results/bgp
   endurance:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
