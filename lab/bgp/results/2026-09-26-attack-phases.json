@@ -1,0 +1,13 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36247651560/job/108419715612",
+  "head": "1583229d56b42af2ce3c2af544e912112e04679c",
+  "raw_artifact": "https://github.com/l4load/l4load/actions/runs/36247651560/artifacts/10908530183",
+  "artifact_sha256": "bea862105c4b50c55fb2319b194d28e65141116ec93c168dc9c84e76a394ded4",
+  "environment": "Ubuntu 24.04 shared virtual runner; two installed IPVS/BIRD directors and nftables filters in namespaces",
+  "denied_packets_per_second_by_phase": {"baseline": 99671.545, "fault": 100597.249, "failover": 100015.153, "return": 98906.197, "restored": 100016.148},
+  "filter_packet_counts_by_phase": {"baseline": [265833, 0], "fault": [264724, 8786], "failover": [0, 289350], "return": [8784, 144528], "restored": [212831, 0]},
+  "useful_tcp": {"fault": "14/273", "failover": "289/289", "failover_p99_success_rtt_ms": 0.554},
+  "useful_udp": {"fault": "14/273", "failover": "289/289", "failover_p99_success_rtt_ms": 0.260},
+  "resource_scope": "Per-unit cgroup CPU and memory snapshots are in the raw artifact. They cover user-space control services, not kernel IPVS/nftables dataplane CPU or total host cost.",
+  "limit": "One short shared virtual-host run with roughly 100 useful starts/s per protocol. Phase rates are differences between nftables snapshots, not a NIC ingress measurement. No physical capacity, sustained load, or paired YANET ranking."
+}

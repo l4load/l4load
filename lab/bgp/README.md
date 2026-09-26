@@ -55,3 +55,6 @@ Set `L4LOAD_BGP_LOAD=1` alongside mode 8 for the
 installed nftables filter while fresh TCP/UDP traffic crosses a routed failure.
 The recorded 30-second run is a functional stress observation, not a capacity
 or comparative ranking.
+[Per-phase filter counters and service cgroups](results/2026-09-26-attack-phases.json)
+show the denied rate during failover and where packets were dropped. Kernel
+dataplane CPU remains outside the service accounting.
