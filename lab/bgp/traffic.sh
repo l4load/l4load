@@ -112,8 +112,6 @@ if [ "${L4LOAD_BGP_LOAD:-0}" = 1 ]; then
     ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.3 drop > "$out/denied-probe.jsonl"
     ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/allowed-probe.jsonl"
     lscpu > "$out/cpu.txt"
-    cat /proc/stat > "$out/proc-stat-before.txt"
-    ps -C bird,keepalived -o pid,rss,vsz,time > "$out/process-before.txt"
     ip netns exec l4-client sockperf throughput -i 198.18.0.1 -p 8080 --client_ip 10.0.0.3 -m 64 -t 30 --mps 100000 > "$out/denied-load.txt" 2>&1 &
     denied_pid=$!
     pids+=("$denied_pid")
@@ -141,6 +139,7 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
     grep -q 'Up' "$out/installed-bfd.txt"
 fi
 phase() {
+    if [ "${L4LOAD_BGP_LOAD:-0}" = 1 ]; then python3 lab/bgp/phase-snapshot.py "$out" "$1"; fi
     printf '%s\n' "$1" > "$out/useful-phase.next"
     mv "$out/useful-phase.next" "$out/useful-phase"
 }
@@ -174,8 +173,8 @@ if [ "$fault_ns" = l4-r ]; then
     ip netns exec l4-d1 nft add table inet fault
     ip netns exec l4-d1 nft add chain inet fault ingress '{ type filter hook prerouting priority -300; policy accept; }'
 fi
-python3 -c 'import time; print(time.monotonic())' > "$out/traffic-fault-start.txt"
 phase fault
+python3 -c 'import time; print(time.monotonic())' > "$out/traffic-fault-start.txt"
 if [ "$fault_ns" = l4-r ]; then
     ip netns exec l4-r nft add rule inet fault ingress iifname r1 udp dport 3784 counter drop
     ip netns exec l4-d1 nft add rule inet fault ingress iifname eth0 udp dport 3784 counter drop
@@ -217,6 +216,7 @@ wait "$useful_tcp"
 wait "$useful_udp"
 if [ "${L4LOAD_BGP_LOAD:-0}" = 1 ]; then
     wait "$denied_pid"
+    python3 lab/bgp/phase-summary.py "$out" > "$out/phase-summary.log"
     python3 - "$out/denied-load.txt" "$out/denied-load.json" <<'PY'
 import json,re,sys
 text=open(sys.argv[1]).read()
@@ -225,8 +225,6 @@ record={'requested_mps':100000,'sent':int(sent),'elapsed_seconds':float(elapsed)
 assert record['actual_mps'] > 0
 open(sys.argv[2],'w').write(json.dumps(record)+'\n')
 PY
-    cat /proc/stat > "$out/proc-stat-after.txt"
-    ps -C bird,keepalived -o pid,rss,vsz,time > "$out/process-after.txt"
     for n in 1 2; do
         ip netns exec "l4-d$n" nft -a list table netdev l4load > "$out/filter-d$n.txt"
         grep -Eq 'counter packets [1-9]' "$out/filter-d$n.txt"
