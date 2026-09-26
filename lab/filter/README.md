@@ -89,3 +89,11 @@ An earlier run captured packets only for YANET and is excluded from comparison.
 Upstream references: [timeouts](https://wiki.nftables.org/wiki-nftables/index.php/Element_timeouts),
 [ingress families](https://wiki.nftables.org/wiki-nftables/index.php/Nftables_families),
 [transactions](https://wiki.nftables.org/wiki-nftables/index.php/Atomic_rule_replacement).
+
+`L4LOAD_SNAPSHOT_LOAD=1` adds 100,000 requested denied UDP messages/s to
+each nonempty bulk update. The sentinel deny is installed before the generator;
+each generator must remain alive across the update and finish successfully.
+Logs retain its achieved whole-run rate, lifetime and update boundaries; these
+do not establish the exact rate within the update. Empty-policy withdrawal runs
+after generators exit. Useful traffic remains the sequential echo probe, not a
+capacity test. The YANET workflow retains a separate no-load bulk pass.
