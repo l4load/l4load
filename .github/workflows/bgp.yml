@@ -15,7 +15,7 @@ jobs:
         traffic: [0, 1]
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bird2 ipvsadm nftables tcpdump
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bird2 ipvsadm nftables
       - run: sudo env L4LOAD_BGP_TRAFFIC=${{ matrix.traffic }} bash lab/bgp/run.sh
       - if: always()
         run: |

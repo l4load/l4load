@@ -1,0 +1,14 @@
+{
+  "source": "644486def5aa9e463be065948f541041b1344073",
+  "run": "https://github.com/l4load/l4load/actions/runs/36238884637/job/108395588865",
+  "environment": "Ubuntu 24.04 runner, Linux 6.17.0-1022-azure, BIRD 2.14, IPVS",
+  "fault": "nft drop of VIP ingress on primary while BGP remained established",
+  "route": ["primary", "standby", "primary"],
+  "fresh_flows_per_phase": {"tcp": 32, "udp": 32},
+  "phases": ["baseline", "failover", "restored"],
+  "all_echoes_passed": true,
+  "client_ip_preserved": true,
+  "primary_probe_drop_packets": 2,
+  "monitor_withdraw_after_fault_command_seconds": 2.544,
+  "limits": "One virtual run; no continuous-flow loss, session preservation, BFD, physical capacity, or production SLO."
+}
