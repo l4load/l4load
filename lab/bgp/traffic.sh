@@ -70,14 +70,14 @@ phase() {
     mv "$out/useful-phase.next" "$out/useful-phase"
 }
 phase baseline
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then
-    source lab/bgp/sync.sh
-    ip netns exec l4-client python3 -u lab/bgp/session.py "$out" > "$out/session.log" 2>&1 &
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 4 ]; then
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then source lab/bgp/sync.sh; fi
+    ip netns exec l4-client env L4LOAD_SESSION_EXPECT_RESET="$([ "${L4LOAD_BGP_TRAFFIC:-1}" = 5 ] && echo 1 || echo 0)" python3 -u lab/bgp/session.py "$out" > "$out/session.log" 2>&1 &
     session_pid=$!
     pids+=("$session_pid")
     for attempt in $(seq 1 100); do test -e "$out/session-baseline" && break; sleep 0.1; done
     test -e "$out/session-baseline"
-    sync_ready l4-d1 l4-d2 failover
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then sync_ready l4-d1 l4-d2 failover; fi
 fi
 traffic_script=lab/cutover/useful.py
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 2 ]; then traffic_script=lab/bgp/offered.py; fi
@@ -113,6 +113,10 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then
     test -e "$out/session-failover"
     sync_ready l4-d2 l4-d1 return
 fi
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 5 ]; then
+    for attempt in $(seq 1 100); do test -s "$out/session-reset.json" && break; sleep 0.1; done
+    test -s "$out/session-reset.json"
+fi
 python3 -c 'import time; print(time.monotonic())' > "$out/traffic-route-standby.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-failover.json"
 sleep 2
@@ -133,9 +137,9 @@ sleep 2
 phase done
 wait "$useful_tcp"
 wait "$useful_udp"
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 4 ]; then
     wait "$session_pid"
-    test -s "$out/session.json"
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then test -s "$out/session.json"; fi
 fi
 ps -C bird -o pid,rss,vsz,time > "$out/bird-restored.txt"
 for protocol in tcp udp; do
