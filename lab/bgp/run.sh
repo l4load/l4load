@@ -77,7 +77,7 @@ wait_route() {
 }
 for peer in primary standby; do
     for attempt in $(seq 1 100); do
-        birdc -s "$out/router.ctl" 'show protocols' > "$out/router-ready.txt"
+        birdc -s "$out/router.ctl" 'show protocols' > "$out/router-ready.txt" 2>&1 || true
         if grep -E "^$peer +BGP +.*Established" "$out/router-ready.txt"; then break; fi
         sleep 0.1
     done
