@@ -1,0 +1,119 @@
+{
+  "experiment": "65,536 policy pairs, 1,000 requested useful UDP messages/s for 70 s; denied background 0 or 100,000 requested messages/s; fixed native-first order on one virtual GitHub runner",
+  "source_commit": "fdb9d5c71d4e481371256d3bab6827f9b139e713",
+  "run_url": "https://github.com/l4load/l4load/actions/runs/36230154495",
+  "job_id": 108371658504,
+  "artifact_id": 10902850616,
+  "artifact_sha256": "cbac8d9dbd1dad5aa2283f3185ed5a7110612656cff897ded0c0af7cfc66cce2",
+  "runner_memory_kib": 16373452,
+  "native": [
+    {
+      "repeat": 1,
+      "denied_requested_mps": 0,
+      "denied_generator_mps": 0,
+      "allowed_sent": 69549,
+      "allowed_received": 69549,
+      "allowed_actual_mps": 1000.014,
+      "p99_rtt_us": 71.918,
+      "update_seconds": 0.914,
+      "samples_sha256": "5754b4059be57c553670feb81da59c11c240e805d3d08cd68308971f01702d38"
+    },
+    {
+      "repeat": 1,
+      "denied_requested_mps": 100000,
+      "denied_generator_mps": 100002,
+      "allowed_sent": 69549,
+      "allowed_received": 69549,
+      "allowed_actual_mps": 1000.014,
+      "p99_rtt_us": 76.273,
+      "update_seconds": 0.914,
+      "samples_sha256": "4eb466d22ebae67c60b96e4e2af276f62676bb65520283f033b7fa26752b9857"
+    },
+    {
+      "repeat": 2,
+      "denied_requested_mps": 0,
+      "denied_generator_mps": 0,
+      "allowed_sent": 69549,
+      "allowed_received": 69549,
+      "allowed_actual_mps": 1000.014,
+      "p99_rtt_us": 65.71,
+      "update_seconds": 0.863,
+      "samples_sha256": "6ce568b9e5f98bfe2a531dd5a5c15c63634b132272d2e8fe7b8a427b6bfce1bc"
+    },
+    {
+      "repeat": 2,
+      "denied_requested_mps": 100000,
+      "denied_generator_mps": 100001,
+      "allowed_sent": 69550,
+      "allowed_received": 69550,
+      "allowed_actual_mps": 1000.014,
+      "p99_rtt_us": 72.967,
+      "update_seconds": 0.915,
+      "samples_sha256": "bf405a96b5f4283722a1aae534e2279d573733923239bad5daf0b43118743a44"
+    },
+    {
+      "repeat": 3,
+      "denied_requested_mps": 0,
+      "denied_generator_mps": 0,
+      "allowed_sent": 69549,
+      "allowed_received": 69549,
+      "allowed_actual_mps": 1000.014,
+      "p99_rtt_us": 64.968,
+      "update_seconds": 0.867,
+      "samples_sha256": "0babddf394cc910cdb42c7982168731301e0e562d765dcfbe1d49dcb94d2f963"
+    },
+    {
+      "repeat": 3,
+      "denied_requested_mps": 100000,
+      "denied_generator_mps": 100001,
+      "allowed_sent": 69550,
+      "allowed_received": 69550,
+      "allowed_actual_mps": 1000.014,
+      "p99_rtt_us": 70.582,
+      "update_seconds": 1.014,
+      "samples_sha256": "4f8fb2dc9686606da0370e69b2701ad0d0000f51559619539b284382ff1f8a27"
+    }
+  ],
+  "yanet_completed": [
+    {
+      "repeat": 1,
+      "denied_requested_mps": 0,
+      "allowed_sent": 69550,
+      "allowed_received": 69550,
+      "p99_rtt_us": 1031.811,
+      "update_seconds": 37.573
+    },
+    {
+      "repeat": 1,
+      "denied_requested_mps": 100000,
+      "allowed_sent": 69548,
+      "allowed_received": 69548,
+      "p99_rtt_us": 1844.02,
+      "update_seconds": 37.862
+    },
+    {
+      "repeat": 2,
+      "denied_requested_mps": 0,
+      "allowed_sent": 69548,
+      "allowed_received": 69548,
+      "p99_rtt_us": 677.687,
+      "update_seconds": 29.109
+    }
+  ],
+  "yanet_failure": {
+    "repeat": 2,
+    "denied_requested_mps": 100000,
+    "update_elements": 65536,
+    "timeout_seconds": 60,
+    "cgroup_oom_kill_before": 0,
+    "cgroup_oom_kill_after": 1,
+    "controlplane_after": "zombie",
+    "memory_peak_bytes": 15989899264,
+    "memory_max": "max",
+    "mem_available_before_kib": 1860116,
+    "mem_available_after_kib": 1243840,
+    "swap_free_before_kib": 145384,
+    "swap_free_after_kib": 184
+  },
+  "limits": "Virtual runner, shared host resources, fixed order, low useful rate. YANET did not complete six intervals; no full paired performance ranking or production capacity claim."
+}

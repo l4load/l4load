@@ -102,6 +102,11 @@ applied 65,536 pairs under about 100,000 denied UDP messages/s. Application took
 during the updates was 0.191 and 2.606 ms, with no observed loss. This is one
 virtual run with sequential low-rate useful traffic, different native update paths
 and whole-generator average rates, not a capacity or production-superiority claim.</p>
+<p>At 1,000 requested useful UDP messages/s during six 65,536-pair updates,
+nftables/IPVS reported no useful loss. YANET completed three intervals before
+its control plane disappeared during the fourth; the virtual runner recorded
+an OOM kill and a reload timeout. <a href="https://github.com/l4load/l4load/tree/main/lab/filter/results/2026-09-26-offered-failure">Measurements and limits</a>.
+This incomplete paired trial does not establish forwarding capacity.</p>
 <p>An <a href="https://github.com/l4load/l4load/actions/runs/36224483206">injected forwarding failure</a>
 left Keepalived alive while TCP/UDP probes timed out. The lab harness redirected
 new flows through a second director and verified recovery in 2.06 seconds,

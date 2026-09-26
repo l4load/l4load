@@ -97,3 +97,16 @@ Logs retain its achieved whole-run rate, lifetime and update boundaries; these
 do not establish the exact rate within the update. Empty-policy withdrawal runs
 after generators exit. Useful traffic remains the sequential echo probe, not a
 capacity test. The YANET workflow retains a separate no-load bulk pass.
+
+An [offered-load update trial](https://github.com/l4load/l4load/actions/runs/36230154495)
+used 1,000 requested useful UDP messages/s for 70 seconds during 65,536-pair
+replacements. nftables/IPVS completed six intervals: 0.863–1.014 s per update,
+zero reported useful loss and whole-interval p99 of 65–77 µs. YANET completed
+three intervals: 29.109–37.862 s per update, zero reported loss and p99 of
+678–1844 µs. In the fourth, its control plane became a zombie while the cgroup
+OOM-kill counter rose from zero to one, and
+the reload hit a 60-second timeout. [Recorded measurements](results/2026-09-26-offered-failure/observation.json)
+come from the same virtual runner with about 16 GiB RAM. The trial did not
+complete a paired comparison or establish forwarding capacity; more memory
+may change the YANET outcome. The workflow artifact holds raw samples and
+resource snapshots.
