@@ -55,3 +55,24 @@ jobs:
         with:
           name: bgp-attack
           path: lab/results/bgp
+  soak:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bird2 ipvsadm nftables keepalived sockperf
+      - run: sudo env L4LOAD_BGP_TRAFFIC=8 L4LOAD_BGP_LOAD=1 L4LOAD_BGP_SOAK=1 bash lab/bgp/run.sh
+      - if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ('denied-load.json', 'soak-summary.json', 'phase-summary.json', 'useful-tcp.json', 'useful-udp.json'):
+              path=Path('lab/results/bgp')/name
+              if path.exists(): print('EVIDENCE '+json.dumps({'file':name,'content':path.read_text()}))
+          PY
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bgp-soak
+          path: lab/results/bgp

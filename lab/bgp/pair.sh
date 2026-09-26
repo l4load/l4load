@@ -41,6 +41,34 @@ virtual_server 198.18.0.1 8080 {
     }
 }
 CONF
+if [ "${L4LOAD_BGP_SOAK:-0}" = 1 ]; then
+    for protocol in TCP UDP; do
+        flags=()
+        if [ "$protocol" = TCP ]; then flags+=(--tcp); fi
+        ip netns exec l4-b1 sockperf server -i 198.18.0.1 -p 8081 "${flags[@]}" > "$out/soak-server-$protocol.log" 2>&1 &
+        pids+=("$!")
+        cat >> "$out/ipvs.conf" <<CONF
+virtual_server 198.18.0.1 8081 {
+    delay_loop 1
+    lvs_sched rr
+    lvs_method TUN
+    protocol $protocol
+    alpha
+    real_server 10.0.2.2 8081 {
+        weight 1
+        inhibit_on_failure
+        HTTP_GET {
+            url { path /health status_code 200 }
+            connect_port 9090
+            connect_timeout 1
+            retry 1
+            delay_before_retry 1
+        }
+    }
+}
+CONF
+    done
+fi
 systemctl stop bird.service keepalived.service || true
 for n in 1 2; do
     cat > "$out/routed-d$n.json" <<JSON
