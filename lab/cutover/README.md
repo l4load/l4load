@@ -60,7 +60,8 @@ VRRP owns a floating next-hop address and tracks TCP/UDP replies from a separate
 probe namespace per director. A primary ingress blackhole leaves its backend
 checker running; the trial requires the address and fresh traffic to move to
 the backup, then return after the fault clears.
-[One virtual job](https://github.com/l4load/l4load/actions/runs/36232669630/job/108378641266)
-observed four dropped probe packets and 3.572 seconds from injection to verified
-TCP/UDP recovery. Retained sessions, independent path failures, physical L2
-behavior and a production failover SLO remain unqualified.
+[One virtual job](https://github.com/l4load/l4load/actions/runs/36232798802/job/108379009383)
+observed four dropped probe packets and 3.590 seconds from injection to verified
+TCP/UDP recovery; [phase data](results/2026-09-26-vrrp.json) preserve address
+ownership and traffic results. Retained sessions, independent path failures,
+physical L2 behavior and a production failover SLO remain unqualified.

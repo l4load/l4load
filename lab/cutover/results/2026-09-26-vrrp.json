@@ -1,0 +1,64 @@
+{
+  "source_commit": "7b6f39108a2b11b9aa04ca2ece3f85510f39094d",
+  "run_url": "https://github.com/l4load/l4load/actions/runs/36232798802/job/108379009383",
+  "environment": {
+    "kernel": "6.17.0-1022-azure",
+    "packages": [
+      "keepalived\t1:2.2.8-1build2"
+    ]
+  },
+  "fault": "netdev ingress drop of VIP packets on primary ha0 while checker remains alive",
+  "failure_to_verified_recovery_seconds": 3.590498634999996,
+  "dropped_fault_packets": 4,
+  "phases": {
+    "baseline": {
+      "primary_has_next_hop": true,
+      "backup_has_next_hop": false,
+      "probes": [
+        {
+          "source": "10.0.0.2",
+          "protocol": "tcp",
+          "status": "pass"
+        },
+        {
+          "source": "10.0.0.2",
+          "protocol": "udp",
+          "status": "pass"
+        }
+      ]
+    },
+    "failover": {
+      "primary_has_next_hop": false,
+      "backup_has_next_hop": true,
+      "probes": [
+        {
+          "source": "10.0.0.2",
+          "protocol": "tcp",
+          "status": "pass"
+        },
+        {
+          "source": "10.0.0.2",
+          "protocol": "udp",
+          "status": "pass"
+        }
+      ]
+    },
+    "restored": {
+      "primary_has_next_hop": true,
+      "backup_has_next_hop": false,
+      "probes": [
+        {
+          "source": "10.0.0.2",
+          "protocol": "tcp",
+          "status": "pass"
+        },
+        {
+          "source": "10.0.0.2",
+          "protocol": "udp",
+          "status": "pass"
+        }
+      ]
+    }
+  },
+  "limits": "One virtual same-L2 run; fresh TCP/UDP probes only. Retained sessions, stale IPVS state and physical failover remain unqualified."
+}
