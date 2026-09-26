@@ -41,6 +41,13 @@ source ports, 64/64 flows reached both backends; after one backend failed,
 This checks short functional behavior on one virtual host, not stable mapping
 across restarts, persistence or workload capacity. Run with
 `sudo env L4LOAD_MH=1 L4LOAD_TRIAL=mh bash lab/ipvs/run.sh`.
+The [persistence trial](https://github.com/l4load/l4load/actions/runs/36259300786)
+added a 300-second client template. All 64 fresh flows from one client IP
+selected one backend; with default `expire_quiescent_template=0`, all 64 new
+flows stayed pinned after its health weight became zero. Setting it to `1`
+moved all 64 new flows to the survivor. The installed service now sets it on
+start and reload; [lifecycle CI](https://github.com/l4load/l4load/actions/runs/36259478057)
+checks the setting. This is one short virtual trial, not a capacity result.
 Health checks cannot protect traffic while the controller is stopped. The observed
 restart limitation is scoped to the recorded package/configuration.
 

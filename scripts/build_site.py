@@ -52,6 +52,11 @@ returned to both backends after recovery, preserving client IP and payload.</p>
 tested source-port hashing and fallback with TCP and UDP. All 192 short probes
 passed across healthy, backend-failed and recovered phases on one virtual host.
 It does not qualify stable mapping across restarts, persistence or capacity.</p>
+<p>In a <a href="https://github.com/l4load/l4load/actions/runs/36259300786">persistence trial</a>,
+the kernel default kept new flows pinned to a health-excluded backend. With
+`expire_quiescent_template=1`, all 64 tested new flows moved to the survivor.
+Installed Balance units now set this on start and reload. This remains a short
+virtual result, not a production capacity claim.</p>
 <p>The <a href="https://github.com/l4load/l4load/tree/main/profiles/ipvs">installable IPVS service</a>
 passed supervisor recovery, rejected reload and configuration drain/rollback.
 The lab installed the profile files with only a network-namespace override.

@@ -19,6 +19,11 @@ See [the recorded boundary/recovery trial](https://github.com/l4load/l4load/acti
 
 The director needs IPVS round-robin/IPIP kernel support, forwarding
 and a route to each backend. Probe HTTP `/health` on port 9090 must return 200.
+The installed units set `net.ipv4.vs.expire_quiescent_template=1` in their
+network namespace. With client persistence, the kernel default (`0`) can keep
+new flows pinned to a backend after its health check sets weight zero. This
+setting moves new flows to a healthy backend; established flows retain their
+existing destination. Use a dedicated IPVS network namespace.
 
 Validate a candidate with `keepalived -t -f candidate.conf` before replacing the
 working file. Use an atomic rename, signal HUP, then check `ipvsadm -Sn` and real
