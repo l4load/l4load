@@ -133,12 +133,6 @@ wait_real l4-alt 0 failover
 record_vip failover
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-failover.jsonl"
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 11000 > "$out/vrrp-failover-backend.json"
-if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
-    echo failover > "$out/session-phase"
-    wait_session failover
-    stage=return
-    sync_handoff
-fi
 ip netns exec l4-lb nft -j list table netdev fault > "$out/vrrp-fault.json"
 python3 - "$out" <<'PY'
 import json, sys, time
@@ -148,6 +142,12 @@ drops=sum(e['counter']['packets'] for r in rules if 'rule' in r for e in r['rule
 assert drops >= 2, drops
 p.joinpath('vrrp-failover-time.json').write_text(json.dumps({'failure_to_verified_recovery_seconds':time.monotonic()-float(p.joinpath('vrrp-fault-start.txt').read_text()),'dropped_fault_packets':drops})+'\n')
 PY
+if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
+    echo failover > "$out/session-phase"
+    wait_session failover
+    stage=return
+    sync_handoff
+fi
 ip netns exec l4-lb nft delete table netdev fault
 wait_vip l4-lb l4-alt
 wait_real l4-lb 0 restored
