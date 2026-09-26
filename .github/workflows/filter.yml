@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter nftables
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter nftables curl openssl
       - run: sudo env L4LOAD_FILTER=1 L4LOAD_FILTER_SNAPSHOTS=1 bash lab/ipvs/run.sh
       - if: always()
         run: |
