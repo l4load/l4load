@@ -57,17 +57,19 @@ for n in 1 2; do
     grep -q '"status": "pass"' "$out/probe$n.jsonl"
 done
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-baseline.json"
-for n in 1 2; do
-    python3 -u lab/bgp/health.py "l4-p$n" "10.2.$n.2" "$out/d$n.ctl" "vip$n" > "$out/health$n.jsonl" 2>&1 &
-    pids+=("$!")
-done
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 3 ]; then
+    for n in 1 2; do
+        python3 -u lab/bgp/health.py "l4-p$n" "10.2.$n.2" "$out/d$n.ctl" "vip$n" > "$out/health$n.jsonl" 2>&1 &
+        pids+=("$!")
+    done
+fi
 phase() {
     printf '%s\n' "$1" > "$out/useful-phase.next"
     mv "$out/useful-phase.next" "$out/useful-phase"
 }
 phase baseline
 traffic_script=lab/cutover/useful.py
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 2 ]; then traffic_script=lab/bgp/offered.py; fi
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 2 ]; then traffic_script=lab/bgp/offered.py; fi
 for protocol in tcp udp; do
     ip netns exec l4-client python3 -u "$traffic_script" "$out" "$protocol" > "$out/useful-$protocol.log" 2>&1 &
     pids+=("$!")
@@ -75,20 +77,28 @@ for protocol in tcp udp; do
 done
 sleep 2
 ps -C bird -o pid,rss,vsz,time > "$out/bird-baseline.txt"
-ip netns exec l4-d1 nft add table inet fault
-ip netns exec l4-d1 nft add chain inet fault ingress '{ type filter hook prerouting priority -300; policy accept; }'
+fault_ns=l4-d1
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 3 ]; then fault_ns=l4-r; fi
+ip netns exec "$fault_ns" nft add table inet fault
+ip netns exec "$fault_ns" nft add chain inet fault ingress '{ type filter hook prerouting priority -300; policy accept; }'
 python3 -c 'import time; print(time.monotonic())' > "$out/traffic-fault-start.txt"
 phase fault
-ip netns exec l4-d1 nft add rule inet fault ingress ip daddr 198.18.0.1 counter drop
+if [ "$fault_ns" = l4-r ]; then
+    ip netns exec l4-r nft add rule inet fault ingress iifname r1 udp dport 3784 counter drop
+else
+    ip netns exec l4-d1 nft add rule inet fault ingress ip daddr 198.18.0.1 counter drop
+fi
 wait_route 10.1.2.2 health-withdrawn
+if [ "$fault_ns" = l4-r ]; then birdc -s "$out/router.ctl" 'show bfd sessions' > "$out/bfd-withdrawn.txt"; fi
 phase failover
 python3 -c 'import time; print(time.monotonic())' > "$out/traffic-route-standby.txt"
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-failover.json"
 sleep 2
-ip netns exec l4-d1 nft -a list table inet fault > "$out/fault-counters.txt"
+ip netns exec "$fault_ns" nft -a list table inet fault > "$out/fault-counters.txt"
 phase return
-ip netns exec l4-d1 nft delete table inet fault
+ip netns exec "$fault_ns" nft delete table inet fault
 wait_route 10.1.1.2 health-restored
+if [ "$fault_ns" = l4-r ]; then birdc -s "$out/router.ctl" 'show bfd sessions' > "$out/bfd-restored.txt"; fi
 phase restored
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-restored.json"
 sleep 2
@@ -106,7 +116,13 @@ assert phases['failover']['passed'] > 0
 assert phases['restored']['passed'] > 0
 PY
 done
-grep -q '"action": "disable"' "$out/health1.jsonl"
-grep -q '"action": "enable"' "$out/health1.jsonl"
+if [ "$fault_ns" = l4-r ]; then
+    grep -Eq 'counter packets [1-9]' "$out/fault-counters.txt"
+    grep -q 'Down' "$out/bfd-withdrawn.txt"
+    test "$(grep -c 'Up' "$out/bfd-restored.txt")" -ge 2
+else
+    grep -q '"action": "disable"' "$out/health1.jsonl"
+    grep -q '"action": "enable"' "$out/health1.jsonl"
+fi
 for n in 1 2; do ip netns exec "l4-d$n" ipvsadm -Sn > "$out/ipvs$n-final.txt"; done
 echo BGP_HEALTH_TRAFFIC_PASS

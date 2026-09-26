@@ -22,6 +22,8 @@ for ns in l4-r l4-d1 l4-d2; do
     ip netns add "$ns"
     ip -n "$ns" link set lo up
 done
+bfd_clause=
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ]; then bfd_clause='bfd yes;'; fi
 for n in 1 2; do
     ip link add "r$n" type veth peer name eth0 netns "l4-d$n"
     ip link set "r$n" netns l4-r
@@ -40,11 +42,12 @@ protocol static vip$n {
 protocol bgp upstream {
     local 10.1.$n.2 as 6500$n;
     neighbor 10.1.$n.1 as 65000;
+    $bfd_clause
     ipv4 { import none; export where net = 198.18.0.1/32; };
 }
 EOF
 done
-cat > "$out/router.conf" <<'EOF'
+cat > "$out/router.conf" <<EOF
 log stderr all;
 router id 10.1.1.1;
 protocol device {}
@@ -52,14 +55,25 @@ protocol kernel k4 { ipv4 { import none; export all; }; }
 protocol bgp primary {
     local 10.1.1.1 as 65000;
     neighbor 10.1.1.2 as 65001;
+    $bfd_clause
     ipv4 { preference 200; import all; export none; };
 }
 protocol bgp standby {
     local 10.1.2.1 as 65000;
     neighbor 10.1.2.2 as 65002;
+    $bfd_clause
     ipv4 { preference 100; import all; export none; };
 }
 EOF
+if [ -n "$bfd_clause" ]; then
+    for name in router d1 d2; do
+        cat >> "$out/$name.conf" <<'EOF'
+protocol bfd {
+    interface "*" { interval 100 ms; multiplier 3; };
+}
+EOF
+    done
+fi
 for pair in 'l4-r router' 'l4-d1 d1' 'l4-d2 d2'; do
     set -- $pair
     ip netns exec "$1" bird -f -c "$out/$2.conf" -s "$out/$2.ctl" -P "$out/$2.pid" > "$out/$2.log" 2>&1 &
@@ -85,6 +99,14 @@ for peer in primary standby; do
 done
 wait_route 10.1.1.2 baseline
 for name in router d1 d2; do birdc -s "$out/$name.ctl" 'show protocols' > "$out/$name-protocols.txt"; done
+if [ -n "$bfd_clause" ]; then
+    for attempt in $(seq 1 100); do
+        birdc -s "$out/router.ctl" 'show bfd sessions' > "$out/bfd-ready.txt"
+        if [ "$(grep -c 'Up' "$out/bfd-ready.txt")" -ge 2 ]; then break; fi
+        sleep 0.1
+    done
+    test "$(grep -c 'Up' "$out/bfd-ready.txt")" -ge 2
+fi
 python3 -c 'import time; print(time.monotonic())' > "$out/fault-start.txt"
 birdc -s "$out/d1.ctl" 'disable vip1' > "$out/withdraw.txt"
 wait_route 10.1.2.2 withdrawn
