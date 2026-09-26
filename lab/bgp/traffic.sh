@@ -223,5 +223,6 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
     wait_route 10.1.1.2 installed-restarted
     systemctl show l4load-routed@d1.service -p ActiveState -p MainPID -p NRestarts > "$out/installed-restarted.txt"
     ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-installed-restarted.json"
+    ! grep -q Traceback "$out/health1.jsonl"
 fi
 echo BGP_HEALTH_TRAFFIC_PASS
