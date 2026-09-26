@@ -120,13 +120,18 @@ independent per-flow stalls or establish uninterrupted service.</p>
 an external TCP/UDP probe detected an ingress blackhole while Keepalived's
 backend checker stayed alive. The floating next-hop moved to the backup and
 returned after recovery; fresh TCP/UDP checks passed. One virtual run took
-3.590 seconds from injection to verified recovery. Retained connections and
-physical failover remain unqualified.</p>
+3.590 seconds from injection to verified recovery. That run did not test
+retained connections or physical failover.</p>
 <p>In a <a href="https://github.com/l4load/l4load/blob/main/lab/cutover/results/2026-09-26-standby-health.json">standby-health trial</a>,
 both directors excluded a failed backend before automatic failover. Fresh TCP/UDP
 flows used only the healthy backend through failover and failback; both directors
 restored the backend after recovery. One virtual run recovered in 3.175 seconds.
-Retained sessions, physical L2 and a production failover target remain unqualified.</p>
+That run did not test retained sessions or physical L2.</p>
+<p>With native IPVS synchronization, a separate <a href="https://github.com/l4load/l4load/blob/main/lab/cutover/results/2026-09-26-vrrp-retained.json">virtual trial</a>
+kept two TCP sockets through automatic failover and failback without reconnect.
+Each completed 235 exchanges; one exchange waited 6.578 seconds. Fresh TCP/UDP
+recovered in 3.674 seconds. The sequential client does not measure independent
+per-flow stalls. Replication loss, physical L2 and production targets remain open.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
