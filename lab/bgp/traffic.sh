@@ -29,10 +29,12 @@ for n in 1 2; do
     ip -n "l4-d$n" route add default via "10.1.$n.1"
     ip -n "l4-d$n" addr add 198.18.0.1/32 dev lo
     ip netns exec "l4-d$n" sysctl -qw net.ipv4.ip_forward=1
-    for proto in -t -u; do
-        ip netns exec "l4-d$n" ipvsadm -A "$proto" 198.18.0.1:8080 -s rr
-        ip netns exec "l4-d$n" ipvsadm -a "$proto" 198.18.0.1:8080 -r 10.0.2.2:8080 -i
-    done
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 8 ]; then
+        for proto in -t -u; do
+            ip netns exec "l4-d$n" ipvsadm -A "$proto" 198.18.0.1:8080 -s rr
+            ip netns exec "l4-d$n" ipvsadm -a "$proto" 198.18.0.1:8080 -r 10.0.2.2:8080 -i
+        done
+    fi
     ip link add "dp$n" type veth peer name eth0 netns "l4-p$n"
     ip link set "dp$n" netns "l4-d$n"
     ip -n "l4-d$n" addr add "10.2.$n.1/30" dev "dp$n"
@@ -49,14 +51,17 @@ done
 for n in 1 2; do
     ip netns exec "l4-d$n" sysctl -qw net.ipv4.conf.eth0.accept_local=1
 done
-for n in 1 2; do
-    for attempt in $(seq 1 3); do
-        if ip netns exec "l4-p$n" python3 lab/filter/probe.py "10.2.$n.2" pass > "$out/probe$n.jsonl" 2>&1; then break; fi
-        sleep 0.1
+probe_directors() {
+    for n in 1 2; do
+        for attempt in $(seq 1 3); do
+            if ip netns exec "l4-p$n" python3 lab/filter/probe.py "10.2.$n.2" pass > "$out/probe$n.jsonl" 2>&1; then break; fi
+            sleep 0.1
+        done
+        grep -q '"status": "pass"' "$out/probe$n.jsonl"
     done
-    grep -q '"status": "pass"' "$out/probe$n.jsonl"
-done
-ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-baseline.json"
+}
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 8 ]; then probe_directors; fi
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 8 ]; then ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-baseline.json"; fi
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
     source lab/bgp/sync.sh
     systemctl stop bird.service || true
@@ -96,8 +101,9 @@ UNIT
     systemctl show l4load-routed@d1.service -p ActiveState -p MainPID -p NRestarts -p BindsTo > "$out/installed-service.txt"
     ln -s /run/l4load-routed-d1/bird.ctl "$out/d1.ctl"
 fi
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then source lab/bgp/pair.sh; probe_directors; fi
 for n in 1 2; do
-    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] && [ "$n" = 1 ]; then continue; fi
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ] || { [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] && [ "$n" = 1 ]; }; then continue; fi
     peer=-
     if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 3 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then peer="10.1.$n.1"; fi
     python3 -u profiles/ipvs/route-gate.py "$out/d$n.ctl" "vip$n" "$peer" -- ip netns exec "l4-p$n" python3 lab/filter/probe.py "10.2.$n.2" pass > "$out/health$n.jsonl" 2>&1 &
@@ -108,6 +114,7 @@ for n in 1 2; do
     grep -q '"action": "enable"' "$out/health$n.jsonl"
 done
 wait_route 10.1.1.2 health-ready
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-baseline.json"; fi
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
     ip netns exec l4-d1 ipvsadm -Ln --daemon > "$out/installed-sync-daemons.txt"
     grep -q 'master sync daemon' "$out/installed-sync-daemons.txt"
@@ -121,7 +128,7 @@ phase() {
 }
 phase baseline
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" -ge 4 ]; then
-    if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 7 ]; then source lab/bgp/sync.sh; fi
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 7 ] && [ "${L4LOAD_BGP_TRAFFIC:-1}" != 8 ]; then source lab/bgp/sync.sh; fi
     if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 5 ]; then
         for n in 1 2; do ip -n "l4-d$n" link set sync0 down; done
     fi
@@ -160,7 +167,7 @@ fi
 wait_route 10.1.2.2 health-withdrawn
 if [ "$fault_ns" = l4-r ]; then birdc -s "$out/router.ctl" 'show bfd sessions' > "$out/bfd-withdrawn.txt"; fi
 phase failover
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 6 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 6 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then
     if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 4 ]; then sync_swap l4-d1 l4-d2; fi
     for attempt in $(seq 1 100); do test -e "$out/session-failover" && break; sleep 0.1; done
     test -e "$out/session-failover"
@@ -215,7 +222,7 @@ fi
 grep -q '"action": "disable"' "$out/health1.jsonl"
 grep -q '"action": "enable"' "$out/health1.jsonl"
 for n in 1 2; do ip netns exec "l4-d$n" ipvsadm -Sn > "$out/ipvs$n-final.txt"; done
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
+if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then
     systemctl stop l4load-routed@d1.service
     wait_route 10.1.2.2 installed-stopped
     systemctl start l4load-routed@d1.service
@@ -223,5 +230,17 @@ if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 7 ]; then
     systemctl show l4load-routed@d1.service -p ActiveState -p MainPID -p NRestarts > "$out/installed-restarted.txt"
     ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-installed-restarted.json"
     ! grep -q Traceback "$out/health1.jsonl"
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 8 ]; then
+        systemctl stop l4load-routed@d2.service
+        systemctl start l4load-routed@d2.service
+        systemctl is-active --quiet l4load-routed@d2.service l4load-ipvs@d2.service
+        ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-secondary-restarted.json"
+        ! grep -q Traceback "$out/health2.jsonl"
+        systemctl restart l4load-ipvs@d2.service
+        ! systemctl is-active --quiet l4load-routed@d2.service
+        systemctl start l4load-routed@d2.service
+        systemctl is-active --quiet l4load-routed@d2.service l4load-ipvs@d2.service
+        ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-base-restarted.json"
+    fi
 fi
 echo BGP_HEALTH_TRAFFIC_PASS

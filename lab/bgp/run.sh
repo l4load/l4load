@@ -10,7 +10,9 @@ uname -a > "$out/kernel.txt"
 dpkg-query -W bird2 > "$out/packages.txt"
 pids=()
 cleanup() {
-    if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ]; then systemctl stop l4load-routed@d1.service 2>/dev/null || true; fi
+    if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-0}" = 8 ]; then
+        for n in 1 2; do systemctl stop "l4load-routed@d$n.service" "l4load-ipvs@d$n.service" 2>/dev/null || true; done
+    fi
     for ((i=${#pids[@]}-1; i>=0; i--)); do
         kill "${pids[i]}" 2>/dev/null || true
         wait "${pids[i]}" 2>/dev/null || true
@@ -28,7 +30,7 @@ for ns in l4-r l4-d1 l4-d2; do
 done
 bfd_clause=
 retry_clause=
-if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ] || [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ]; then
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 3 ] || [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-0}" = 8 ]; then
     bfd_clause='bfd yes;'
     retry_clause='error wait time 1, 5; connect delay time 1;'
 fi
@@ -87,6 +89,7 @@ EOF
 fi
 for pair in 'l4-r router' 'l4-d1 d1' 'l4-d2 d2'; do
     set -- $pair
+    if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 8 ]; then if [ "$1" != l4-r ]; then continue; fi; fi
     if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ] && [ "$1" = l4-d1 ]; then continue; fi
     ip netns exec "$1" bird -f -c "$out/$2.conf" -s "$out/$2.ctl" -P "$out/$2.pid" > "$out/$2.log" 2>&1 &
     pids+=("$!")
@@ -108,6 +111,7 @@ wait_route() {
 }
 peers='primary standby'
 if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ]; then peers=standby; fi
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 8 ]; then peers=; fi
 for peer in $peers; do
     for attempt in $(seq 1 100); do
         birdc -s "$out/router.ctl" 'show protocols' > "$out/router-ready.txt" 2>&1 || true
@@ -116,8 +120,8 @@ for peer in $peers; do
     done
     grep -Eq "^$peer +BGP +.*Established" "$out/router-ready.txt"
 done
-if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ]; then
-    wait_route 10.1.2.2 preinstalled-standby
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ] || [ "${L4LOAD_BGP_TRAFFIC:-0}" = 8 ]; then
+    if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 7 ]; then wait_route 10.1.2.2 preinstalled-standby; fi
     source lab/bgp/traffic.sh
     exit 0
 fi

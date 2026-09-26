@@ -4,7 +4,7 @@ for n in 1 2; do
     ip -n "l4-d$n" link set sync0 up
     ip netns exec "l4-d$n" sysctl -qw 'net.ipv4.vs.sync_threshold=0 1'
 done
-ip netns exec l4-d2 ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" != 8 ]; then ip netns exec l4-d2 ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42; fi
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 7 ]; then
     ip netns exec l4-d1 ipvsadm --start-daemon master --mcast-interface sync0 --syncid 42
 fi
