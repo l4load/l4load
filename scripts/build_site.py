@@ -174,6 +174,11 @@ route moved to standby in 0.351 seconds and returned after recovery. At about
 100 fresh starts/s per protocol, all 716 TCP and 716 UDP exchanges passed;
 the forwarding path itself was healthy. Multihop BFD, physical links and
 production targets remain unqualified.</p>
+<p>With a dedicated IPVS state-sync link, <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-session.json">one established TCP socket</a>
+survived routed failover and failback without reconnecting in a short virtual
+trial. Its slowest exchange took 3.35 seconds, and new TCP/UDP attempts failed
+during the forwarding fault. Sync-link loss, scale and physical links remain
+unqualified.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
