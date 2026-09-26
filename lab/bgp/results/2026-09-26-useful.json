@@ -1,0 +1,30 @@
+{
+  "source": "1795ab766745fa902bdfe3774b4d1cbfc259c253",
+  "run": "https://github.com/l4load/l4load/actions/runs/36239478344/job/108397171216",
+  "topology": "virtual namespaces, BIRD 2.14, IPVS/IPIP, one upstream router, two directors",
+  "fault": "primary VIP ingress drop with live BGP session",
+  "requested_attempts_per_second_per_protocol": 100,
+  "timeout_ms": 250,
+  "command_to_standby_route_seconds": 2.539245,
+  "tcp": {
+    "baseline": "200/200",
+    "fault": "1/11",
+    "failover": "206/206",
+    "return": "95/95",
+    "restored": "203/203",
+    "last_good_to_first_good_seconds": 2.516024,
+    "raw": "2026-09-26-useful-tcp.csv.gz",
+    "raw_sha256": "5a4edb1b19d5df6b7fe503b28df90318e66bfbd487210e8920f0ae93be754e3e"
+  },
+  "udp": {
+    "baseline": "200/200",
+    "fault": "1/11",
+    "failover": "206/206",
+    "return": "95/95",
+    "restored": "203/203",
+    "last_good_to_first_good_seconds": 2.516297,
+    "raw": "2026-09-26-useful-udp.csv.gz",
+    "raw_sha256": "7ef2a003e1f5c41494c61d21cdcaa592bd964c22b7f2cb8e0718193886e4185a"
+  },
+  "limit": "One short virtual run. Fault-phase actual attempt rate was about 4/s because probes were sequential. No fixed-offered-rate loss, sustained capacity, session survival, BFD, physical NIC, or production SLO."
+}

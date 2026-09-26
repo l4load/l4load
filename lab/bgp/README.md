@@ -7,5 +7,10 @@ router kernel next-hop, then restores it. [Observed result](results/2026-09-26-r
 The disable command simulates withdrawal. Set `L4LOAD_BGP_TRAFFIC=1` and install
 `ipvsadm` and `nftables` to test IPVS traffic and health-driven withdrawal.
 [One virtual result](results/2026-09-26-health-traffic.json) passed fresh TCP/UDP
-before the fault, on the standby, and after return. No continuous-flow loss,
-session preservation, BFD, hardware capacity, or production SLO was measured.
+before the fault, on the standby, and after return. That first run did not
+measure handoff loss, session preservation, BFD or hardware capacity.
+
+[The traffic run](results/2026-09-26-useful.json) records individual fresh-flow
+attempts during withdrawal and recovery. It requests 100 attempts/s per protocol,
+but sequential 250 ms timeouts lower the actual fault-phase rate. It does not
+establish loss at a fixed offered rate or sustained capacity.
