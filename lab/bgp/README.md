@@ -32,3 +32,8 @@ virtual run. This does not qualify sync-link failure or session retention at sca
 Set `L4LOAD_BGP_TRAFFIC=5` for [sync-link loss before session setup](results/2026-09-26-sync-loss.json).
 The older TCP socket reset after routed failover; new TCP/UDP flows passed on
 standby. Loss after a session has already replicated remains untested.
+
+Set `L4LOAD_BGP_TRAFFIC=6` for [bidirectional native sync](results/2026-09-26-dual-sync.json).
+Both IPVS sync roles ran on each director. One TCP socket survived routed
+failover and failback without a sync-role swap; a reply paused for 3.32 s.
+State-table scale and sync traffic remain unqualified.

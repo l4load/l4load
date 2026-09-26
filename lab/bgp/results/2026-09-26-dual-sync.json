@@ -1,0 +1,14 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36241843896/job/108403722857",
+  "head": "9ceacf60811f5d492f3b918dadd4d14945ba80aa",
+  "environment": "Ubuntu 24.04 virtual runner, Linux 6.17.0-1022-azure, BIRD 2.14, IPVS 1.31",
+  "sync": "both native IPVS master and backup daemons on each director, same dedicated link and sync ID; no role swap",
+  "mapping": "one established TCP mapping present on both directors before failover and failback",
+  "one_tcp_socket_exchanges": {"baseline": 54, "fault": 1, "failover": 43, "return": 27, "restored": 41},
+  "socket_reset": false,
+  "maximum_exchange_rtt_ms": 3316.453,
+  "fresh_tcp_on_standby": "300/300",
+  "fresh_udp_on_standby": "301/301",
+  "actual_fresh_starts_per_second_per_protocol": "approximately 100",
+  "limit": "One short virtual two-node trial with one retained socket. No sync storms, larger state tables, link loss after replication, resource ceiling, hardware, or production SLO qualification."
+}
