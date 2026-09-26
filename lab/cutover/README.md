@@ -54,3 +54,13 @@ it does not model a stale replica or autonomous failover. No reconnect is allowe
 both sockets completed 16 exchanges without reconnecting; one exchange took
 3.309 seconds. Sockets are serviced sequentially, so this does not measure each
 flow's stall independently. Connection survival is not uninterrupted delivery.
+
+`L4LOAD_VRRP=1` connects both directors to one synthetic L2 segment. Keepalived
+VRRP owns a floating next-hop address and tracks TCP/UDP replies from a separate
+probe namespace per director. A primary ingress blackhole leaves its backend
+checker running; the trial requires the address and fresh traffic to move to
+the backup, then return after the fault clears.
+[One virtual job](https://github.com/l4load/l4load/actions/runs/36232669630/job/108378641266)
+observed four dropped probe packets and 3.572 seconds from injection to verified
+TCP/UDP recovery. Retained sessions, independent path failures, physical L2
+behavior and a production failover SLO remain unqualified.

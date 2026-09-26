@@ -29,7 +29,7 @@ fi
 ip netns exec l4-client python3 -u lab/cutover/probe.py "$out" > "$out/cutover.jsonl" 2>&1 &
 probe=$!
 pids+=("$probe")
-port=40000
+port=10000
 for stage in "${stages[@]}"; do
     if [ "$stage" = restored ]; then ip -n l4-lb link set sync0 up; fi
     if [ "$stage" = rejected ]; then
