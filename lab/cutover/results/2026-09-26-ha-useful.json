@@ -1,0 +1,23 @@
+{
+  "head": "cf6de4184f65147f67847925575c55c127e6412a",
+  "tested_merge": "d2e317229e6685c98ff20befa3bb23d2c27b4fd1",
+  "job": "https://github.com/l4load/l4load/actions/runs/36236915571/job/108390261998",
+  "environment": "Ubuntu 24.04 virtual runner, Linux 6.17.0-1022-azure, Keepalived 1:2.2.8-1build2, IPVS 1:1.31-1ubuntu0.1",
+  "traffic": "one sequential fresh-flow client per protocol, short echo payloads, requested 100 attempts/s, 250 ms timeout",
+  "each_protocol": {
+    "baseline": "420/420 passed; 98.4 actual attempts/s",
+    "fault": "29/42 passed; 13 failed after about 250 ms; 11.6 actual attempts/s",
+    "failover": "681/681 passed; 98.4 actual attempts/s",
+    "restored": "240/240 passed; 98.6 actual attempts/s",
+    "last_success_to_first_success_across_fault_seconds": 3.269
+  },
+  "successful_rtt_p99_ms": {
+    "tcp": {"baseline": 0.613, "fault": 1.222, "failover": 0.632, "restored": 0.609},
+    "udp": {"baseline": 0.339, "fault": 0.307, "failover": 0.408, "restored": 0.206}
+  },
+  "raw": {
+    "2026-09-26-useful-tcp.csv.gz": "sha256:48b4efd929bc56ece62cd757e766427bca6341ee0e202d3192e59c76836b1580",
+    "2026-09-26-useful-udp.csv.gz": "sha256:be5861c417d06931e415226374ffeecb4452c0f594fdf846258f6221e40669cd"
+  },
+  "limit": "One ~17-second virtual run. Sequential 250 ms timeouts reduced the offered rate during failure, so 13/42 is not a loss rate at 100 attempts/s. Keepalived process RSS snapshots double-count shared pages; process CPU ticks exclude kernel forwarding. No sustained throughput, host resource ceiling, independent clients, NIC behavior or production SLO was measured."
+}
