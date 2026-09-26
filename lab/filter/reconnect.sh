@@ -1,4 +1,6 @@
 mkdir "$out/source"
+command -v curl
+command -v openssl
 openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=filter-lab \
     -addext 'subjectAltName=IP:10.0.0.2' -keyout "$out/source/key.pem" -out "$out/source/cert.pem" 2>/dev/null
 start_source() {
@@ -10,6 +12,8 @@ start_source() {
         kill -0 "$source_pid"
         sleep 0.1
     done
+    cat "$out/source.log"
+    ip netns exec l4-lb curl --noproxy '*' --cacert "$out/source/cert.pem" -fsS --max-time 1 https://10.0.0.2:9443/pairs.json || true
     return 1
 }
 pull_snapshot() {
