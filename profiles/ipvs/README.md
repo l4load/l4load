@@ -105,3 +105,35 @@ sessions carried 913 exchanges each over 46.1 seconds through the lifecycle.
 The newer package came from another Ubuntu release: this demonstrates the tested
 upgrade/rollback mechanics, not a supported Noble update or arbitrary version
 compatibility. Keep the default package; do not use this trial as an upgrade recommendation.
+
+## Integrated HA pair
+
+On each dedicated director, prepare one reviewed, self-contained Keepalived
+configuration with the `virtual_server` checks above, a VRRP instance on a shared
+L2 next-hop and an external script that tests real TCP/UDP forwarding. Use
+`lvs_sync_daemon <sync-interface> inst <VRRP-instance> id <same-id>` on a separate
+sync link. Both nodes need the same VIP, VRID and sync ID, different
+priorities, independent backend health checks and working IPIP return paths.
+The [synthetic pair](../../lab/cutover/vrrp.sh) generates tested example files;
+its namespace probe and addresses must be replaced for a real deployment.
+[The installed-pair result](../../lab/cutover/results/2026-09-26-installed-ha.json)
+records the exact virtual run and limits.
+
+On each prepared node, without an existing `l4load-ipvs` installation:
+
+```sh
+sudo bash profiles/ipvs/install-ha.sh director candidate.conf
+sudo systemctl start l4load-ha@director
+sudo ipvsadm -Sn
+sudo ipvsadm -Ln --daemon
+```
+
+Verify one VIP owner, both kernel tables, backend exclusion/recovery and real
+traffic before enabling boot startup. Keep the last-good configuration. Apply
+or roll back with `sudo bash profiles/ipvs/update-ha.sh director candidate.conf`,
+then recheck ownership, IPVS weights, sync roles and traffic. A rejected candidate
+leaves the active file intact; a failed reload restores it, but the operator
+must still verify runtime state. Stop the primary service for planned handoff;
+confirm the standby owns the next-hop and serves traffic before maintenance.
+Physical L2, network startup, sync-loss policy, sustained load and operator
+acceptance remain unqualified.

@@ -1,0 +1,27 @@
+{
+  "source": "a8699d82fb6bfa08a4e6247a19b1eb8c2e3ad927",
+  "run": "https://github.com/l4load/l4load/actions/runs/36234592429/job/108383959368",
+  "environment": "Ubuntu 24.04 virtual runner, Linux 6.17.0-1022-azure, Keepalived 1:2.2.8-1build2, IPVS 1:1.31-1ubuntu0.1",
+  "installed": "two l4load-ha@ instances, each running VRRP, backend checks and native IPVS sync in a separate network namespace",
+  "checked": [
+    "invalid candidate rejected before installation",
+    "both directors excluded a failed backend",
+    "automatic failover and failback on primary ingress blackhole",
+    "sync master/backup roles followed VRRP in both directions",
+    "invalid update and failed reload retained the active configuration",
+    "drain and rollback kept established TCP sessions",
+    "service stop transferred the next-hop to the backup; restart restored it"
+  ],
+  "fault_to_verified_fresh_flow_seconds": 3.689842476999992,
+  "fault_drop_packets": 10,
+  "retained_tcp": {
+    "sockets": 2,
+    "exchanges_per_socket": 259,
+    "reconnects": 0,
+    "max_observed_exchange_ms": 6576.787173,
+    "duration_seconds": 19.622644234
+  },
+  "fresh_after_drain": {"tcp_b2": 32, "udp_b2": 32},
+  "fresh_after_rollback": {"tcp_b1": 16, "tcp_b2": 16, "udp_b1": 16, "udp_b2": 16},
+  "limits": "One virtual namespace run with a sequential TCP client. Interface and backend preparation were external to the installer. No physical L2, network boot ordering, sync-loss policy, sustained load, independent operator acceptance or production SLO was established."
+}
