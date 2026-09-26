@@ -1,0 +1,29 @@
+name: BGP route trial
+on:
+  pull_request:
+    paths: ['lab/bgp/**', '.github/workflows/bgp.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  route:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bird2
+      - run: sudo bash lab/bgp/run.sh
+      - if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for p in sorted(Path('lab/results/bgp').glob('*')):
+              if p.suffix in ('.txt', '.log', '.conf'):
+                  print('EVIDENCE ' + json.dumps({'file': p.name, 'content': p.read_text()}))
+          PY
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bgp-route
+          path: lab/results/bgp
