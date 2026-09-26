@@ -50,7 +50,7 @@ cleanup() {
 trap cleanup EXIT
 modprobe ip_vs
 modprobe ip_vs_rr
-if [ "${L4LOAD_MH:-0}" = 1 ]; then modprobe ip_vs_mh; fi
+if [ "${L4LOAD_MH:-0}" = 1 ] || [ "${L4LOAD_MH_CUTOVER:-0}" = 1 ]; then modprobe ip_vs_mh; fi
 modprobe ipip
 uname -a > "$out/kernel.txt"
 dpkg-query -W keepalived ipvsadm prometheus-node-exporter > "$out/packages.txt"
@@ -100,8 +100,11 @@ start_health 1
 first_health=$health_pid
 start_health 2
 cp profiles/ipvs/keepalived.conf "$out/keepalived.conf"
-if [ "${L4LOAD_MH:-0}" = 1 ]; then
+if [ "${L4LOAD_MH:-0}" = 1 ] || [ "${L4LOAD_MH_CUTOVER:-0}" = 1 ]; then
     sed -i 's/lvs_sched rr/lvs_sched mh\n    mh-port\n    mh-fallback/' "$out/keepalived.conf"
+fi
+if [ "${L4LOAD_MH_CUTOVER:-0}" = 1 ]; then
+    sed -i '/mh-fallback/a\    persistence_timeout 300' "$out/keepalived.conf"
 fi
 start_controller() {
     ip netns exec l4-lb keepalived -n -l -C -I -f "$out/keepalived.conf" >> "$out/keepalived.log" 2>&1 &
@@ -126,6 +129,10 @@ PY
 }
 wait_weight 1
 wait_weight 1 10.0.3.2:8080
+if [ "${L4LOAD_MH_CUTOVER:-0}" = 1 ]; then
+    source lab/ipvs/mh-cutover.sh
+    exit
+fi
 if [ "${L4LOAD_MH:-0}" = 1 ]; then
     source lab/ipvs/mh.sh
     exit
