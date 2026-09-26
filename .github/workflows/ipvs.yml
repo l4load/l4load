@@ -28,6 +28,7 @@ jobs:
           ! grep -q '^Remv ' upgrade-plan.txt
         id: setup
       - run: sudo bash lab/ipvs/run.sh
+      - run: sudo env L4LOAD_MH=1 L4LOAD_TRIAL=mh bash lab/ipvs/run.sh
       - run: sudo bash lab/ipvs/ipv6.sh
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
       - name: Preserve diagnostic evidence in the job log
