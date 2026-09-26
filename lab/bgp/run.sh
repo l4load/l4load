@@ -11,7 +11,10 @@ dpkg-query -W bird2 > "$out/packages.txt"
 pids=()
 cleanup() {
     for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done
-    for ns in l4-r l4-d1 l4-d2; do ip netns del "$ns" 2>/dev/null || true; done
+    for ns in l4-r l4-d1 l4-d2 l4-client l4-b1 l4-p1 l4-p2; do
+        ip netns pids "$ns" 2>/dev/null | xargs -r kill 2>/dev/null || true
+        ip netns del "$ns" 2>/dev/null || true
+    done
 }
 trap cleanup EXIT
 for ns in l4-r l4-d1 l4-d2; do
@@ -95,3 +98,4 @@ birdc -s "$out/d1.ctl" 'enable vip1' > "$out/restore.txt"
 wait_route 10.1.1.2 restored
 for name in router d1 d2; do birdc -s "$out/$name.ctl" 'show protocols' > "$out/$name-final.txt"; done
 echo BGP_ROUTE_TRIAL_PASS
+if [ "${L4LOAD_BGP_TRAFFIC:-0}" = 1 ]; then source lab/bgp/traffic.sh; fi

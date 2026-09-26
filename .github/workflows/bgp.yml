@@ -9,21 +9,24 @@ jobs:
   route:
     runs-on: ubuntu-24.04
     timeout-minutes: 8
+    strategy:
+      matrix:
+        traffic: [0, 1]
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bird2
-      - run: sudo bash lab/bgp/run.sh
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bird2 ipvsadm nftables
+      - run: sudo env L4LOAD_BGP_TRAFFIC=${{ matrix.traffic }} bash lab/bgp/run.sh
       - if: always()
         run: |
           python3 - <<'PY'
           import json
           from pathlib import Path
           for p in sorted(Path('lab/results/bgp').glob('*')):
-              if p.suffix in ('.txt', '.log', '.conf'):
+              if p.suffix in ('.txt', '.log', '.conf', '.json', '.jsonl'):
                   print('EVIDENCE ' + json.dumps({'file': p.name, 'content': p.read_text()}))
           PY
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bgp-route
+          name: bgp-route-${{ matrix.traffic }}
           path: lab/results/bgp
