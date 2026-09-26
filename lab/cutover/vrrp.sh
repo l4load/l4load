@@ -274,4 +274,15 @@ if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
     cat "$out/vrrp-sessions.jsonl"
     echo VRRP_RETAINED_PASS
 fi
+if [ "${L4LOAD_HA_PROFILE:-0}" = 1 ]; then
+    systemctl stop l4load-ha@1.service
+    wait_vip l4-alt l4-lb
+    ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/ha-primary-stopped.jsonl"
+    systemctl start l4load-ha@1.service
+    wait_vip l4-lb l4-alt
+    wait_real l4-lb 1 service-restored
+    check_sync_roles service-restored l4-lb l4-alt
+    ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/ha-service-restored.jsonl"
+    echo HA_SERVICE_RESTART_PASS
+fi
 echo VRRP_BACKUP_HEALTH_PASS
