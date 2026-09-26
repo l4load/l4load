@@ -1,7 +1,7 @@
 name: Filter lifecycle
 on:
   pull_request:
-    paths: ['lab/filter/**', 'profiles/nftables/**', '!profiles/nftables/**/*.md', '.github/workflows/filter.yml']
+    paths: ['lab/filter/**', '!lab/filter/**/*.md', '!lab/filter/results/**', 'profiles/nftables/**', '!profiles/nftables/**/*.md', '.github/workflows/filter.yml']
   workflow_dispatch:
 permissions:
   contents: read
