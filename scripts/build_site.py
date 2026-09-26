@@ -48,6 +48,10 @@ All 1024 IPv4 TCP/UDP exchanges passed, including HTTP health failure, rejected 
 returned to both backends after recovery, preserving client IP and payload.</p>
 <p><a href="https://github.com/l4load/l4load/tree/main/lab/ipvs">Run the lifecycle trial ↗</a> ·
 <a href="https://github.com/l4load/l4load/actions/runs/36161652255/job/108159407383">Verified execution ↗</a></p>
+<p>A separate <a href="https://github.com/l4load/l4load/actions/runs/36258566786">MH scheduler trial</a>
+tested source-port hashing and fallback with TCP and UDP. All 192 short probes
+passed across healthy, backend-failed and recovered phases on one virtual host.
+It does not qualify stable mapping across restarts, persistence or capacity.</p>
 <p>The <a href="https://github.com/l4load/l4load/tree/main/profiles/ipvs">installable IPVS service</a>
 passed supervisor recovery, rejected reload and configuration drain/rollback.
 The lab installed the profile files with only a network-namespace override.

@@ -33,6 +33,14 @@ This checks one malformed input, not every invalid configuration or update race.
 
 Counts demonstrate short functional coverage only. Sustained traffic, host failure, concurrent configuration updates, HA and
 capacity remain unqualified.
+
+The [MH trial](https://github.com/l4load/l4load/actions/runs/36258566786)
+loaded `mh-port,mh-fallback` for TCP and UDP. With one client IP and changing
+source ports, 64/64 flows reached both backends; after one backend failed,
+64/64 new flows reached the survivor, and 64/64 reached both after recovery.
+This checks short functional behavior on one virtual host, not stable mapping
+across restarts, persistence or workload capacity. Run with
+`sudo env L4LOAD_MH=1 L4LOAD_TRIAL=mh bash lab/ipvs/run.sh`.
 Health checks cannot protect traffic while the controller is stopped. The observed
 restart limitation is scoped to the recorded package/configuration.
 
