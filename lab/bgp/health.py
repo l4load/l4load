@@ -7,11 +7,18 @@ namespace, source, control, route = sys.argv[1:]
 healthy = True
 streak = 0
 while True:
-    probe = subprocess.run(
-        ['ip', 'netns', 'exec', namespace, 'python3', 'lab/filter/probe.py', source, 'pass'],
-        capture_output=True, text=True,
-    )
-    good = probe.returncode == 0
+    if namespace == 'bfd':
+        probe = subprocess.run(['birdc', '-s', control, 'show bfd sessions'], capture_output=True, text=True)
+        good = probe.returncode == 0 and any(
+            (parts := line.split()) and len(parts) > 2 and parts[0] == source and parts[2] == 'Up'
+            for line in probe.stdout.splitlines()
+        )
+    else:
+        probe = subprocess.run(
+            ['ip', 'netns', 'exec', namespace, 'python3', 'lab/filter/probe.py', source, 'pass'],
+            capture_output=True, text=True,
+        )
+        good = probe.returncode == 0
     streak = streak + 1 if good != healthy else 0
     if streak >= 2:
         action = 'enable' if good else 'disable'

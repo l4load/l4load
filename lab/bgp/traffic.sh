@@ -57,12 +57,14 @@ for n in 1 2; do
     grep -q '"status": "pass"' "$out/probe$n.jsonl"
 done
 ip netns exec l4-client python3 lab/katran/scenario.py check b1 > "$out/traffic-baseline.json"
-if [ "${L4LOAD_BGP_TRAFFIC:-1}" != 3 ]; then
-    for n in 1 2; do
+for n in 1 2; do
+    if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 3 ]; then
+        python3 -u lab/bgp/health.py bfd "10.1.$n.1" "$out/d$n.ctl" "vip$n" > "$out/health$n.jsonl" 2>&1 &
+    else
         python3 -u lab/bgp/health.py "l4-p$n" "10.2.$n.2" "$out/d$n.ctl" "vip$n" > "$out/health$n.jsonl" 2>&1 &
-        pids+=("$!")
-    done
-fi
+    fi
+    pids+=("$!")
+done
 phase() {
     printf '%s\n' "$1" > "$out/useful-phase.next"
     mv "$out/useful-phase.next" "$out/useful-phase"
@@ -81,10 +83,15 @@ fault_ns=l4-d1
 if [ "${L4LOAD_BGP_TRAFFIC:-1}" = 3 ]; then fault_ns=l4-r; fi
 ip netns exec "$fault_ns" nft add table inet fault
 ip netns exec "$fault_ns" nft add chain inet fault ingress '{ type filter hook prerouting priority -300; policy accept; }'
+if [ "$fault_ns" = l4-r ]; then
+    ip netns exec l4-d1 nft add table inet fault
+    ip netns exec l4-d1 nft add chain inet fault ingress '{ type filter hook prerouting priority -300; policy accept; }'
+fi
 python3 -c 'import time; print(time.monotonic())' > "$out/traffic-fault-start.txt"
 phase fault
 if [ "$fault_ns" = l4-r ]; then
     ip netns exec l4-r nft add rule inet fault ingress iifname r1 udp dport 3784 counter drop
+    ip netns exec l4-d1 nft add rule inet fault ingress iifname eth0 udp dport 3784 counter drop
 else
     ip netns exec l4-d1 nft add rule inet fault ingress ip daddr 198.18.0.1 counter drop
 fi
@@ -99,8 +106,10 @@ if [ "$fault_ns" = l4-r ]; then
     grep -q 'via 10.1.2.2 ' "$out/route-bfd-still-down.txt"
 fi
 ip netns exec "$fault_ns" nft -a list table inet fault > "$out/fault-counters.txt"
+if [ "$fault_ns" = l4-r ]; then ip netns exec l4-d1 nft -a list table inet fault > "$out/fault-director-counters.txt"; fi
 phase return
 ip netns exec "$fault_ns" nft delete table inet fault
+if [ "$fault_ns" = l4-r ]; then ip netns exec l4-d1 nft delete table inet fault; fi
 wait_route 10.1.1.2 health-restored
 if [ "$fault_ns" = l4-r ]; then birdc -s "$out/router.ctl" 'show bfd sessions' > "$out/bfd-restored.txt"; fi
 phase restored
@@ -122,11 +131,11 @@ PY
 done
 if [ "$fault_ns" = l4-r ]; then
     grep -Eq 'counter packets [1-9]' "$out/fault-counters.txt"
+    grep -Eq 'counter packets [1-9]' "$out/fault-director-counters.txt"
     grep -q 'Down' "$out/bfd-withdrawn.txt"
     test "$(grep -c 'Up' "$out/bfd-restored.txt")" -ge 2
-else
-    grep -q '"action": "disable"' "$out/health1.jsonl"
-    grep -q '"action": "enable"' "$out/health1.jsonl"
 fi
+grep -q '"action": "disable"' "$out/health1.jsonl"
+grep -q '"action": "enable"' "$out/health1.jsonl"
 for n in 1 2; do ip netns exec "l4-d$n" ipvsadm -Sn > "$out/ipvs$n-final.txt"; done
 echo BGP_HEALTH_TRAFFIC_PASS
