@@ -132,6 +132,15 @@ kept two TCP sockets through automatic failover and failback without reconnect.
 Each completed 235 exchanges; one exchange waited 6.578 seconds. Fresh TCP/UDP
 recovered in 3.674 seconds. The sequential client does not measure independent
 per-flow stalls. Replication loss, physical L2 and production targets remain open.</p>
+<p>The <a href="https://github.com/l4load/l4load/blob/main/lab/cutover/results/2026-09-26-installed-ha.json">installed two-node profile</a>
+passed automated failover, backend exclusion, rejected updates, drain, rollback
+and planned service handoff in virtual namespaces. Two existing TCP sockets
+survived the automatic failover without reconnect; fresh TCP/UDP recovered in
+3.690 seconds. Its separate <a href="https://github.com/l4load/l4load/blob/main/lab/cutover/results/2026-09-26-sync-loss.json">sync-loss trial</a>
+showed the limit: after the state link went down, the backup took the VIP and
+fresh TCP/UDP recovered in 3.583 seconds, but an unsynced existing TCP socket
+reset. Physical network, sustained load and an operational loss target are not
+qualified.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
