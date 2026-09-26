@@ -209,6 +209,18 @@ p99 RTT was 1.158 ms and 0.859 ms. A repeat also passed the zero-drop gate.
 The separate failover phase did lose useful requests during the fault. This
 shared virtual-runner result does not measure 1,000-mps continuity across
 failover or total dataplane CPU.</p>
+<p>The routed controller now withdraws its VIP after the first failed check.
+In a later <a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-fast-withdraw.json">virtual denied-load run</a>,
+the observed success gap was 1.22 s at about 100 fresh starts/s per protocol.
+With a 200 ms timeout in the <em>synthetic</em> check, another
+<a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-short-probe.json">run</a>
+observed a 0.52 s gap and no route flaps during its later one-minute load.
+At about 1,000 useful starts/s per protocol through the failure,
+<a href="https://github.com/l4load/l4load/blob/main/lab/bgp/results/2026-09-26-high-rate-failover.json">375–472 TCP and 375–472 UDP requests failed</a>
+per run in 0.376–0.473 s bursts; all measured standby attempts passed. These are
+separate shared-runner observations with a 50 ms client timeout in the last trial.
+They do not establish a safe production probe timeout, physical capacity or
+an agreed loss target.</p>
 <p>A <a href="https://github.com/l4load/l4load/actions/runs/36177713642">bounded UDP load trial</a>
 kept about 1,000 allowed messages/s without reported loss while generators sent
 about 100,000 denied messages/s. Across three repeats, p99 RTT was 45–75 µs for
