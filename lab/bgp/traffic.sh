@@ -71,6 +71,7 @@ EOF
     chmod 700 "$out/check-d1"
     python3 profiles/ipvs/install-routed.py d1 "$out/routed-d1.json" "$out/check-d1"
     cp /etc/l4load/bird-d1.conf "$out/installed-bird.conf"
+    chmod 644 "$out/installed-bird.conf" "$out/check-d1"
     mkdir -p /run/l4load-routed-d1
     ip netns exec l4-d1 python3 -u /usr/local/libexec/l4load-routed-run.py d1 > "$out/health1.jsonl" 2>&1 &
     pids+=("$!")
