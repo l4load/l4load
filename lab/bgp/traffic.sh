@@ -46,6 +46,9 @@ done
 for ns in l4-r l4-d1 l4-d2 l4-client l4-b1 l4-p1 l4-p2; do
     ip netns exec "$ns" sh -c 'for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done'
 done
+for n in 1 2; do
+    ip netns exec "l4-d$n" sysctl -qw net.ipv4.conf.eth0.accept_local=1
+done
 for ns in l4-r l4-d1 l4-b1 l4-p1; do
     ip netns exec "$ns" tcpdump -i any -nn -l -U 'host 198.18.0.1 or host 10.2.1.2' > "$out/capture-$ns.log" 2>&1 &
     pids+=("$!")
