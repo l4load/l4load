@@ -6,6 +6,10 @@ ip netns exec l4-alt sysctl -qw net.ipv4.conf.all.rp_filter=0 net.ipv4.conf.defa
 connect l4-alt 4
 ip -n l4-alt addr add 198.18.0.1/32 dev lo
 ip netns exec l4-lb ipvsadm -Sn | ip netns exec l4-alt ipvsadm -R
+if [ "${L4LOAD_FORWARDING_FAILURE:-0}" = 1 ]; then
+    source lab/cutover/forwarding-failure.sh
+    return
+fi
 for ns in l4-lb l4-alt; do
     ip netns exec "$ns" sysctl net.ipv4.vs.sloppy_tcp net.ipv4.vs.conn_reuse_mode > "$out/$ns-sysctl.txt"
     ip netns exec "$ns" ipvsadm -Sn > "$out/$ns-config.txt"

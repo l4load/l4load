@@ -30,3 +30,11 @@ the final exchange. Fresh TCP/UDP checks passed throughout.
 
 Idle-session recovery, abrupt failure, automatic failover, sustained load,
 cross-engine migration and production HA remain unqualified.
+
+`L4LOAD_FORWARDING_FAILURE=1` with cutover enabled and sync disabled injects an
+ingress blackhole while Keepalived remains alive. TCP and UDP timeouts plus drop
+counters verify the failure; the harness then changes the route to the second
+director, checks new flows, removes the fault and verifies return to the first.
+`failure-timing.json` includes probe timeouts and verification overhead. This
+qualifies an orchestrated recovery experiment, not an autonomous failure detector,
+retained-session recovery or a production failover-time guarantee.
