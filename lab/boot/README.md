@@ -17,3 +17,11 @@ all four IPVS destinations healthy and no service restarts. It used kernel
 using QEMU TCG emulation. Both boot IDs changed; each boot passed 64 fresh flows
 with all four destinations healthy and `NRestarts=0`. This is correctness
 evidence, not a boot-time or throughput benchmark.
+
+[The combined filter/Balance trial passed](https://github.com/l4load/l4load/actions/runs/36227587895).
+Two distinct boot IDs and service journals confirm saved denies restored before
+Balance startup. Allowed TCP/UDP traffic passed and denied traffic timed out.
+Clearing runtime policy followed by reload restored the saved deny; saving an
+expiring ban was rejected without changing the saved file. Invalid reload input
+left the live rules and expected traffic unchanged. This does not qualify service
+startup failure handling, arbitrary host ordering or continuity through reboot.

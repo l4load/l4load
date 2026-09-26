@@ -60,7 +60,10 @@ exist at startup; `network-online.target` alone does not prove this on every hos
 When pairing with Balance, add `Requires=l4load-filter.service` and
 `After=l4load-filter.service` in its unit's `[Unit]` drop-in so a failed filter
 startup prevents Balance startup. This does not monitor later filter changes or
-stop already-running forwarding. The combined VM boot test is pending qualification.
+stop already-running forwarding. The
+[combined VM test passed](https://github.com/l4load/l4load/actions/runs/36227587895):
+two reboots restored denies before Balance started; saved-policy rollback and
+rejection of expiring saves and invalid reloads preserved the expected traffic.
 
 This adds no IPv6 policy. Physical-host boot ordering, prefixes, tenant
 isolation, fragments and overload capacity remain unqualified. Other firewall

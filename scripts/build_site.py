@@ -90,7 +90,16 @@ with no concurrent attack, not optimal tuning or forwarding capacity.</p>
 keeps applied rules when the source disconnects, returns a truncated body or
 malformed JSON, or fails certificate verification. A valid empty list clears bans.
 It is a one-shot pull; scheduling, source freshness and version ordering remain
-external responsibilities.</p>
+external responsibilities. Explicitly saved nonexpiring policy also passed
+<a href="https://github.com/l4load/l4load/actions/runs/36227587895">two VM reboots with Balance</a>:
+filter restoration preceded Balance startup; rollback and invalid-reload
+retention passed. Physical-host ordering remains unqualified.</p>
+<p>A <a href="https://github.com/l4load/l4load/tree/main/lab/filter/results/2026-09-26-load-updates">combined update/load trial</a>
+applied 65,536 pairs under about 100,000 denied UDP messages/s. Application took
+0.909 seconds for nftables and 37.224 seconds for YANET; useful-probe RTT p99
+during the updates was 0.191 and 2.606 ms, with no observed loss. This is one
+virtual run with sequential low-rate useful traffic, different native update paths
+and whole-generator average rates, not a capacity or production-superiority claim.</p>
 <p>An <a href="https://github.com/l4load/l4load/actions/runs/36224483206">injected forwarding failure</a>
 left Keepalived alive while TCP/UDP probes timed out. The lab harness redirected
 new flows through a second director and verified recovery in 2.06 seconds,
