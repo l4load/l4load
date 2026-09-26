@@ -91,6 +91,25 @@ wait_vip() {
     return 1
 }
 wait_vip l4-lb l4-alt
+if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
+    source lab/cutover/sync.sh
+    echo baseline > "$out/session-phase"
+    ip netns exec l4-client env L4LOAD_SESSION_TIMEOUT=10 python3 -u lab/ipvs/sessions.py "$out" > "$out/vrrp-sessions.jsonl" 2>&1 &
+    retained=$!
+    pids+=("$retained")
+    wait_session() {
+        for attempt in $(seq 1 150); do
+            if [ -f "$out/session-$1" ]; then return; fi
+            kill -0 "$retained" || { cat "$out/vrrp-sessions.jsonl"; return 1; }
+            sleep 0.1
+        done
+        cat "$out/vrrp-sessions.jsonl"
+        return 1
+    }
+    wait_session baseline
+    sync_minimum=2 stage=prepared
+    sync_handoff
+fi
 rm "$out/health1/health"
 wait_real l4-lb 0 backend-down
 wait_real l4-alt 0 backend-down
@@ -113,6 +132,12 @@ wait_real l4-alt 0 failover
 record_vip failover
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-failover.jsonl"
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 11000 > "$out/vrrp-failover-backend.json"
+if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
+    echo failover > "$out/session-phase"
+    wait_session failover
+    stage=return
+    sync_handoff
+fi
 ip netns exec l4-lb nft -j list table netdev fault > "$out/vrrp-fault.json"
 python3 - "$out" <<'PY'
 import json, sys, time
@@ -128,10 +153,21 @@ wait_real l4-lb 0 restored
 record_vip restored
 ip netns exec l4-client python3 lab/filter/probe.py 10.0.0.2 pass > "$out/vrrp-restored.jsonl"
 ip netns exec l4-client python3 lab/katran/scenario.py check b2 12000 > "$out/vrrp-restored-backend.json"
+if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
+    echo restored > "$out/session-phase"
+    wait_session restored
+fi
 echo healthy > "$out/health1/health"
 wait_real l4-lb 1 healthy
 wait_real l4-alt 1 healthy
 ip netns exec l4-client python3 lab/katran/scenario.py check b1,b2 13000 > "$out/vrrp-healthy-backend.json"
 kill -0 "$controller"
 kill -0 "$alt_controller"
+if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
+    echo done > "$out/session-phase"
+    wait_session done
+    wait "$retained"
+    cat "$out/vrrp-sessions.jsonl"
+    echo VRRP_RETAINED_PASS
+fi
 echo VRRP_BACKUP_HEALTH_PASS
