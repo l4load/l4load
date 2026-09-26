@@ -12,6 +12,7 @@ jobs:
       matrix:
         sync: [0, 1]
         loss: [0]
+        fault: [0]
         include:
           - sync: 1
             loss: 1
