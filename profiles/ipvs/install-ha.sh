@@ -6,6 +6,7 @@ test "$#" = 2
 test ! -e /etc/l4load/ipvs.conf
 test ! -e "/etc/l4load/ha-$1.conf"
 test "$(systemctl show l4load-ipvs.service -p ActiveState --value)" != active
+test "$(systemctl show keepalived.service -p ActiveState --value)" != active
 profile=$(cd "$(dirname "$0")" && pwd)
 /usr/sbin/keepalived -t -f "$2"
 systemctl mask --now keepalived.service

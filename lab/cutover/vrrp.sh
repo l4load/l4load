@@ -138,10 +138,11 @@ check_sync_roles() {
         local ns=${pair%%:*} role=${pair#*:}
         for attempt in $(seq 1 30); do
             ip netns exec "$ns" ipvsadm -Ln --daemon > "$out/sync-daemon-$phase-$ns.txt"
-            if grep -qi "$role" "$out/sync-daemon-$phase-$ns.txt"; then break; fi
+            if grep -Eqi "^$role sync daemon" "$out/sync-daemon-$phase-$ns.txt" && [ "$(wc -l < "$out/sync-daemon-$phase-$ns.txt")" -eq 1 ]; then break; fi
             sleep 0.1
         done
-        grep -qi "$role" "$out/sync-daemon-$phase-$ns.txt"
+        grep -Eqi "^$role sync daemon" "$out/sync-daemon-$phase-$ns.txt"
+        test "$(wc -l < "$out/sync-daemon-$phase-$ns.txt")" -eq 1
     done
 }
 wait_vip l4-lb l4-alt

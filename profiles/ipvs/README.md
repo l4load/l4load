@@ -119,7 +119,8 @@ its namespace probe and addresses must be replaced for a real deployment.
 [The installed-pair result](../../lab/cutover/results/2026-09-26-installed-ha.json)
 records the exact virtual run and limits.
 
-On each prepared node, without an existing `l4load-ipvs` installation:
+On each prepared node, without an existing `l4load-ipvs` installation or active
+packaged Keepalived service:
 
 ```sh
 sudo bash profiles/ipvs/install-ha.sh director candidate.conf

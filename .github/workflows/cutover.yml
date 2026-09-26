@@ -42,6 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter nftables
+      - run: sudo systemctl stop keepalived.service
       - run: sudo env L4LOAD_CUTOVER=1 L4LOAD_SYNC=${{ matrix.sync }} L4LOAD_SYNC_LOSS=${{ matrix.loss }} L4LOAD_FORWARDING_FAILURE=${{ matrix.fault || 0 }} L4LOAD_VRRP=${{ matrix.vrrp || 0 }} L4LOAD_HA_PROFILE=${{ matrix.ha || 0 }} bash lab/ipvs/run.sh
       - if: always()
         run: |
