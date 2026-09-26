@@ -8,8 +8,10 @@ for ns in l4-lb l4-alt; do
 done
 sender=l4-lb
 receiver=l4-alt
-ip netns exec "$receiver" ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42
-ip netns exec "$sender" ipvsadm --start-daemon master --mcast-interface sync0 --syncid 42
+if [ "${L4LOAD_HA_PROFILE:-0}" != 1 ]; then
+    ip netns exec "$receiver" ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42
+    ip netns exec "$sender" ipvsadm --start-daemon master --mcast-interface sync0 --syncid 42
+fi
 sync_handoff() {
     local ready=false
     for attempt in $(seq 1 100); do
@@ -28,10 +30,12 @@ PY
         sleep 0.1
     done
     test "$ready" = true || return 1
-    ip netns exec "$sender" ipvsadm --stop-daemon master
-    ip netns exec "$receiver" ipvsadm --stop-daemon backup
-    ip netns exec "$sender" ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42
-    ip netns exec "$receiver" ipvsadm --start-daemon master --mcast-interface sync0 --syncid 42
+    if [ "${L4LOAD_HA_PROFILE:-0}" != 1 ]; then
+        ip netns exec "$sender" ipvsadm --stop-daemon master
+        ip netns exec "$receiver" ipvsadm --stop-daemon backup
+        ip netns exec "$sender" ipvsadm --start-daemon backup --mcast-interface sync0 --syncid 42
+        ip netns exec "$receiver" ipvsadm --start-daemon master --mcast-interface sync0 --syncid 42
+    fi
     local previous=$sender
     sender=$receiver
     receiver=$previous

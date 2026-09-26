@@ -14,6 +14,7 @@ jobs:
         loss: [0]
         fault: [0]
         vrrp: [0]
+        ha: [0]
         include:
           - sync: 1
             loss: 1
@@ -31,12 +32,17 @@ jobs:
             loss: 0
             fault: 0
             vrrp: 1
+          - sync: 1
+            loss: 0
+            fault: 0
+            vrrp: 1
+            ha: 1
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends keepalived ipvsadm prometheus-node-exporter nftables
-      - run: sudo env L4LOAD_CUTOVER=1 L4LOAD_SYNC=${{ matrix.sync }} L4LOAD_SYNC_LOSS=${{ matrix.loss }} L4LOAD_FORWARDING_FAILURE=${{ matrix.fault || 0 }} L4LOAD_VRRP=${{ matrix.vrrp || 0 }} bash lab/ipvs/run.sh
+      - run: sudo env L4LOAD_CUTOVER=1 L4LOAD_SYNC=${{ matrix.sync }} L4LOAD_SYNC_LOSS=${{ matrix.loss }} L4LOAD_FORWARDING_FAILURE=${{ matrix.fault || 0 }} L4LOAD_VRRP=${{ matrix.vrrp || 0 }} L4LOAD_HA_PROFILE=${{ matrix.ha || 0 }} bash lab/ipvs/run.sh
       - if: always()
         run: |
           python3 - <<'PY'
@@ -49,5 +55,5 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vip-cutover-${{ matrix.sync }}-${{ matrix.loss }}-${{ matrix.fault || 0 }}-${{ matrix.vrrp || 0 }}
+          name: vip-cutover-${{ matrix.sync }}-${{ matrix.loss }}-${{ matrix.fault || 0 }}-${{ matrix.vrrp || 0 }}-${{ matrix.ha || 0 }}
           path: lab/results/ipvs

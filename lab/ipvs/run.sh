@@ -13,8 +13,19 @@ for ns in l4-client l4-router l4-lb l4-b1 l4-b2; do
     ! ip netns list | cut -d ' ' -f 1 | grep -qx "$ns"
 done
 pids=()
+ha_units=()
 backend_pids=()
 cleanup() {
+    for unit in "${ha_units[@]}"; do
+        journalctl -u "$unit" --no-pager > "$out/$unit-journal.txt" || true
+        systemctl stop "$unit" || true
+    done
+    if [ "${L4LOAD_HA_PROFILE:-0}" = 1 ]; then
+        rm -f /etc/l4load/ha-{1,2}.conf /etc/systemd/system/l4load-ha@.service /usr/local/libexec/l4load-ipvs-gate.py
+        rm -f /run/systemd/system/l4load-ha@{1,2}.service.d/lab.conf
+        rmdir /run/systemd/system/l4load-ha@{1,2}.service.d 2>/dev/null || true
+        systemctl daemon-reload
+    fi
     if [ "${ha_ns:-0}" = 1 ]; then
         for ns in l4-probe1 l4-probe2; do
             ip netns pids "$ns" 2>/dev/null | xargs -r kill 2>/dev/null || true

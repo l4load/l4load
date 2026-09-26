@@ -8,6 +8,14 @@ ip -n l4-router addr add 10.0.5.1/24 dev ha-br
 ip -n l4-router link set ha-br up
 ip_path=$(command -v ip)
 python_path=$(command -v python3)
+sync_line=
+if [ "${L4LOAD_HA_PROFILE:-0}" = 1 ]; then
+    test "${L4LOAD_SYNC:-0}" = 1
+    source lab/cutover/sync.sh
+    sync_line='lvs_sync_daemon sync0 inst DIRECTOR id 42'
+    kill -TERM "$controller"
+    wait "$controller"
+fi
 for n in 1 2; do
     if [ "$n" = 1 ]; then director=l4-lb; else director=l4-alt; fi
     ip link add "hd$n" type veth peer name ha0 netns "$director"
@@ -30,6 +38,7 @@ for n in 1 2; do
 global_defs {
     script_user root
     enable_script_security
+    $sync_line
 }
 vrrp_script dataplane {
     script "$ip_path netns exec l4-probe$n $python_path $PWD/lab/filter/probe.py 10.0.5.$((n+10)) pass"
@@ -53,13 +62,34 @@ vrrp_instance DIRECTOR {
     }
 }
 EOF
+    if [ "${L4LOAD_HA_PROFILE:-0}" = 1 ]; then
+        cat profiles/ipvs/keepalived.conf >> "$out/vrrp-$n.conf"
+        ip netns exec "$director" bash profiles/ipvs/install-ha.sh "$n" "$out/vrrp-$n.conf"
+        unit="l4load-ha@$n.service"
+        mkdir -p "/run/systemd/system/$unit.d"
+        cat > "/run/systemd/system/$unit.d/lab.conf" <<UNIT
+[Service]
+NetworkNamespacePath=/run/netns/$director
+UNIT
+        ha_units+=("$unit")
+    else
     ip netns exec "$director" keepalived -t -f "$out/vrrp-$n.conf"
     ip netns exec "$director" keepalived -n -l -P -f "$out/vrrp-$n.conf" -p "$out/vrrp-$n-parent.pid" -r "$out/vrrp-$n-child.pid" > "$out/vrrp-$n.log" 2>&1 &
     pids+=("$!")
+    fi
 done
+if [ "${L4LOAD_HA_PROFILE:-0}" = 1 ]; then
+    systemctl daemon-reload
+    systemd-analyze verify /etc/systemd/system/l4load-ha@.service
+    systemctl start l4load-ha@2.service l4load-ha@1.service
+    controller=$(systemctl show l4load-ha@1.service -p MainPID --value)
+    alt_controller=$(systemctl show l4load-ha@2.service -p MainPID --value)
+    test "$controller" -gt 1 && test "$alt_controller" -gt 1
+else
 ip netns exec l4-alt keepalived -n -l -C -I -f "$out/keepalived.conf" -p "$out/alt-check-parent.pid" -c "$out/alt-check-child.pid" > "$out/alt-checker.log" 2>&1 &
 alt_controller=$!
 pids+=("$alt_controller")
+fi
 wait_real() {
     local ns=$1 weight=$2 phase=$3
     for attempt in $(seq 1 15); do
@@ -77,6 +107,7 @@ PY
     return 1
 }
 wait_real l4-alt 1 initial
+wait_real l4-lb 1 initial
 ip -n l4-router route replace 198.18.0.1/32 via 10.0.5.100
 has_vip() { ip -n "$1" addr show dev ha0 | grep -q '10.0.5.100/24'; }
 record_vip() {
@@ -93,7 +124,7 @@ wait_vip() {
 wait_vip l4-lb l4-alt
 if [ "${L4LOAD_SYNC:-0}" = 1 ]; then
     sync_client=10.0.0.2
-    source lab/cutover/sync.sh
+    if [ "${L4LOAD_HA_PROFILE:-0}" != 1 ]; then source lab/cutover/sync.sh; fi
     echo baseline > "$out/session-phase"
     ip netns exec l4-client env L4LOAD_SESSION_TIMEOUT=10 python3 -u lab/ipvs/sessions.py "$out" > "$out/vrrp-sessions.jsonl" 2>&1 &
     retained=$!
