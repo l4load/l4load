@@ -1,7 +1,10 @@
 # Comparisons
 
-No competitive measurements have run. Existing trials qualify functional
-behaviour; they do not establish throughput or latency advantages.
+Short virtual comparisons with YANET have run under the same synthetic traffic.
+[Policy-update samples](../lab/filter/results/2026-09-26-load-updates/README.md)
+and [the offered-load failure](../lab/filter/results/2026-09-26-offered-failure/observation.json)
+show different native update paths and an incomplete paired run. They do not
+establish forwarding capacity or a production performance advantage.
 
 Targets: public [YANET](https://github.com/yanet-platform/yanet) for Balance and
 Shield, [Katran](https://github.com/facebookincubator/katran) for XDP/DSR Balance.
