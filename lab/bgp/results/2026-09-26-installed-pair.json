@@ -1,0 +1,17 @@
+{
+  "run": "https://github.com/l4load/l4load/actions/runs/36246575527/job/108416768057",
+  "head": "260deffba9620bf19c0f5b46cf2f81ed91760009",
+  "environment": "Ubuntu 24.04 virtual runner, BIRD 2.14, Keepalived 2.2.8, IPVS 1.31, one router, two director namespaces",
+  "scope": "Both directors installed by install-routed.py, with real systemd Keepalived/IPVS and BIRD/BFD/sync units. The lab prepared networks, backend and health probe.",
+  "initial_service_restarts": {"primary": 0, "secondary": 0},
+  "route": ["secondary after its unit started", "primary after its unit started", "secondary after primary ingress blackhole", "primary after recovery"],
+  "one_tcp_socket_exchanges": {"baseline": 52, "fault": 1, "failover": 42, "return": 28, "restored": 40},
+  "socket_reset": false,
+  "maximum_exchange_rtt_ms": 3349.825,
+  "fresh_tcp_on_secondary": "311/311",
+  "fresh_udp_on_secondary": "311/311",
+  "actual_fresh_starts_per_second_per_protocol": "approximately 100",
+  "restart": "Both routed units and the secondary base unit restarted; TCP/UDP checks passed afterwards.",
+  "update_and_rollback": "An invalid config was rejected. A valid health-check change took both secondary backend weights from 1 to 0 and withdrew its VIP advertisement; restoring the config returned both weights to 1 and reenabled the route. A forced reload failure restored the prior file; TCP/UDP checks still passed.",
+  "limit": "One short virtual run. No physical links, two-host reboot, sustained capacity, operator acceptance or production SLO qualification."
+}

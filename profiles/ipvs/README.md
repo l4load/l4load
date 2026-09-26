@@ -178,4 +178,6 @@ Update or restore the IPVS config with
 `sudo bash profiles/ipvs/update.sh candidate-ipvs.conf director`, then check
 both routes, kernel weights and real traffic. A failed reload restores the
 previous file; operator validation of runtime state is still required.
-The virtual pair trial does not qualify physical links, capacity or a production SLO.
+The [virtual pair trial](../../lab/bgp/results/2026-09-26-installed-pair.json)
+covers installation, failover, unit restarts, drain and rollback. It does not
+qualify physical links, capacity or a production SLO.

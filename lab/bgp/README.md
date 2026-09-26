@@ -44,3 +44,8 @@ controls BFD, forwarding health and both native sync roles. One TCP socket
 survived failover/failback. Stopping the unit withdrew the route; restarting it
 restored the route and fresh TCP/UDP traffic. The lab prepares IPVS services
 and uses a stub base unit; full two-node installation and rollback remain unqualified.
+
+Set `L4LOAD_BGP_TRAFFIC=8` for the [installed pair trial](results/2026-09-26-installed-pair.json).
+Both directors use installed Keepalived/IPVS and BIRD units. The trial covers
+failover, retained TCP state, unit restarts, a backend drain and configuration
+rollback. It remains a short virtual-network result.
