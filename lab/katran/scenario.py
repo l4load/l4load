@@ -99,7 +99,7 @@ def check(expected="b1,b2", base_port="0"):
                 assert source == CLIENT, reply
                 assert echoed.encode() == payload, reply
                 counts[backend] += 1
-        assert set(counts) == set(expected.split(',')), counts
+        assert (len(counts) == 1 if expected == 'one' else set(counts) == set(expected.split(','))), counts
         results[protocol] = dict(counts)
     print(json.dumps({'status': 'pass', 'flows': results, 'client_ip_preserved': True}))
 
