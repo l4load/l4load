@@ -14,6 +14,14 @@ versions, recursive source revisions, environment and raw logs on every run.
 checks. This does not establish live DSR return-path equivalence or throughput.
 Later builds use ccache to avoid recompiling unchanged upstream code.
 
+The bulk-policy step runs the shared nftables/IPVS and YANET snapshot workload
+in the same builder, with identical pairs and sequential UDP probes. YANET uses
+its native firewall reload; nftables uses one set transaction. Packet capture is
+disabled for both. Fixed engine order, low probe rate and different update paths
+limit interpretation. Child CPU/RSS excludes YANET's long-running daemon and
+kernel memory, so these resource fields must not be compared as engine totals.
+The YANET adapter is lab-only; no production rollback or transport is supplied.
+
 The live trial uses `run.sh upstream/yanet` after building that source.
 It needs a disposable privileged Linux host, `/dev/net/tun` and the IPIP module.
 One socket/TAP port joins the same synthetic client/backend subnets used by the

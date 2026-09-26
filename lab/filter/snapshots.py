@@ -2,6 +2,7 @@ import csv
 import ipaddress
 import json
 import math
+import os
 import resource
 import socket
 import subprocess
@@ -51,6 +52,9 @@ if len(sys.argv) == 3:
         else:
             raise TimeoutError('snapshot experiment did not finish')
 else:
+    command = ([sys.executable, 'lab/yanet/snapshot.py', str(out)]
+               if os.environ.get('L4LOAD_SNAPSHOT_ENGINE') == 'yanet' else
+               ['ip', 'netns', 'exec', 'l4-lb', sys.executable, 'profiles/nftables/snapshot.py'])
     set_phase('baseline')
     client = subprocess.Popen(['ip', 'netns', 'exec', 'l4-client', sys.executable, __file__, str(out), 'probe'])
     measurements = []
@@ -70,7 +74,7 @@ else:
             set_phase(str(count))
             before = resource.getrusage(resource.RUSAGE_CHILDREN)
             started = time.monotonic()
-            subprocess.run(['ip', 'netns', 'exec', 'l4-lb', sys.executable, 'profiles/nftables/snapshot.py'], input=json.dumps(pairs), text=True, check=True, timeout=60)
+            subprocess.run(command, input=json.dumps(pairs), text=True, check=True, timeout=60)
             finished = time.monotonic()
             after = resource.getrusage(resource.RUSAGE_CHILDREN)
             measurements.append({'elements': count, 'started_monotonic': started, 'finished_monotonic': finished,

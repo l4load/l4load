@@ -119,7 +119,7 @@ for proto in tcp udp; do
 done
 yanet-cli balancer real flush
 yanet-cli balancer real balancer0 > "$out/reals.txt"
-if [ "$mode" = af-packet ] && [ "${L4LOAD_LOAD:-0}" != 1 ] && [ "${L4LOAD_FILTER_LOAD:-0}" != 1 ]; then
+if [ "$mode" = af-packet ] && [ "${L4LOAD_LOAD:-0}" != 1 ] && [ "${L4LOAD_FILTER_LOAD:-0}" != 1 ] && [ "${L4LOAD_FILTER_SNAPSHOTS:-0}" != 1 ]; then
     ip netns exec l4-router tcpdump -l -nn -e -vv -i any > "$out/packets.txt" 2>&1 &
     pids+=("$!")
     sleep 0.2
