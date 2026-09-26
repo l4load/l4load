@@ -1,11 +1,12 @@
 import json
+import os
 import socket
 import sys
 
 source, expected = sys.argv[1:]
 for kind in (socket.SOCK_STREAM, socket.SOCK_DGRAM):
     with socket.socket(socket.AF_INET, kind) as sock:
-        sock.settimeout(1)
+        sock.settimeout(float(os.environ.get('L4LOAD_PROBE_TIMEOUT', '1')))
         sock.bind((source, 0))
         try:
             sock.connect(('198.18.0.1', 8080))

@@ -76,7 +76,7 @@ for n in 1 2; do
 JSON
     cat > "$out/check-d$n" <<EOF
 #!/bin/sh
-exec ip netns exec l4-p$n python3 "$PWD/lab/filter/probe.py" 10.2.$n.2 pass >/dev/null
+exec env L4LOAD_PROBE_TIMEOUT=0.2 ip netns exec l4-p$n python3 "$PWD/lab/filter/probe.py" 10.2.$n.2 pass >/dev/null
 EOF
     chmod 700 "$out/check-d$n"
     python3 profiles/ipvs/install-routed.py "d$n" "$out/routed-d$n.json" "$out/check-d$n" "$out/ipvs.conf"
